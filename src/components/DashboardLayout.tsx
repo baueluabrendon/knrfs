@@ -10,21 +10,80 @@ import {
   BarChart3,
   Menu,
   User,
+  UserPlus,
+  Upload,
+  Eye,
+  Plus,
+  Clock,
+  PlusCircle,
 } from "lucide-react";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const menuItems = [
-    { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-    { icon: Users, label: "User Management", path: "/users" },
-    { icon: User, label: "Borrowers", path: "/borrowers" },
-    { icon: FileText, label: "Applications", path: "/applications" },
-    { icon: Wallet, label: "Loans", path: "/loans" },
-    { icon: RefreshCcw, label: "Repayments", path: "/repayments" },
-    { icon: PiggyBank, label: "Recoveries", path: "/recoveries" },
-    { icon: BarChart3, label: "Analytics", path: "/analytics" },
+    { 
+      icon: LayoutDashboard, 
+      label: "Dashboard", 
+      path: "/",
+      subItems: [] 
+    },
+    { 
+      icon: Users, 
+      label: "User Management", 
+      path: "/users",
+      subItems: [] 
+    },
+    { 
+      icon: User, 
+      label: "Borrowers", 
+      path: "/borrowers",
+      subItems: [
+        { icon: Users, label: "View All Borrowers", path: "/borrowers" },
+        { icon: UserPlus, label: "Add Borrower", path: "/borrowers/add" },
+        { icon: Upload, label: "Add Bulk Borrowers", path: "/borrowers/bulk" },
+      ]
+    },
+    { 
+      icon: FileText, 
+      label: "Applications", 
+      path: "/applications",
+      subItems: [] 
+    },
+    { 
+      icon: Wallet, 
+      label: "Loans", 
+      path: "/loans",
+      subItems: [
+        { icon: Eye, label: "View Loans", path: "/loans" },
+        { icon: Plus, label: "Add Loan", path: "/loans/add" },
+        { icon: Clock, label: "Over Due Loans", path: "/loans/overdue" },
+      ]
+    },
+    { 
+      icon: RefreshCcw, 
+      label: "Repayments", 
+      path: "/repayments",
+      subItems: [
+        { icon: RefreshCcw, label: "View All Repayments", path: "/repayments" },
+        { icon: PlusCircle, label: "Add Repayment", path: "/repayments/add" },
+        { icon: Upload, label: "Add Bulk Repayment", path: "/repayments/bulk" },
+      ]
+    },
+    { 
+      icon: PiggyBank, 
+      label: "Recoveries", 
+      path: "/recoveries",
+      subItems: [] 
+    },
+    { 
+      icon: BarChart3, 
+      label: "Analytics", 
+      path: "/analytics",
+      subItems: [] 
+    },
   ];
 
   return (
@@ -44,16 +103,37 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             <Menu className="w-5 h-5" />
           </button>
         </div>
-        <nav className="p-4 space-y-2">
+        <nav className="p-4 space-y-1">
           {menuItems.map((item) => (
-            <button
+            <div
               key={item.label}
-              onClick={() => navigate(item.path)}
-              className="sidebar-link w-full"
+              className="relative"
+              onMouseEnter={() => setHoveredItem(item.label)}
+              onMouseLeave={() => setHoveredItem(null)}
             >
-              <item.icon className="w-5 h-5" />
-              <span>{item.label}</span>
-            </button>
+              <button
+                onClick={() => navigate(item.path)}
+                className="sidebar-link w-full"
+              >
+                <item.icon className="w-5 h-5" />
+                <span>{item.label}</span>
+              </button>
+              
+              {item.subItems.length > 0 && hoveredItem === item.label && (
+                <div className="absolute left-full top-0 ml-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
+                  {item.subItems.map((subItem) => (
+                    <button
+                      key={subItem.label}
+                      onClick={() => navigate(subItem.path)}
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                    >
+                      <subItem.icon className="w-4 h-4" />
+                      <span>{subItem.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </nav>
       </aside>
@@ -64,7 +144,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           isSidebarOpen ? "lg:ml-64" : "ml-0"
         }`}
       >
-        <header className="bg-white border-b border-gray-200">
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
           <div className="flex items-center justify-between px-4 py-3">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -79,7 +159,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             </div>
           </div>
         </header>
-        <main className="p-6">{children}</main>
+        <main className="p-6 min-h-[calc(100vh-4rem)]">{children}</main>
       </div>
     </div>
   );
