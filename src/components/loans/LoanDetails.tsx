@@ -1,8 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Mail, Printer, X, Calendar } from "lucide-react";
-import { useState } from "react";
+import { Mail, Printer, X } from "lucide-react";
 
 interface RepaymentScheduleItem {
   paymentDate: string;
@@ -24,7 +23,7 @@ interface Loan {
   borrowerId: string;
   borrowerEmail: string;
   borrowerPhone: string;
-  term: number; // in months
+  term: number;
 }
 
 interface LoanDetailsProps {
@@ -40,8 +39,6 @@ const LoanDetails = ({
   onPrint,
   onEmail,
 }: LoanDetailsProps) => {
-  const [showSchedule, setShowSchedule] = useState(false);
-
   const calculateRepaymentSchedule = (loan: Loan): RepaymentScheduleItem[] => {
     const schedule: RepaymentScheduleItem[] = [];
     const numberOfPayments = loan.term * 2; // Fortnightly payments
@@ -83,59 +80,80 @@ const LoanDetails = ({
         <Button variant="outline" size="icon" onClick={onEmail}>
           <Mail className="h-4 w-4" />
         </Button>
-        <Button variant="outline" size="icon" onClick={() => setShowSchedule(!showSchedule)}>
-          <Calendar className="h-4 w-4" />
-        </Button>
         <Button variant="outline" size="icon" onClick={onClose}>
           <X className="h-4 w-4" />
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label>Loan ID</Label>
-          <div className="mt-1">{loan.id}</div>
-        </div>
-        <div>
-          <Label>Borrower Name</Label>
-          <div className="mt-1">{loan.borrowerName}</div>
-        </div>
-        <div>
-          <Label>Amount</Label>
-          <div className="mt-1">${loan.amount.toLocaleString()}</div>
-        </div>
-        <div>
-          <Label>Interest Rate</Label>
-          <div className="mt-1">{loan.interestRate}%</div>
-        </div>
-        <div>
-          <Label>Start Date</Label>
-          <div className="mt-1">{new Date(loan.startDate).toLocaleDateString()}</div>
-        </div>
-        <div>
-          <Label>End Date</Label>
-          <div className="mt-1">{new Date(loan.endDate).toLocaleDateString()}</div>
-        </div>
-        <div>
-          <Label>Status</Label>
-          <div className="mt-1">
-            <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
-              loan.status === 'active' ? 'bg-green-100 text-green-800' :
-              loan.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-              'bg-red-100 text-red-800'
-            }`}>
-              {loan.status.charAt(0).toUpperCase() + loan.status.slice(1)}
-            </span>
+      <div className="space-y-6">
+        {/* Loan Account Summary */}
+        <div className="rounded-lg border p-4 bg-gray-50">
+          <h3 className="text-lg font-semibold mb-4">Loan Account Summary</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Loan ID</Label>
+              <div className="mt-1">{loan.id}</div>
+            </div>
+            <div>
+              <Label>Amount</Label>
+              <div className="mt-1">${loan.amount.toLocaleString()}</div>
+            </div>
+            <div>
+              <Label>Interest Rate</Label>
+              <div className="mt-1">{loan.interestRate}%</div>
+            </div>
+            <div>
+              <Label>Term</Label>
+              <div className="mt-1">{loan.term} months</div>
+            </div>
+            <div>
+              <Label>Start Date</Label>
+              <div className="mt-1">{new Date(loan.startDate).toLocaleDateString()}</div>
+            </div>
+            <div>
+              <Label>End Date</Label>
+              <div className="mt-1">{new Date(loan.endDate).toLocaleDateString()}</div>
+            </div>
+            <div>
+              <Label>Status</Label>
+              <div className="mt-1">
+                <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
+                  loan.status === 'active' ? 'bg-green-100 text-green-800' :
+                  loan.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                  'bg-red-100 text-red-800'
+                }`}>
+                  {loan.status.charAt(0).toUpperCase() + loan.status.slice(1)}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
-        <div>
-          <Label>Term</Label>
-          <div className="mt-1">{loan.term} months</div>
-        </div>
-      </div>
 
-      {showSchedule && (
-        <div className="mt-6">
+        {/* Borrower Information Summary */}
+        <div className="rounded-lg border p-4 bg-gray-50">
+          <h3 className="text-lg font-semibold mb-4">Borrower Information</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Borrower ID</Label>
+              <div className="mt-1">{loan.borrowerId}</div>
+            </div>
+            <div>
+              <Label>Name</Label>
+              <div className="mt-1">{loan.borrowerName}</div>
+            </div>
+            <div>
+              <Label>Email</Label>
+              <div className="mt-1">{loan.borrowerEmail}</div>
+            </div>
+            <div>
+              <Label>Phone</Label>
+              <div className="mt-1">{loan.borrowerPhone}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Repayment Schedule */}
+        <div className="rounded-lg border p-4">
           <h3 className="text-lg font-semibold mb-4">Repayment Schedule</h3>
           <div className="overflow-x-auto">
             <Table>
@@ -164,7 +182,7 @@ const LoanDetails = ({
             </Table>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
