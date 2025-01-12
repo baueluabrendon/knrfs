@@ -7,8 +7,13 @@ import Index from "./pages/Index";
 import Users from "./pages/Users";
 import Applications from "./pages/Applications";
 import Loans from "./pages/Loans";
+import AddLoan from "./pages/AddLoan";
+import BulkLoans from "./pages/BulkLoans";
 import Borrowers from "./pages/Borrowers";
 import Repayments from "./pages/Repayments";
+import LoansInArrears from "./pages/LoansInArrears";
+import MissedPayments from "./pages/MissedPayments";
+import PartialPayments from "./pages/PartialPayments";
 
 const queryClient = new QueryClient();
 
@@ -24,8 +29,12 @@ const App = () => (
           <Route path="/borrowers" element={<Borrowers />} />
           <Route path="/applications" element={<Applications />} />
           <Route path="/loans" element={<Loans />} />
+          <Route path="/loans/add" element={<AddLoan />} />
+          <Route path="/loans/bulk" element={<BulkLoans />} />
           <Route path="/repayments" element={<Repayments />} />
-          <Route path="/recoveries" element={<Index />} />
+          <Route path="/recoveries/arrears" element={<LoansInArrears />} />
+          <Route path="/recoveries/missed" element={<MissedPayments />} />
+          <Route path="/recoveries/partial" element={<PartialPayments />} />
           <Route path="/analytics" element={<Index />} />
         </Routes>
       </BrowserRouter>

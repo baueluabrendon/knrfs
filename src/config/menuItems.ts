@@ -13,6 +13,9 @@ import {
   Plus,
   Clock,
   PlusCircle,
+  AlertCircle,
+  AlertTriangle,
+  DollarSign,
 } from "lucide-react";
 
 export const menuItems = [
@@ -53,7 +56,11 @@ export const menuItems = [
     icon: Wallet, 
     label: "Loans", 
     path: "/loans",
-    subItems: [] 
+    subItems: [
+      { icon: Eye, label: "View Loans", path: "/loans" },
+      { icon: Plus, label: "Add Loan", path: "/loans/add" },
+      { icon: Upload, label: "Add Bulk Loans", path: "/loans/bulk" },
+    ]
   },
   { 
     icon: RefreshCcw, 
@@ -69,7 +76,11 @@ export const menuItems = [
     icon: PiggyBank, 
     label: "Recoveries", 
     path: "/recoveries",
-    subItems: [] 
+    subItems: [
+      { icon: AlertCircle, label: "Loans In Arrears", path: "/recoveries/arrears" },
+      { icon: AlertTriangle, label: "Missed Payments", path: "/recoveries/missed" },
+      { icon: DollarSign, label: "Partial Payments", path: "/recoveries/partial" },
+    ]
   },
   { 
     icon: BarChart3, 
