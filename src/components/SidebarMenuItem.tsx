@@ -54,7 +54,7 @@ const SidebarMenuItem = ({
       </button>
       
       {subItems.length > 0 && isHovered && (
-        <div className="w-full bg-white py-1 space-y-1">
+        <div className="w-full bg-white py-1 mt-1">
           {subItems.map((subItem) => {
             const SubIcon = subItem.icon;
             return (

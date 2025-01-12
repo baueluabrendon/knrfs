@@ -15,8 +15,9 @@ import {
   Clock,
   PlusCircle,
 } from "lucide-react";
-import SidebarMenuItem from "./SidebarMenuItem";
+import SidebarNav from "./SidebarNav";
 import DashboardHeader from "./DashboardHeader";
+import SidebarHeader from "./SidebarHeader";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -89,37 +90,25 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <aside
-        className={`fixed lg:relative h-screen bg-white border-r border-gray-200 transition-all duration-300 ease-in-out ${
-          isSidebarOpen ? "w-64 translate-x-0" : "w-0 -translate-x-full lg:w-20"
-        } overflow-hidden z-30`}
+        className={`relative h-screen bg-white border-r border-gray-200 ${
+          isSidebarOpen ? "w-64" : "w-20"
+        }`}
       >
         <div className="flex flex-col h-full">
-          <div className="flex items-center justify-between p-4 border-b">
-            <h1 className={`text-xl font-semibold text-gray-800 transition-opacity duration-300 ${
-              isSidebarOpen ? "opacity-100" : "opacity-0"
-            }`}>
-              LoanManager
-            </h1>
-          </div>
-          <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-            {menuItems.map((item) => (
-              <SidebarMenuItem
-                key={item.label}
-                {...item}
-                isHovered={hoveredItem === item.label}
-                onMouseEnter={() => setHoveredItem(item.label)}
-                onMouseLeave={() => setHoveredItem(null)}
-                onCloseSidebar={() => setIsSidebarOpen(false)}
-              />
-            ))}
-          </nav>
+          <SidebarHeader isOpen={isSidebarOpen} />
+          <SidebarNav
+            menuItems={menuItems}
+            hoveredItem={hoveredItem}
+            setHoveredItem={setHoveredItem}
+            onCloseSidebar={() => setIsSidebarOpen(false)}
+          />
         </div>
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+      <div className="flex-1 overflow-x-hidden">
         <DashboardHeader onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
-        <main className="flex-1 p-6 transition-all duration-300 ease-in-out">
+        <main className="p-6 bg-gray-50">
           {children}
         </main>
       </div>
