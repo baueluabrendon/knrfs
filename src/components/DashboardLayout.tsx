@@ -87,7 +87,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex">
       <aside
         className={`fixed top-0 left-0 z-40 h-screen transition-transform ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -106,24 +106,38 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           {menuItems.map((item) => (
             <div
               key={item.label}
-              className="relative"
+              className="relative group"
               onMouseEnter={() => setHoveredItem(item.label)}
               onMouseLeave={() => setHoveredItem(null)}
             >
               <button
-                onClick={() => navigate(item.path)}
-                className="flex items-center w-full px-2 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 hover:text-gray-900 group"
+                onClick={() => {
+                  navigate(item.path);
+                  if (window.innerWidth < 1024) {
+                    setIsSidebarOpen(false);
+                  }
+                }}
+                className={`flex items-center w-full px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
+                  hoveredItem === item.label
+                    ? "bg-primary/10 text-primary"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
               >
                 <item.icon className="w-5 h-5 mr-3" />
                 <span>{item.label}</span>
               </button>
               
               {item.subItems.length > 0 && hoveredItem === item.label && (
-                <div className="absolute left-0 w-full mt-0 bg-white border border-gray-200 rounded-md shadow-lg py-1">
+                <div className="absolute left-0 w-full mt-0 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-50">
                   {item.subItems.map((subItem) => (
                     <button
                       key={subItem.label}
-                      onClick={() => navigate(subItem.path)}
+                      onClick={() => {
+                        navigate(subItem.path);
+                        if (window.innerWidth < 1024) {
+                          setIsSidebarOpen(false);
+                        }
+                      }}
                       className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                     >
                       <subItem.icon className="w-4 h-4" />
@@ -137,11 +151,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         </nav>
       </aside>
 
-      <div
-        className={`transition-all duration-300 ${
-          isSidebarOpen ? "lg:ml-64" : "ml-0"
-        }`}
-      >
+      <div className={`flex-1 transition-all duration-300 ${isSidebarOpen ? "lg:ml-64" : "ml-0"}`}>
         <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
           <div className="flex items-center justify-between px-4 py-3">
             <button
@@ -157,7 +167,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             </div>
           </div>
         </header>
-        <main className="p-6 min-h-[calc(100vh-4rem)]">{children}</main>
+        <main className="p-6">{children}</main>
       </div>
     </div>
   );
