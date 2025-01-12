@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Printer, Mail, X } from "lucide-react";
 
 interface Borrower {
   id: string;
@@ -22,6 +22,15 @@ interface Borrower {
   address: string;
   occupation: string;
   monthlyIncome: number;
+  activeLoanId: string | null;
+}
+
+interface Loan {
+  id: string;
+  amount: number;
+  startDate: string;
+  endDate: string | null;
+  status: 'active' | 'repaid';
 }
 
 const Borrowers = () => {
@@ -34,6 +43,7 @@ const Borrowers = () => {
       address: "123 Main St, City",
       occupation: "Software Engineer",
       monthlyIncome: 5000,
+      activeLoanId: "L001"
     },
     {
       id: "B002",
@@ -43,10 +53,31 @@ const Borrowers = () => {
       address: "456 Oak Ave, Town",
       occupation: "Teacher",
       monthlyIncome: 4000,
+      activeLoanId: null
     },
   ]);
 
+  const [selectedBorrower, setSelectedBorrower] = useState<Borrower | null>(null);
   const [newBorrower, setNewBorrower] = useState<Partial<Borrower>>({});
+  const [showBorrowerDetails, setShowBorrowerDetails] = useState(false);
+
+  // Sample loan history data
+  const loanHistory: Loan[] = [
+    {
+      id: "L001",
+      amount: 10000,
+      startDate: "2024-01-01",
+      endDate: null,
+      status: 'active'
+    },
+    {
+      id: "L002",
+      amount: 5000,
+      startDate: "2023-06-01",
+      endDate: "2023-12-31",
+      status: 'repaid'
+    }
+  ];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -59,8 +90,17 @@ const Borrowers = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const id = `B${(borrowers.length + 1).toString().padStart(3, '0')}`;
-    setBorrowers((prev) => [...prev, { ...newBorrower, id } as Borrower]);
+    setBorrowers((prev) => [...prev, { ...newBorrower, id, activeLoanId: null } as Borrower]);
     setNewBorrower({});
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleEmail = () => {
+    // Implement email functionality
+    console.log('Email functionality to be implemented');
   };
 
   return (
@@ -161,6 +201,8 @@ const Borrowers = () => {
                 <TableHead>Address</TableHead>
                 <TableHead>Occupation</TableHead>
                 <TableHead>Monthly Income</TableHead>
+                <TableHead>Active Loan ID</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -173,11 +215,117 @@ const Borrowers = () => {
                   <TableCell>{borrower.address}</TableCell>
                   <TableCell>{borrower.occupation}</TableCell>
                   <TableCell>${borrower.monthlyIncome.toLocaleString()}</TableCell>
+                  <TableCell>{borrower.activeLoanId || 'No active loan'}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedBorrower(borrower);
+                        setShowBorrowerDetails(true);
+                      }}
+                    >
+                      View Details
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </Card>
+
+        {/* Borrower Details Dialog */}
+        <Dialog open={showBorrowerDetails} onOpenChange={setShowBorrowerDetails}>
+          <DialogContent className="sm:max-w-[700px]">
+            <DialogHeader>
+              <DialogTitle>Borrower Details</DialogTitle>
+              <div className="flex gap-2 absolute right-4 top-4">
+                <Button variant="outline" size="icon" onClick={handlePrint}>
+                  <Printer className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" onClick={handleEmail}>
+                  <Mail className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" onClick={() => setShowBorrowerDetails(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </DialogHeader>
+            
+            {selectedBorrower && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>ID</Label>
+                    <div className="mt-1">{selectedBorrower.id}</div>
+                  </div>
+                  <div>
+                    <Label>Name</Label>
+                    <div className="mt-1">{selectedBorrower.name}</div>
+                  </div>
+                  <div>
+                    <Label>Email</Label>
+                    <div className="mt-1">{selectedBorrower.email}</div>
+                  </div>
+                  <div>
+                    <Label>Phone</Label>
+                    <div className="mt-1">{selectedBorrower.phone}</div>
+                  </div>
+                  <div>
+                    <Label>Address</Label>
+                    <div className="mt-1">{selectedBorrower.address}</div>
+                  </div>
+                  <div>
+                    <Label>Occupation</Label>
+                    <div className="mt-1">{selectedBorrower.occupation}</div>
+                  </div>
+                  <div>
+                    <Label>Monthly Income</Label>
+                    <div className="mt-1">${selectedBorrower.monthlyIncome.toLocaleString()}</div>
+                  </div>
+                  <div>
+                    <Label>Active Loan ID</Label>
+                    <div className="mt-1">{selectedBorrower.activeLoanId || 'No active loan'}</div>
+                  </div>
+                </div>
+
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold mb-4">Loan History</h3>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Loan ID</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Start Date</TableHead>
+                        <TableHead>End Date</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {loanHistory.map((loan) => (
+                        <TableRow key={loan.id}>
+                          <TableCell>{loan.id}</TableCell>
+                          <TableCell>${loan.amount.toLocaleString()}</TableCell>
+                          <TableCell>{new Date(loan.startDate).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            {loan.endDate ? new Date(loan.endDate).toLocaleDateString() : 'Active'}
+                          </TableCell>
+                          <TableCell>
+                            <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
+                              loan.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {loan.status.charAt(0).toUpperCase() + loan.status.slice(1)}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
