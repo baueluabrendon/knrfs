@@ -70,6 +70,12 @@ const LoanDetails = ({
   };
 
   const repaymentSchedule = calculateRepaymentSchedule(loan);
+  
+  // Calculate totals
+  const totalPrincipal = loan.amount;
+  const totalInterest = repaymentSchedule.reduce((sum, payment) => sum + payment.interestAmount, 0);
+  const totalGST = repaymentSchedule.reduce((sum, payment) => sum + payment.gstAmount, 0);
+  const totalRepayable = totalPrincipal + totalInterest + totalGST;
 
   return (
     <div className="space-y-6">
@@ -148,6 +154,29 @@ const LoanDetails = ({
             <div>
               <Label>Phone</Label>
               <div className="mt-1">{loan.borrowerPhone}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Loan Summary Totals */}
+        <div className="rounded-lg border p-4 bg-gray-50">
+          <h3 className="text-lg font-semibold mb-4">Loan Summary Totals</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Principal Amount</Label>
+              <div className="mt-1">${totalPrincipal.toLocaleString()}</div>
+            </div>
+            <div>
+              <Label>Total Interest</Label>
+              <div className="mt-1">${totalInterest.toFixed(2)}</div>
+            </div>
+            <div>
+              <Label>Total GST</Label>
+              <div className="mt-1">${totalGST.toFixed(2)}</div>
+            </div>
+            <div>
+              <Label>Total Amount Repayable</Label>
+              <div className="mt-1 font-semibold text-lg">${totalRepayable.toFixed(2)}</div>
             </div>
           </div>
         </div>
