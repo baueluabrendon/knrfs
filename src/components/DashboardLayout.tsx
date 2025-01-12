@@ -88,7 +88,6 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Sidebar */}
       <aside
         className={`fixed top-0 left-0 z-40 h-screen transition-transform ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -113,14 +112,14 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             >
               <button
                 onClick={() => navigate(item.path)}
-                className="sidebar-link w-full"
+                className="flex items-center w-full px-2 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 hover:text-gray-900 group"
               >
-                <item.icon className="w-5 h-5" />
+                <item.icon className="w-5 h-5 mr-3" />
                 <span>{item.label}</span>
               </button>
               
               {item.subItems.length > 0 && hoveredItem === item.label && (
-                <div className="absolute left-full top-0 ml-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
+                <div className="absolute left-0 w-full mt-0 bg-white border border-gray-200 rounded-md shadow-lg py-1">
                   {item.subItems.map((subItem) => (
                     <button
                       key={subItem.label}
@@ -138,7 +137,6 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         </nav>
       </aside>
 
-      {/* Main content */}
       <div
         className={`transition-all duration-300 ${
           isSidebarOpen ? "lg:ml-64" : "ml-0"
