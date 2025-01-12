@@ -8,6 +8,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import LoanDetails from "@/components/loans/LoanDetails";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Loan {
   id: string;
@@ -17,9 +20,16 @@ interface Loan {
   startDate: string;
   endDate: string;
   status: "active" | "completed" | "defaulted";
+  borrowerId: string;
+  borrowerEmail: string;
+  borrowerPhone: string;
+  term: number;
 }
 
 const Loans = () => {
+  const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
+  const { toast } = useToast();
+
   // Mock data - replace with actual data fetching
   const [loans] = useState<Loan[]>([
     {
@@ -30,9 +40,24 @@ const Loans = () => {
       startDate: "2024-01-01",
       endDate: "2024-12-31",
       status: "active",
+      borrowerId: "B001",
+      borrowerEmail: "john@example.com",
+      borrowerPhone: "1234567890",
+      term: 12,
     },
     // Add more mock data as needed
   ]);
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleEmail = () => {
+    toast({
+      title: "Email Sent",
+      description: "Loan details have been emailed successfully.",
+    });
+  };
 
   return (
     <DashboardLayout>
@@ -56,13 +81,19 @@ const Loans = () => {
             </TableHeader>
             <TableBody>
               {loans.map((loan) => (
-                <TableRow key={loan.id}>
-                  <TableCell>{loan.id}</TableCell>
+                <TableRow 
+                  key={loan.id}
+                  className="cursor-pointer hover:bg-gray-50"
+                  onClick={() => setSelectedLoan(loan)}
+                >
+                  <TableCell className="font-medium text-blue-600 hover:underline">
+                    {loan.id}
+                  </TableCell>
                   <TableCell>{loan.borrowerName}</TableCell>
                   <TableCell>${loan.amount.toLocaleString()}</TableCell>
                   <TableCell>{loan.interestRate}%</TableCell>
-                  <TableCell>{loan.startDate}</TableCell>
-                  <TableCell>{loan.endDate}</TableCell>
+                  <TableCell>{new Date(loan.startDate).toLocaleDateString()}</TableCell>
+                  <TableCell>{new Date(loan.endDate).toLocaleDateString()}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                       loan.status === 'active' ? 'bg-green-100 text-green-800' :
@@ -77,6 +108,19 @@ const Loans = () => {
             </TableBody>
           </Table>
         </div>
+
+        <Dialog open={!!selectedLoan} onOpenChange={(open) => !open && setSelectedLoan(null)}>
+          <DialogContent className="max-w-4xl">
+            {selectedLoan && (
+              <LoanDetails
+                loan={selectedLoan}
+                onClose={() => setSelectedLoan(null)}
+                onPrint={handlePrint}
+                onEmail={handleEmail}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
