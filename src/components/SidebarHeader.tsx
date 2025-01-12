@@ -6,7 +6,7 @@ interface SidebarHeaderProps {
 
 const SidebarHeader = ({ isOpen }: SidebarHeaderProps) => {
   return (
-    <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-primary to-accent">
+    <div className="flex items-center justify-between p-4 border-b bg-primary">
       <h1 className={`text-xl font-semibold text-brown-800 transition-opacity duration-300 ${
         isOpen ? "opacity-100" : "opacity-0"
       }`}>

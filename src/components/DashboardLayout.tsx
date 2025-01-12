@@ -33,7 +33,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   });
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen">
       <aside
         className={`bg-primary border-r border-gray-200 ${
           isSidebarOpen ? "w-64" : "w-16"
