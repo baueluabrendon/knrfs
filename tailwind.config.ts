@@ -41,7 +41,7 @@ export default {
           foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT: "#FEF7CD", // Soft Yellow
+          DEFAULT: "#F97316", // Changed to a stronger yellow/orange
           foreground: "hsl(var(--accent-foreground))",
         },
         popover: {
