@@ -103,6 +103,11 @@ const Borrowers = () => {
     console.log('Email functionality to be implemented');
   };
 
+  const handleBorrowerClick = (borrower: Borrower) => {
+    setSelectedBorrower(borrower);
+    setShowBorrowerDetails(true);
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -202,32 +207,33 @@ const Borrowers = () => {
                 <TableHead>Occupation</TableHead>
                 <TableHead>Monthly Income</TableHead>
                 <TableHead>Active Loan ID</TableHead>
-                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {borrowers.map((borrower) => (
                 <TableRow key={borrower.id}>
-                  <TableCell>{borrower.id}</TableCell>
-                  <TableCell>{borrower.name}</TableCell>
+                  <TableCell>
+                    <button 
+                      className="text-blue-600 hover:underline"
+                      onClick={() => handleBorrowerClick(borrower)}
+                    >
+                      {borrower.id}
+                    </button>
+                  </TableCell>
+                  <TableCell>
+                    <button 
+                      className="text-blue-600 hover:underline"
+                      onClick={() => handleBorrowerClick(borrower)}
+                    >
+                      {borrower.name}
+                    </button>
+                  </TableCell>
                   <TableCell>{borrower.email}</TableCell>
                   <TableCell>{borrower.phone}</TableCell>
                   <TableCell>{borrower.address}</TableCell>
                   <TableCell>{borrower.occupation}</TableCell>
                   <TableCell>${borrower.monthlyIncome.toLocaleString()}</TableCell>
                   <TableCell>{borrower.activeLoanId || 'No active loan'}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedBorrower(borrower);
-                        setShowBorrowerDetails(true);
-                      }}
-                    >
-                      View Details
-                    </Button>
-                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
