@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import Users from "./pages/Users";
 import Applications from "./pages/Applications";
 import Loans from "./pages/Loans";
+import Borrowers from "./pages/Borrowers";
+import Repayments from "./pages/Repayments";
 
 const queryClient = new QueryClient();
 
@@ -19,10 +21,10 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/users" element={<Users />} />
-          <Route path="/borrowers" element={<Index />} />
+          <Route path="/borrowers" element={<Borrowers />} />
           <Route path="/applications" element={<Applications />} />
           <Route path="/loans" element={<Loans />} />
-          <Route path="/repayments" element={<Index />} />
+          <Route path="/repayments" element={<Repayments />} />
           <Route path="/recoveries" element={<Index />} />
           <Route path="/analytics" element={<Index />} />
         </Routes>
