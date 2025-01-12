@@ -22,10 +22,10 @@ export default {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
+        background: "#FEC6A1", // Brown background
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#FEC6A1", // Brown
+          DEFAULT: "#0EA5E9", // Ocean Blue/Green for sidebar
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
@@ -41,7 +41,7 @@ export default {
           foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT: "#F97316", // Changed to a stronger yellow/orange
+          DEFAULT: "#F97316", // Yellow/Orange for top bar
           foreground: "hsl(var(--accent-foreground))",
         },
         popover: {

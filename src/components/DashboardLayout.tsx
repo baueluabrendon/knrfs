@@ -13,13 +13,11 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const [showAddBorrower, setShowAddBorrower] = useState(false);
 
   const handleAddBorrower = (formData: BorrowerFormData) => {
-    // Here you would typically make an API call to add the borrower
     console.log('New borrower data:', formData);
     setShowAddBorrower(false);
     toast.success("Borrower added successfully");
   };
 
-  // Clone and modify the menu items to include the callback
   const menuItems = defaultMenuItems.map(item => {
     if (item.label === "Borrowers") {
       return {
@@ -35,9 +33,9 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   });
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-background">
       <aside
-        className={`bg-white border-r border-gray-200 ${
+        className={`bg-primary border-r border-gray-200 ${
           isSidebarOpen ? "w-64" : "w-16"
         } transition-[width] duration-200`}
       >
@@ -54,7 +52,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 
       <div className="flex-1">
         <DashboardHeader onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
-        <main className="p-6 bg-gray-50">
+        <main className="p-6 bg-background">
           {children}
         </main>
       </div>
