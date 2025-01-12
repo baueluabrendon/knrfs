@@ -1,14 +1,14 @@
-import { Icon } from "lucide-react";
+import { LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface SubItem {
-  icon: Icon;
+  icon: LucideIcon;
   label: string;
   path: string;
 }
 
 interface SidebarMenuItemProps {
-  icon: Icon;
+  icon: LucideIcon;
   label: string;
   path: string;
   subItems: SubItem[];
@@ -39,7 +39,7 @@ const SidebarMenuItem = ({
 
   return (
     <div
-      className="relative group"
+      className="relative"
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
@@ -54,17 +54,20 @@ const SidebarMenuItem = ({
       </button>
       
       {subItems.length > 0 && isHovered && (
-        <div className="absolute left-full top-0 w-48 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-50">
-          {subItems.map((subItem) => (
-            <button
-              key={subItem.label}
-              onClick={() => handleClick(subItem.path)}
-              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-            >
-              <subItem.icon className="w-4 h-4" />
-              <span>{subItem.label}</span>
-            </button>
-          ))}
+        <div className="w-full bg-white py-1 space-y-1">
+          {subItems.map((subItem) => {
+            const SubIcon = subItem.icon;
+            return (
+              <button
+                key={subItem.label}
+                onClick={() => handleClick(subItem.path)}
+                className="w-full px-8 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+              >
+                <SubIcon className="w-4 h-4" />
+                <span>{subItem.label}</span>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

@@ -86,36 +86,40 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-40 h-screen w-64 transform transition-transform duration-300 ease-in-out ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } bg-white border-r border-gray-200`}
+        className={`fixed lg:relative h-screen bg-white border-r border-gray-200 transition-all duration-300 ease-in-out ${
+          isSidebarOpen ? "w-64 translate-x-0" : "w-0 -translate-x-full lg:w-20"
+        } overflow-hidden z-30`}
       >
-        <div className="flex items-center justify-between p-4 border-b">
-          <h1 className="text-xl font-semibold text-gray-800">LoanManager</h1>
+        <div className="flex flex-col h-full">
+          <div className="flex items-center justify-between p-4 border-b">
+            <h1 className={`text-xl font-semibold text-gray-800 transition-opacity duration-300 ${
+              isSidebarOpen ? "opacity-100" : "opacity-0"
+            }`}>
+              LoanManager
+            </h1>
+          </div>
+          <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+            {menuItems.map((item) => (
+              <SidebarMenuItem
+                key={item.label}
+                {...item}
+                isHovered={hoveredItem === item.label}
+                onMouseEnter={() => setHoveredItem(item.label)}
+                onMouseLeave={() => setHoveredItem(null)}
+                onCloseSidebar={() => setIsSidebarOpen(false)}
+              />
+            ))}
+          </nav>
         </div>
-        <nav className="p-4 space-y-1">
-          {menuItems.map((item) => (
-            <SidebarMenuItem
-              key={item.label}
-              {...item}
-              isHovered={hoveredItem === item.label}
-              onMouseEnter={() => setHoveredItem(item.label)}
-              onMouseLeave={() => setHoveredItem(null)}
-              onCloseSidebar={() => setIsSidebarOpen(false)}
-            />
-          ))}
-        </nav>
       </aside>
 
-      <div 
-        className={`flex-1 transition-all duration-300 ease-in-out ${
-          isSidebarOpen ? "lg:ml-64" : "ml-0"
-        }`}
-      >
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
         <DashboardHeader onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
-        <main className="p-6 min-h-[calc(100vh-4rem)] bg-gray-50">
+        <main className="flex-1 p-6 transition-all duration-300 ease-in-out">
           {children}
         </main>
       </div>
