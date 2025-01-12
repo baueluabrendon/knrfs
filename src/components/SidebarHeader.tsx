@@ -6,11 +6,11 @@ interface SidebarHeaderProps {
 
 const SidebarHeader = ({ isOpen }: SidebarHeaderProps) => {
   return (
-    <div className="flex items-center justify-between p-4 border-b">
-      <h1 className={`text-xl font-semibold text-gray-800 transition-opacity duration-300 ${
+    <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-amber-100 to-amber-200">
+      <h1 className={`text-xl font-semibold text-brown-800 transition-opacity duration-300 ${
         isOpen ? "opacity-100" : "opacity-0"
       }`}>
-        LoanManager
+        K&R Financial Services
       </h1>
     </div>
   );
