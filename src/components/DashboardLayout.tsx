@@ -15,13 +15,29 @@ import {
   Clock,
   PlusCircle,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 import SidebarNav from "./SidebarNav";
 import DashboardHeader from "./DashboardHeader";
 import SidebarHeader from "./SidebarHeader";
+import BorrowerForm, { BorrowerFormData } from "./borrowers/BorrowerForm";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [showAddBorrower, setShowAddBorrower] = useState(false);
+
+  const handleAddBorrower = (formData: BorrowerFormData) => {
+    // Here you would typically make an API call to add the borrower
+    console.log('New borrower data:', formData);
+    setShowAddBorrower(false);
+    toast.success("Borrower added successfully");
+  };
 
   const menuItems = [
     { 
@@ -42,7 +58,12 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       path: "/borrowers",
       subItems: [
         { icon: Users, label: "View All Borrowers", path: "/borrowers" },
-        { icon: UserPlus, label: "Add Borrower", path: "/borrowers/add" },
+        { 
+          icon: UserPlus, 
+          label: "Add Borrower", 
+          path: "#",
+          onClick: () => setShowAddBorrower(true)
+        },
         { icon: Upload, label: "Add Bulk Borrowers", path: "/borrowers/bulk" },
       ]
     },
@@ -112,6 +133,19 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           {children}
         </main>
       </div>
+
+      {/* Add Borrower Dialog */}
+      <Dialog open={showAddBorrower} onOpenChange={setShowAddBorrower}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Add New Borrower</DialogTitle>
+          </DialogHeader>
+          <BorrowerForm 
+            onSubmit={handleAddBorrower}
+            onCancel={() => setShowAddBorrower(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

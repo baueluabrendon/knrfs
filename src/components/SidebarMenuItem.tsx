@@ -5,6 +5,7 @@ interface SubItem {
   icon: LucideIcon;
   label: string;
   path: string;
+  onClick?: () => void;
 }
 
 interface SidebarMenuItemProps {
@@ -30,10 +31,14 @@ const SidebarMenuItem = ({
 }: SidebarMenuItemProps) => {
   const navigate = useNavigate();
 
-  const handleClick = (navigationPath: string) => {
-    navigate(navigationPath);
-    if (window.innerWidth < 1024) {
-      onCloseSidebar();
+  const handleClick = (navigationPath: string, onClick?: () => void) => {
+    if (onClick) {
+      onClick();
+    } else if (navigationPath !== "#") {
+      navigate(navigationPath);
+      if (window.innerWidth < 1024) {
+        onCloseSidebar();
+      }
     }
   };
 
@@ -60,7 +65,7 @@ const SidebarMenuItem = ({
             return (
               <button
                 key={subItem.label}
-                onClick={() => handleClick(subItem.path)}
+                onClick={() => handleClick(subItem.path, subItem.onClick)}
                 className="w-full px-8 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
               >
                 <SubIcon className="w-4 h-4" />
