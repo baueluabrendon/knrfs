@@ -9,6 +9,7 @@ import {
   PiggyBank,
   BarChart3,
   Menu,
+  User,
 } from "lucide-react";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
@@ -18,6 +19,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/" },
     { icon: Users, label: "User Management", path: "/users" },
+    { icon: User, label: "Borrowers", path: "/borrowers" },
     { icon: FileText, label: "Applications", path: "/applications" },
     { icon: Wallet, label: "Loans", path: "/loans" },
     { icon: RefreshCcw, label: "Repayments", path: "/repayments" },
