@@ -90,9 +90,9 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <aside
-        className={`relative h-screen bg-white border-r border-gray-200 ${
-          isSidebarOpen ? "w-64" : "w-20"
-        }`}
+        className={`bg-white border-r border-gray-200 ${
+          isSidebarOpen ? "w-64" : "w-16"
+        } transition-[width] duration-200`}
       >
         <div className="flex flex-col h-full">
           <SidebarHeader isOpen={isSidebarOpen} />
@@ -106,7 +106,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-x-hidden">
+      <div className="flex-1">
         <DashboardHeader onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
         <main className="p-6 bg-gray-50">
           {children}
