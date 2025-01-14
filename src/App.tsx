@@ -35,6 +35,10 @@ const App = () => (
           <Route path="/recoveries/arrears" element={<LoansInArrears />} />
           <Route path="/recoveries/missed" element={<MissedPayments />} />
           <Route path="/recoveries/partial" element={<PartialPayments />} />
+          <Route path="/accounting/chart-of-accounts" element={<Index />} />
+          <Route path="/accounting/balance-sheet" element={<Index />} />
+          <Route path="/accounting/profit-loss" element={<Index />} />
+          <Route path="/accounting/cashflow" element={<Index />} />
           <Route path="/analytics" element={<Index />} />
         </Routes>
       </BrowserRouter>

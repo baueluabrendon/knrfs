@@ -16,6 +16,10 @@ import {
   AlertCircle,
   AlertTriangle,
   DollarSign,
+  Receipt,
+  FileSpreadsheet,
+  LineChart,
+  ArrowDownUp,
 } from "lucide-react";
 
 export const menuItems = [
@@ -80,6 +84,17 @@ export const menuItems = [
       { icon: AlertCircle, label: "Loans In Arrears", path: "/recoveries/arrears" },
       { icon: AlertTriangle, label: "Missed Payments", path: "/recoveries/missed" },
       { icon: DollarSign, label: "Partial Payments", path: "/recoveries/partial" },
+    ]
+  },
+  { 
+    icon: Receipt, 
+    label: "Accounting", 
+    path: "/accounting",
+    subItems: [
+      { icon: FileText, label: "Chart of Accounts", path: "/accounting/chart-of-accounts" },
+      { icon: FileSpreadsheet, label: "Balance Sheet", path: "/accounting/balance-sheet" },
+      { icon: LineChart, label: "Profit & Loss", path: "/accounting/profit-loss" },
+      { icon: ArrowDownUp, label: "Statement of Cashflow", path: "/accounting/cashflow" },
     ]
   },
   { 
