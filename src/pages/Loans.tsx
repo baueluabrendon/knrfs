@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import {
   Table,
@@ -9,8 +10,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import LoanDetails from "@/components/loans/LoanDetails";
 import { useToast } from "@/components/ui/use-toast";
+import { Plus } from "lucide-react";
 
 interface Loan {
   id: string;
@@ -29,8 +32,8 @@ interface Loan {
 const Loans = () => {
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  // Mock data - replace with actual data fetching
   const [loans] = useState<Loan[]>([
     {
       id: "L001",
@@ -45,7 +48,6 @@ const Loans = () => {
       borrowerPhone: "1234567890",
       term: 12,
     },
-    // Add more mock data as needed
   ]);
 
   const handlePrint = () => {
@@ -64,6 +66,10 @@ const Loans = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Loans Management</h1>
+          <Button onClick={() => navigate("/loans/add")}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Loan
+          </Button>
         </div>
         
         <div className="rounded-md border">

@@ -10,12 +10,6 @@ import {
   UserPlus,
   Upload,
   Eye,
-  Plus,
-  Clock,
-  PlusCircle,
-  AlertCircle,
-  AlertTriangle,
-  DollarSign,
   Receipt,
   FileSpreadsheet,
   LineChart,
@@ -62,7 +56,6 @@ export const menuItems = [
     path: "/loans",
     subItems: [
       { icon: Eye, label: "View Loans", path: "/loans" },
-      { icon: Plus, label: "Add Loan", path: "/loans/add" },
       { icon: Upload, label: "Add Bulk Loans", path: "/loans/bulk" },
     ]
   },
