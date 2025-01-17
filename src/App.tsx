@@ -15,6 +15,8 @@ import Repayments from "./pages/Repayments";
 import LoansInArrears from "./pages/LoansInArrears";
 import MissedPayments from "./pages/MissedPayments";
 import PartialPayments from "./pages/PartialPayments";
+import ChartOfAccounts from "./pages/ChartOfAccounts";
+import BalanceSheet from "./pages/BalanceSheet";
 
 const queryClient = new QueryClient();
 
@@ -37,8 +39,8 @@ const App = () => (
           <Route path="/recoveries/arrears" element={<LoansInArrears />} />
           <Route path="/recoveries/missed" element={<MissedPayments />} />
           <Route path="/recoveries/partial" element={<PartialPayments />} />
-          <Route path="/accounting/chart-of-accounts" element={<Index />} />
-          <Route path="/accounting/balance-sheet" element={<Index />} />
+          <Route path="/accounting/chart-of-accounts" element={<ChartOfAccounts />} />
+          <Route path="/accounting/balance-sheet" element={<BalanceSheet />} />
           <Route path="/accounting/profit-loss" element={<Index />} />
           <Route path="/accounting/cashflow" element={<Index />} />
           <Route path="/analytics" element={<Index />} />
