@@ -17,6 +17,8 @@ import MissedPayments from "./pages/MissedPayments";
 import PartialPayments from "./pages/PartialPayments";
 import ChartOfAccounts from "./pages/ChartOfAccounts";
 import BalanceSheet from "./pages/BalanceSheet";
+import ProfitAndLoss from "./pages/ProfitAndLoss";
+import Cashflow from "./pages/Cashflow";
 
 const queryClient = new QueryClient();
 
@@ -41,8 +43,8 @@ const App = () => (
           <Route path="/recoveries/partial" element={<PartialPayments />} />
           <Route path="/accounting/chart-of-accounts" element={<ChartOfAccounts />} />
           <Route path="/accounting/balance-sheet" element={<BalanceSheet />} />
-          <Route path="/accounting/profit-loss" element={<Index />} />
-          <Route path="/accounting/cashflow" element={<Index />} />
+          <Route path="/accounting/profit-loss" element={<ProfitAndLoss />} />
+          <Route path="/accounting/cashflow" element={<Cashflow />} />
           <Route path="/analytics" element={<Index />} />
         </Routes>
       </BrowserRouter>
