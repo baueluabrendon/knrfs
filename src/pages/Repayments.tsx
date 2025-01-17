@@ -1,7 +1,19 @@
+import { useState } from "react";
+import { Plus, Upload } from "lucide-react";
+import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 interface Repayment {
   id: string;
@@ -11,6 +23,7 @@ interface Repayment {
   borrowerName: string;
   status: "pending" | "completed" | "failed";
   payPeriod: string;
+  receiptUrl?: string;
 }
 
 const sampleRepayments: Repayment[] = [
@@ -21,7 +34,8 @@ const sampleRepayments: Repayment[] = [
     loanId: "LOAN-001",
     borrowerName: "John Doe",
     status: "completed",
-    payPeriod: "January 2024"
+    payPeriod: "January 2024",
+    receiptUrl: "#"
   },
   {
     id: "2",
@@ -39,17 +53,67 @@ const sampleRepayments: Repayment[] = [
     loanId: "LOAN-003",
     borrowerName: "Bob Wilson",
     status: "completed",
-    payPeriod: "January 2024"
+    payPeriod: "January 2024",
+    receiptUrl: "#"
   }
 ];
 
 const Repayments = () => {
   const [repayments] = useState<Repayment[]>(sampleRepayments);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Here you would typically handle the file upload
+      toast.success("Receipt uploaded successfully");
+      setIsDialogOpen(false);
+    }
+  };
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-semibold text-gray-800">Repayments Management</h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-semibold text-gray-800">Repayments Management</h1>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Repayment
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Upload Repayment Receipt</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="loanId">Loan ID</Label>
+                  <Input id="loanId" placeholder="Enter loan ID" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="amount">Amount</Label>
+                  <Input id="amount" type="number" placeholder="Enter amount" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="receipt">Receipt Document</Label>
+                  <Input
+                    id="receipt"
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={handleFileUpload}
+                  />
+                </div>
+                <Button className="w-full" onClick={() => setIsDialogOpen(false)}>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload Receipt
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+
         <Card className="p-6">
           <div className="rounded-md border">
             <Table>
@@ -61,6 +125,7 @@ const Repayments = () => {
                   <TableHead>Borrower</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Receipt</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -82,6 +147,15 @@ const Repayments = () => {
                             'bg-red-100 text-red-800'}`}>
                           {repayment.status.charAt(0).toUpperCase() + repayment.status.slice(1)}
                         </span>
+                      </TableCell>
+                      <TableCell>
+                        {repayment.receiptUrl && (
+                          <Button variant="outline" size="sm" asChild>
+                            <a href={repayment.receiptUrl} target="_blank" rel="noopener noreferrer">
+                              View
+                            </a>
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}

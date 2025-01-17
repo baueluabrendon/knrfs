@@ -14,6 +14,9 @@ import {
   FileSpreadsheet,
   LineChart,
   ArrowDownUp,
+  AlertOctagon,
+  AlertTriangle as AlertIcon,
+  DollarSign as MoneyIcon,
 } from "lucide-react";
 
 export const menuItems = [
@@ -35,12 +38,7 @@ export const menuItems = [
     path: "/borrowers",
     subItems: [
       { icon: Users, label: "View All Borrowers", path: "/borrowers" },
-      { 
-        icon: UserPlus, 
-        label: "Add Borrower", 
-        path: "#",
-        onClick: () => {} // Will be set in DashboardLayout
-      },
+      { icon: UserPlus, label: "Add Borrower", path: "#" },
       { icon: Upload, label: "Add Bulk Borrowers", path: "/borrowers/bulk" },
     ]
   },
@@ -64,8 +62,7 @@ export const menuItems = [
     label: "Repayments", 
     path: "/repayments",
     subItems: [
-      { icon: RefreshCcw, label: "View All Repayments", path: "/repayments" },
-      { icon: PlusCircle, label: "Add Repayment", path: "/repayments/add" },
+      { icon: Eye, label: "View All Repayments", path: "/repayments" },
       { icon: Upload, label: "Add Bulk Repayment", path: "/repayments/bulk" },
     ]
   },
@@ -74,9 +71,9 @@ export const menuItems = [
     label: "Recoveries", 
     path: "/recoveries",
     subItems: [
-      { icon: AlertCircle, label: "Loans In Arrears", path: "/recoveries/arrears" },
-      { icon: AlertTriangle, label: "Missed Payments", path: "/recoveries/missed" },
-      { icon: DollarSign, label: "Partial Payments", path: "/recoveries/partial" },
+      { icon: AlertOctagon, label: "Loans In Arrears", path: "/recoveries/arrears" },
+      { icon: AlertIcon, label: "Missed Payments", path: "/recoveries/missed" },
+      { icon: MoneyIcon, label: "Partial Payments", path: "/recoveries/partial" },
     ]
   },
   { 

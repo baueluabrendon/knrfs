@@ -1,149 +1,122 @@
 import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/components/ui/use-toast";
-import { CheckCircle, XCircle } from "lucide-react";
 
 interface Application {
   id: string;
-  applicantName: string;
-  loanAmount: number;
+  date: string;
+  borrowerName: string;
+  amount: number;
   status: "pending" | "approved" | "rejected";
-  submittedDate: string;
   purpose: string;
-  creditScore: number;
 }
 
+const sampleApplications: Application[] = [
+  {
+    id: "APP001",
+    date: "2024-01-15",
+    borrowerName: "John Doe",
+    amount: 5000.00,
+    status: "pending",
+    purpose: "Business Expansion"
+  },
+  {
+    id: "APP002",
+    date: "2024-01-14",
+    borrowerName: "Jane Smith",
+    amount: 3000.00,
+    status: "approved",
+    purpose: "Education"
+  },
+  {
+    id: "APP003",
+    date: "2024-01-13",
+    borrowerName: "Bob Wilson",
+    amount: 2000.00,
+    status: "rejected",
+    purpose: "Home Improvement"
+  }
+];
+
 const Applications = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const { toast } = useToast();
+  const [applications] = useState<Application[]>(sampleApplications);
 
-  // Mock data for demonstration
-  const applications: Application[] = [
-    {
-      id: "APP001",
-      applicantName: "John Doe",
-      loanAmount: 5000,
-      status: "pending",
-      submittedDate: "2024-01-12",
-      purpose: "Business Expansion",
-      creditScore: 720,
-    },
-    {
-      id: "APP002",
-      applicantName: "Jane Smith",
-      loanAmount: 10000,
-      status: "pending",
-      submittedDate: "2024-01-11",
-      purpose: "Equipment Purchase",
-      creditScore: 680,
-    },
-  ];
-
-  const handleApprove = (applicationId: string) => {
-    toast({
-      title: "Application Approved",
-      description: `Application ${applicationId} has been approved successfully.`,
-    });
+  const handleApprove = (id: string) => {
+    console.log(`Approving application ${id}`);
   };
 
-  const handleReject = (applicationId: string) => {
-    toast({
-      title: "Application Rejected",
-      description: `Application ${applicationId} has been rejected.`,
-    });
+  const handleReject = (id: string) => {
+    console.log(`Rejecting application ${id}`);
   };
-
-  const filteredApplications = applications.filter((application) =>
-    application.applicantName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <DashboardLayout>
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Loan Applications Review</h1>
-          <Input
-            placeholder="Search applications..."
-            className="max-w-xs"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Application ID</TableHead>
-                <TableHead>Applicant Name</TableHead>
-                <TableHead>Loan Amount</TableHead>
-                <TableHead>Purpose</TableHead>
-                <TableHead>Credit Score</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Submitted Date</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredApplications.map((application) => (
-                <TableRow key={application.id}>
-                  <TableCell>{application.id}</TableCell>
-                  <TableCell>{application.applicantName}</TableCell>
-                  <TableCell>${application.loanAmount.toLocaleString()}</TableCell>
-                  <TableCell>{application.purpose}</TableCell>
-                  <TableCell>{application.creditScore}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        application.status === "approved"
-                          ? "success"
-                          : application.status === "rejected"
-                          ? "destructive"
-                          : "default"
-                      }
-                    >
-                      {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{new Date(application.submittedDate).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-green-600"
-                        onClick={() => handleApprove(application.id)}
-                      >
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        Approve
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-red-600"
-                        onClick={() => handleReject(application.id)}
-                      >
-                        <XCircle className="h-4 w-4 mr-1" />
-                        Reject
-                      </Button>
-                    </div>
-                  </TableCell>
+      <div className="space-y-6">
+        <h1 className="text-2xl font-semibold text-gray-800">Loan Applications</h1>
+        <Card className="p-6">
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Application ID</TableHead>
+                  <TableHead>Borrower</TableHead>
+                  <TableHead>Purpose</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {applications
+                  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                  .map((application) => (
+                    <TableRow key={application.id}>
+                      <TableCell>{new Date(application.date).toLocaleDateString()}</TableCell>
+                      <TableCell>{application.id}</TableCell>
+                      <TableCell>{application.borrowerName}</TableCell>
+                      <TableCell>{application.purpose}</TableCell>
+                      <TableCell className="text-right">
+                        ${application.amount.toFixed(2)}
+                      </TableCell>
+                      <TableCell>
+                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold
+                          ${application.status === 'approved' ? 'bg-green-100 text-green-800' : 
+                            application.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                            'bg-red-100 text-red-800'}`}>
+                          {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          {application.status === 'pending' && (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleApprove(application.id)}
+                              >
+                                Approve
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleReject(application.id)}
+                              >
+                                Reject
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </div>
+        </Card>
       </div>
     </DashboardLayout>
   );
