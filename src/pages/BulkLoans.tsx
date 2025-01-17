@@ -1,118 +1,86 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Upload } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 
-interface BulkLoan {
-  borrowerName: string;
+interface LoanData {
+  id: string;
+  borrowerId: string;
   amount: number;
-  interestRate: number;
   term: number;
+  interestRate: number;
+  startDate: string;
 }
 
 const BulkLoans = () => {
-  const [csvData, setCsvData] = useState<BulkLoan[]>([]);
-  const [isPreviewVisible, setIsPreviewVisible] = useState(false);
-  const { toast } = useToast();
+  const [parsedData, setParsedData] = useState<LoanData[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const text = e.target?.result as string;
-        const lines = text.split('\n');
-        const headers = lines[0].split(',');
-        
-        const parsedData: BulkLoan[] = lines.slice(1).map(line => {
-          const values = line.split(',');
-          return {
-            borrowerName: values[0],
-            amount: parseFloat(values[1]),
-            interestRate: parseFloat(values[2]),
-            term: parseInt(values[3]),
-          };
-        });
-
-        setCsvData(parsedData);
-        setIsPreviewVisible(true);
-        toast({
-          title: "File Uploaded",
-          description: "CSV file has been successfully parsed.",
-        });
-      };
-      reader.readAsText(file);
+      // Handle file upload logic here
+      console.log("File uploaded:", file.name);
     }
   };
 
-  const handleSubmit = () => {
-    // Here you would typically send the data to your API
-    console.log('Submitting bulk loans:', csvData);
-    toast({
-      title: "Success",
-      description: "Bulk loans have been successfully processed.",
-    });
-    setCsvData([]);
-    setIsPreviewVisible(false);
+  const handleUploadClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
   };
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Add Bulk Loans</h1>
-        </div>
+        <h1 className="text-2xl font-semibold text-gray-800">Bulk Loan Upload</h1>
         <Card className="p-6">
           <div className="space-y-4">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-4">
               <Input
                 type="file"
                 accept=".csv"
+                className="hidden"
+                ref={fileInputRef}
                 onChange={handleFileUpload}
-                className="max-w-md"
               />
-              <Button onClick={() => document.querySelector('input[type="file"]')?.click()}>
-                <Upload className="h-4 w-4 mr-2" />
+              <Button onClick={handleUploadClick}>
+                <Upload className="mr-2 h-4 w-4" />
                 Upload CSV
               </Button>
             </div>
             
-            {isPreviewVisible && csvData.length > 0 && (
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold">Preview</h2>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Borrower Name</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Interest Rate</TableHead>
-                      <TableHead>Term (months)</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {csvData.map((loan, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{loan.borrowerName}</TableCell>
-                        <TableCell>${loan.amount.toLocaleString()}</TableCell>
-                        <TableCell>{loan.interestRate}%</TableCell>
-                        <TableCell>{loan.term}</TableCell>
+            {parsedData.length > 0 && (
+              <div className="mt-6">
+                <h2 className="text-lg font-semibold mb-4">Preview</h2>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Loan ID</TableHead>
+                        <TableHead>Borrower ID</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Term (months)</TableHead>
+                        <TableHead>Interest Rate</TableHead>
+                        <TableHead>Start Date</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                <div className="flex justify-end">
-                  <Button onClick={handleSubmit}>Process Bulk Loans</Button>
+                    </TableHeader>
+                    <TableBody>
+                      {parsedData.map((loan) => (
+                        <TableRow key={loan.id}>
+                          <TableCell>{loan.id}</TableCell>
+                          <TableCell>{loan.borrowerId}</TableCell>
+                          <TableCell>${loan.amount.toFixed(2)}</TableCell>
+                          <TableCell>{loan.term}</TableCell>
+                          <TableCell>{loan.interestRate}%</TableCell>
+                          <TableCell>{new Date(loan.startDate).toLocaleDateString()}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               </div>
             )}

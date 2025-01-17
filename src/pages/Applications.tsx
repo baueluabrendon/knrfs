@@ -3,6 +3,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface Application {
   id: string;
@@ -11,6 +12,8 @@ interface Application {
   amount: number;
   status: "pending" | "approved" | "rejected";
   purpose: string;
+  reviewStatus: "verified" | "pending_review" | "in_review" | "needs_info";
+  reviewedBy?: string;
 }
 
 const sampleApplications: Application[] = [
@@ -20,7 +23,9 @@ const sampleApplications: Application[] = [
     borrowerName: "John Doe",
     amount: 5000.00,
     status: "pending",
-    purpose: "Business Expansion"
+    purpose: "Business Expansion",
+    reviewStatus: "pending_review",
+    reviewedBy: undefined
   },
   {
     id: "APP002",
@@ -28,7 +33,9 @@ const sampleApplications: Application[] = [
     borrowerName: "Jane Smith",
     amount: 3000.00,
     status: "approved",
-    purpose: "Education"
+    purpose: "Education",
+    reviewStatus: "verified",
+    reviewedBy: "OFF001 - Sarah Johnson"
   },
   {
     id: "APP003",
@@ -36,9 +43,37 @@ const sampleApplications: Application[] = [
     borrowerName: "Bob Wilson",
     amount: 2000.00,
     status: "rejected",
-    purpose: "Home Improvement"
+    purpose: "Home Improvement",
+    reviewStatus: "needs_info",
+    reviewedBy: "OFF002 - Michael Chen"
+  },
+  {
+    id: "APP004",
+    date: "2024-01-12",
+    borrowerName: "Alice Brown",
+    amount: 7500.00,
+    status: "pending",
+    purpose: "Debt Consolidation",
+    reviewStatus: "in_review",
+    reviewedBy: "OFF003 - David Lee"
   }
 ];
+
+const getReviewStatusBadge = (status: Application['reviewStatus']) => {
+  const statusConfig = {
+    verified: { color: "bg-green-100 text-green-800", label: "Verified" },
+    pending_review: { color: "bg-yellow-100 text-yellow-800", label: "Pending Review" },
+    in_review: { color: "bg-blue-100 text-blue-800", label: "In Review" },
+    needs_info: { color: "bg-red-100 text-red-800", label: "Additional Info Needed" }
+  };
+
+  const config = statusConfig[status];
+  return (
+    <Badge variant="outline" className={`${config.color} border-none`}>
+      {config.label}
+    </Badge>
+  );
+};
 
 const Applications = () => {
   const [applications] = useState<Application[]>(sampleApplications);
@@ -66,6 +101,8 @@ const Applications = () => {
                   <TableHead>Purpose</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Review Status</TableHead>
+                  <TableHead>Reviewed By</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -88,6 +125,12 @@ const Applications = () => {
                             'bg-red-100 text-red-800'}`}>
                           {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
                         </span>
+                      </TableCell>
+                      <TableCell>
+                        {getReviewStatusBadge(application.reviewStatus)}
+                      </TableCell>
+                      <TableCell>
+                        {application.reviewedBy || '-'}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
