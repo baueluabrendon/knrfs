@@ -19,6 +19,7 @@ import ChartOfAccounts from "./pages/ChartOfAccounts";
 import BalanceSheet from "./pages/BalanceSheet";
 import ProfitAndLoss from "./pages/ProfitAndLoss";
 import Cashflow from "./pages/Cashflow";
+import Analytics from "./pages/Analytics";
 
 const queryClient = new QueryClient();
 
@@ -45,7 +46,7 @@ const App = () => (
           <Route path="/accounting/balance-sheet" element={<BalanceSheet />} />
           <Route path="/accounting/profit-loss" element={<ProfitAndLoss />} />
           <Route path="/accounting/cashflow" element={<Cashflow />} />
-          <Route path="/analytics" element={<Index />} />
+          <Route path="/analytics" element={<Analytics />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
