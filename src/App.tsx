@@ -10,6 +10,7 @@ import Loans from "./pages/Loans";
 import AddLoan from "./pages/AddLoan";
 import BulkLoans from "./pages/BulkLoans";
 import Borrowers from "./pages/Borrowers";
+import BulkBorrowers from "./pages/BulkBorrowers";
 import Repayments from "./pages/Repayments";
 import LoansInArrears from "./pages/LoansInArrears";
 import MissedPayments from "./pages/MissedPayments";
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/users" element={<Users />} />
           <Route path="/borrowers" element={<Borrowers />} />
+          <Route path="/borrowers/bulk" element={<BulkBorrowers />} />
           <Route path="/applications" element={<Applications />} />
           <Route path="/loans" element={<Loans />} />
           <Route path="/loans/add" element={<AddLoan />} />
