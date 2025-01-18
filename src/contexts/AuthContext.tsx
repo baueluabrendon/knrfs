@@ -19,7 +19,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check active sessions and sets the user
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         fetchUserProfile(session.user.id);
@@ -28,7 +27,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         fetchUserProfile(session.user.id);
@@ -52,6 +50,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
 
       setUser(data);
+      
+      // Redirect based on user role
+      if (data.role === 'CLIENT') {
+        navigate('/client');
+      } else {
+        navigate('/');
+      }
     } catch (error) {
       console.error('Error fetching user profile:', error);
       toast.error('Error fetching user profile');
@@ -80,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(profile);
           // Redirect based on user role
           if (profile.role === 'CLIENT') {
-            navigate('/client/dashboard');
+            navigate('/client');
           } else {
             navigate('/');
           }

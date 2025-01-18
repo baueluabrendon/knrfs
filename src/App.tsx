@@ -4,9 +4,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import Login from "./pages/Login";
-import { ClientRoute } from "./routes/ClientRoute";
+import AuthForm from "@/components/auth/AuthForm";
 import { adminRoutes } from "./routes/adminRoutes";
+import { clientRoutes } from "./routes/clientRoutes";
 
 const queryClient = new QueryClient();
 
@@ -18,16 +18,16 @@ const App = () => (
           <Toaster />
           <Sonner />
           <Routes>
-            <Route path="/login" element={<Login />} />
-            {adminRoutes}
             <Route
-              path="/client/*"
+              path="/login"
               element={
-                <ClientRoute>
-                  <div>Client Portal Placeholder</div>
-                </ClientRoute>
+                <div className="min-h-screen flex items-center justify-center bg-gray-100">
+                  <AuthForm defaultTab="sign-in" />
+                </div>
               }
             />
+            {adminRoutes}
+            {clientRoutes}
           </Routes>
         </TooltipProvider>
       </AuthProvider>
