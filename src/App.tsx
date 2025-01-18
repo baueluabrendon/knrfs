@@ -210,13 +210,13 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            
-            {/* Client Routes - To be implemented */}
+
+            {/* Client Routes */}
             <Route
               path="/client/*"
               element={
                 <ClientRoute>
-                  {/* Client portal components will go here */}
+                  <div>Client Portal Placeholder</div>
                 </ClientRoute>
               }
             />
