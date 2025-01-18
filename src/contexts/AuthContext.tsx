@@ -7,7 +7,7 @@ import { toast } from "sonner";
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<User | null>;
   signOut: () => Promise<void>;
 }
 
@@ -50,13 +50,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
 
       setUser(data);
-      
-      // Redirect based on user role
-      if (data.role === 'CLIENT') {
-        navigate('/client');
-      } else {
-        navigate('/');
-      }
     } catch (error) {
       console.error('Error fetching user profile:', error);
       toast.error('Error fetching user profile');
@@ -65,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<User | null> => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -75,26 +68,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
 
       if (data.user) {
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('user_profiles')
           .select('*')
           .eq('id', data.user.id)
           .single();
 
+        if (profileError) throw profileError;
+
         if (profile) {
           setUser(profile);
-          // Redirect based on user role
-          if (profile.role === 'CLIENT') {
-            navigate('/client');
-          } else {
-            navigate('/');
-          }
-          toast.success('Successfully signed in');
+          return profile;
         }
       }
+      return null;
     } catch (error) {
       console.error('Error signing in:', error);
       toast.error('Error signing in');
+      return null;
     }
   };
 

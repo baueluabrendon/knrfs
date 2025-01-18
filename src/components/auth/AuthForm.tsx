@@ -32,14 +32,10 @@ const AuthForm = ({ defaultTab = "sign-in" }: AuthFormProps) => {
 
     try {
       const user = await signIn(email, password);
-      if (user) {
-        toast.success("Successfully signed in");
-        // Redirect based on user role
-        if (user.role === 'CLIENT') {
-          navigate('/client');
-        } else {
-          navigate('/');
-        }
+      if (user && user.role === 'CLIENT') {
+        navigate('/client');
+      } else if (user) {
+        navigate('/');
       }
     } catch (error) {
       console.error("Sign in error:", error);
