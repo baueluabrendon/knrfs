@@ -8,6 +8,11 @@ import {
   LogOut,
   Menu,
   X,
+  FileSignature,
+  Clock,
+  Wallet,
+  User,
+  HelpCircle,
 } from "lucide-react";
 
 const ClientLayout = () => {
@@ -20,11 +25,49 @@ const ClientLayout = () => {
     navigate("/login");
   };
 
+  const menuItems = [
+    {
+      icon: LayoutDashboard,
+      label: "Dashboard",
+      path: "/client",
+    },
+    {
+      icon: FileSignature,
+      label: "Apply for a New Loan",
+      path: "/client/apply",
+    },
+    {
+      icon: Clock,
+      label: "Application Status",
+      path: "/client/status",
+    },
+    {
+      icon: Wallet,
+      label: "Repayments",
+      path: "/client/repayments",
+    },
+    {
+      icon: FileText,
+      label: "My Loans",
+      path: "/client/loans",
+    },
+    {
+      icon: User,
+      label: "Profile",
+      path: "/client/profile",
+    },
+    {
+      icon: HelpCircle,
+      label: "Support",
+      path: "/client/support",
+    },
+  ];
+
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
       <aside
-        className={`bg-primary text-white ${
+        className={`bg-[#32CD32] text-white ${
           isSidebarOpen ? "w-64" : "w-16"
         } transition-all duration-300 ease-in-out`}
       >
@@ -37,7 +80,7 @@ const ClientLayout = () => {
               variant="ghost"
               size="icon"
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="text-white hover:bg-primary-foreground/10"
+              className="text-white hover:bg-white/10"
             >
               {isSidebarOpen ? (
                 <X className="h-4 w-4" />
@@ -49,33 +92,25 @@ const ClientLayout = () => {
 
           <nav className="flex-1 p-4">
             <ul className="space-y-2">
-              <li>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start text-white hover:bg-primary-foreground/10"
-                  onClick={() => navigate("/client")}
-                >
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                  {isSidebarOpen && "Dashboard"}
-                </Button>
-              </li>
-              <li>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start text-white hover:bg-primary-foreground/10"
-                  onClick={() => navigate("/client/loans")}
-                >
-                  <FileText className="mr-2 h-4 w-4" />
-                  {isSidebarOpen && "My Loans"}
-                </Button>
-              </li>
+              {menuItems.map((item) => (
+                <li key={item.path}>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-white hover:bg-white/10"
+                    onClick={() => navigate(item.path)}
+                  >
+                    <item.icon className="mr-2 h-4 w-4" />
+                    {isSidebarOpen && item.label}
+                  </Button>
+                </li>
+              ))}
             </ul>
           </nav>
 
           <div className="p-4">
             <Button
               variant="ghost"
-              className="w-full justify-start text-white hover:bg-primary-foreground/10"
+              className="w-full justify-start text-white hover:bg-white/10"
               onClick={handleSignOut}
             >
               <LogOut className="mr-2 h-4 w-4" />
@@ -86,8 +121,13 @@ const ClientLayout = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto bg-background">
-        <Outlet />
+      <main className="flex-1 overflow-auto">
+        <div className="bg-[#FFD700] p-4">
+          <h1 className="text-xl font-bold">Welcome to K&R Financial Services</h1>
+        </div>
+        <div className="p-6">
+          <Outlet />
+        </div>
       </main>
     </div>
   );
