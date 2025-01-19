@@ -11,7 +11,6 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const queryClient = new QueryClient();
 
-// Wrapper component to handle auth state
 const AuthWrapper = () => {
   const { user, loading } = useAuth();
 
@@ -39,14 +38,7 @@ const App = () => (
           <Sonner />
           <Routes>
             <Route path="/" element={<AuthWrapper />} />
-            <Route
-              path="/login"
-              element={
-                <div className="min-h-screen flex items-center justify-center bg-gray-100">
-                  <AuthForm defaultTab="sign-in" />
-                </div>
-              }
-            />
+            <Route path="/login" element={<AuthForm />} />
             {adminRoutes}
             {clientRoutes}
           </Routes>
