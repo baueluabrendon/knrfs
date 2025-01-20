@@ -11,7 +11,7 @@ export interface User {
   user_id: string;
   email: string;
   role: UserRole;
-  firstName: string;
-  lastName: string;
-  createdAt: string;
+  firstname: string;  // Changed from firstName
+  lastname: string;   // Changed from lastName
+  createdat: string;  // Changed from createdAt
 }
