@@ -41,8 +41,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function fetchUserProfile(userId: string) {
     try {
-      console.log('Fetching user profile for ID:', userId);
-      
       const { data: profile, error } = await supabase
         .from('user_profiles')
         .select('*')
@@ -55,43 +53,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
 
-      if (!profile) {
-        console.log('No profile found, creating new profile');
-        const { data: authUser } = await supabase.auth.getUser();
-        
-        if (!authUser?.user) {
-          throw new Error('No authenticated user found');
-        }
-
-        const newProfile = {
-          user_id: userId,
-          email: authUser.user.email,
-          role: 'SUPER_USER',
-          firstname: 'Dev',
-          lastname: 'Admin',
-          createdat: new Date().toISOString(),
-          password: authUser.user.email // Add the password field with a default value
-        };
-
-        const { data: createdProfile, error: createError } = await supabase
-          .from('user_profiles')
-          .insert([newProfile])
-          .select()
-          .single();
-
-        if (createError) {
-          console.error('Error creating profile:', createError);
-          toast.error('Failed to create user profile');
-          throw createError;
-        }
-
-        setUser(createdProfile);
-        console.log('Created new profile:', createdProfile);
-        return;
+      if (profile) {
+        setUser(profile);
+        console.log('Found existing profile:', profile);
+      } else {
+        console.log('No profile found');
+        setUser(null);
       }
-
-      setUser(profile);
-      console.log('Found user profile:', profile);
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
       toast.error('Error with user profile');
@@ -103,8 +71,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string): Promise<User | null> => {
     try {
-      console.log('Attempting to sign in with email:', email);
-      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -117,7 +83,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (data.user) {
-        console.log('Auth successful, fetching user profile...');
         await fetchUserProfile(data.user.id);
         toast.success('Successfully signed in');
         return user;

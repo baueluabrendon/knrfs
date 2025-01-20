@@ -8,6 +8,7 @@ import AuthForm from "@/components/auth/AuthForm";
 import { adminRoutes } from "./routes/adminRoutes";
 import { clientRoutes } from "./routes/clientRoutes";
 import { useAuth } from "@/contexts/AuthContext";
+import LoanApplicationSteps from "@/components/loan/LoanApplicationSteps";
 
 const queryClient = new QueryClient();
 
@@ -26,7 +27,7 @@ const AuthWrapper = () => {
     return <Navigate to="/client" replace />;
   }
 
-  return <Navigate to="/" replace />;
+  return <Navigate to="/admin" replace />;
 };
 
 const App = () => (
@@ -39,6 +40,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<AuthWrapper />} />
             <Route path="/login" element={<AuthForm />} />
+            <Route path="/apply" element={<LoanApplicationSteps />} />
             {adminRoutes}
             {clientRoutes}
           </Routes>

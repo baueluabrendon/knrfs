@@ -23,7 +23,7 @@ const AuthForm = () => {
       if (user && user.role === 'CLIENT') {
         navigate('/client');
       } else if (user) {
-        navigate('/');
+        navigate('/admin');
       }
     } catch (error) {
       console.error("Sign in error:", error);
@@ -35,7 +35,6 @@ const AuthForm = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header */}
       <div className="bg-[#FFD700] py-4 px-6 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-black">Welcome to K&R Financial Services</h1>
         <Button 
@@ -46,7 +45,6 @@ const AuthForm = () => {
         </Button>
       </div>
 
-      {/* Login Form */}
       <div className="flex-1 flex items-center justify-center bg-white">
         <div className="w-[400px] bg-white rounded-lg shadow-md p-8">
           <div className="text-center mb-6">
