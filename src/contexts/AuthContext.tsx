@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('user_profiles')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching profile:', error);
@@ -56,8 +56,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (!profile) {
-        console.error('No profile found');
-        toast.error('No user profile found');
+        console.log('No profile found, creating new profile');
+        const { data: authUser } = await supabase.auth.getUser();
+        
+        if (!authUser?.user) {
+          throw new Error('No authenticated user found');
+        }
+
+        const newProfile = {
+          user_id: userId,
+          email: authUser.user.email,
+          role: 'SUPER_USER', // Since this is your admin profile
+          firstname: 'Dev',
+          lastname: 'Admin',
+          createdat: new Date().toISOString()
+        };
+
+        const { data: createdProfile, error: createError } = await supabase
+          .from('user_profiles')
+          .insert([newProfile])
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating profile:', createError);
+          toast.error('Failed to create user profile');
+          throw createError;
+        }
+
+        setUser(createdProfile);
+        console.log('Created new profile:', createdProfile);
         return;
       }
 
