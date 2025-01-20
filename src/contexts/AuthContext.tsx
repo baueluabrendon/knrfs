@@ -47,22 +47,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data: existingProfile, error: fetchError } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .single();
 
       // If profile doesn't exist or there's an error, create a new one
-      if (fetchError || !existingProfile || existingProfile.length === 0) {
+      if (fetchError || !existingProfile) {
         const { data: authUser } = await supabase.auth.getUser();
         
         if (!authUser?.user) {
           throw new Error('No authenticated user found');
         }
 
+        // Check if it's the dev admin email
+        const isDevAdmin = authUser.user.email === 'bbauelua@gmail.com';
+
         const newProfile = {
           user_id: userId,
           email: authUser.user.email,
-          role: 'CLIENT', // Changed to CLIENT which is a valid role from UserRole type
-          firstname: '',
-          lastname: '',
+          role: isDevAdmin ? 'SUPER_USER' : 'CLIENT',
+          firstname: isDevAdmin ? 'Dev' : '',
+          lastname: isDevAdmin ? 'Admin' : '',
           createdat: new Date().toISOString(),
           password: 'default-password'
         };
@@ -70,7 +74,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data: insertedProfile, error: insertError } = await supabase
           .from('user_profiles')
           .insert([newProfile])
-          .select();
+          .select()
+          .single();
 
         if (insertError) {
           console.error('Error creating profile:', insertError);
@@ -78,18 +83,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           throw insertError;
         }
 
-        if (!insertedProfile || insertedProfile.length === 0) {
-          throw new Error('Failed to create user profile');
-        }
-
-        setUser(insertedProfile[0]);
-        console.log('Created new profile:', insertedProfile[0]);
+        setUser(insertedProfile);
+        console.log('Created new profile:', insertedProfile);
         return;
       }
 
       // If profile exists, use it
-      setUser(existingProfile[0]);
-      console.log('Found existing profile:', existingProfile[0]);
+      setUser(existingProfile);
+      console.log('Found existing profile:', existingProfile);
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
       toast.error('Error with user profile');
