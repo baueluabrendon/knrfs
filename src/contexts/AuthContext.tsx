@@ -46,16 +46,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('id', userId)
+        .eq('user_id', userId)
         .single();
 
       if (error) {
-        console.error('Detailed profile fetch error:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
+        console.error('Profile fetch error:', error.message);
         throw error;
       }
 
@@ -79,12 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) {
-        console.error('Detailed sign in error:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
+        console.error('Sign in error:', error.message);
         throw error;
       }
 
@@ -93,16 +83,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data: profile, error: profileError } = await supabase
           .from('user_profiles')
           .select('*')
-          .eq('id', data.user.id)
+          .eq('user_id', data.user.id)
           .single();
 
         if (profileError) {
-          console.error('Detailed profile error:', {
-            message: profileError.message,
-            details: profileError.details,
-            hint: profileError.hint,
-            code: profileError.code
-          });
+          console.error('Profile error:', profileError.message);
           throw profileError;
         }
 
@@ -115,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return null;
     } catch (error) {
       console.error('Error signing in:', error);
-      toast.error('Error signing in');
+      toast.error('Failed to sign in');
       return null;
     }
   };
