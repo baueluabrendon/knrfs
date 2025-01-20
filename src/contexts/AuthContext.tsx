@@ -1,21 +1,29 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthResponse, AuthError, User as SupabaseUser } from '@supabase/supabase-js';
+import { AuthResponse } from '@supabase/supabase-js';
 import { supabase } from "@/lib/supabase";
-import { User } from "@/types/auth";
 import { toast } from "sonner";
 
+interface UserProfile {
+  user_id: string;
+  email: string;
+  role: "client" | "sales officer" | "accounts officer" | "recoveries officer" | "administrator" | "super user";
+  first_name: string | null;
+  last_name: string | null;
+  created_at: string;
+}
+
 interface AuthContextType {
-  user: User | null;
+  user: UserProfile | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<User | null>;
+  signIn: (email: string, password: string) => Promise<UserProfile | null>;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -55,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (profile) {
-        setUser(profile as User);
+        setUser(profile as UserProfile);
       } else {
         setUser(null);
       }
@@ -68,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const signIn = async (email: string, password: string): Promise<User | null> => {
+  const signIn = async (email: string, password: string): Promise<UserProfile | null> => {
     try {
       const { data: authData, error: authError }: AuthResponse = await supabase.auth.signInWithPassword({
         email,
@@ -90,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('user_profiles')
         .select('*')
         .eq('user_id', authData.user.id)
-        .maybeSingle<User>();
+        .maybeSingle();
 
       if (profileError) {
         console.error('Profile error:', profileError);
@@ -103,9 +111,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return null;
       }
 
-      setUser(profile);
+      setUser(profile as UserProfile);
       toast.success('Successfully signed in');
-      return profile;
+      return profile as UserProfile;
 
     } catch (error) {
       console.error('Error signing in:', error);
