@@ -43,50 +43,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('Fetching user profile for ID:', userId);
       
-      // First, try to get the existing profile
-      let { data: profile, error } = await supabase
+      // First, check if profile exists
+      const { data: existingProfile, error: fetchError } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('user_id', userId)
-        .single();
+        .eq('user_id', userId);
 
-      // If no profile exists, create one
-      if (error && error.message.includes("contains 0 rows")) {
+      // If profile doesn't exist or there's an error, create a new one
+      if (fetchError || !existingProfile || existingProfile.length === 0) {
         const { data: authUser } = await supabase.auth.getUser();
-        if (authUser?.user) {
-          const newProfile = {
-            user_id: userId,
-            email: authUser.user.email,
-            role: 'SUPER_USER', // Default to SUPER_USER for testing
-            firstname: '',
-            lastname: '',
-            createdat: new Date().toISOString()
-          };
-
-          const { data: insertedProfile, error: insertError } = await supabase
-            .from('user_profiles')
-            .insert([newProfile])
-            .select()
-            .single();
-
-          if (insertError) {
-            console.error('Error creating profile:', insertError);
-            toast.error('Failed to create user profile');
-            throw insertError;
-          }
-
-          profile = insertedProfile;
-          console.log('Created new profile:', profile);
+        
+        if (!authUser?.user) {
+          throw new Error('No authenticated user found');
         }
-      } else if (error) {
-        throw error;
+
+        const newProfile = {
+          user_id: userId,
+          email: authUser.user.email,
+          role: 'SUPER_USER', // Default to SUPER_USER for testing
+          firstname: '',
+          lastname: '',
+          createdat: new Date().toISOString()
+        };
+
+        const { data: insertedProfile, error: insertError } = await supabase
+          .from('user_profiles')
+          .insert([newProfile])
+          .select();
+
+        if (insertError) {
+          console.error('Error creating profile:', insertError);
+          toast.error('Failed to create user profile');
+          throw insertError;
+        }
+
+        if (!insertedProfile || insertedProfile.length === 0) {
+          throw new Error('Failed to create user profile');
+        }
+
+        setUser(insertedProfile[0]);
+        console.log('Created new profile:', insertedProfile[0]);
+        return;
       }
 
-      setUser(profile);
-      console.log('Set user profile:', profile);
+      // If profile exists, use it
+      setUser(existingProfile[0]);
+      console.log('Found existing profile:', existingProfile[0]);
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
-      toast.error('Error fetching user profile');
+      toast.error('Error with user profile');
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -117,7 +123,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Error signing in:', error);
       toast.error('Failed to sign in');
-      return null;
+      throw error;
     }
   };
 
