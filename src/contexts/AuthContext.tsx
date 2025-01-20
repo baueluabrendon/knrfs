@@ -69,26 +69,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string): Promise<User | null> => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) {
-        toast.error(error.message);
-        throw error;
+      if (authError) {
+        console.error('Auth error:', authError);
+        toast.error(authError.message);
+        return null;
       }
 
-      if (data.user) {
-        await fetchUserProfile(data.user.id);
-        toast.success('Successfully signed in');
-        return user;
+      if (!authData.user) {
+        toast.error('No user data returned');
+        return null;
       }
-      return null;
+
+      const { data: profile, error: profileError } = await supabase
+        .from('Users')
+        .select('*')
+        .eq('id', authData.user.id)
+        .maybeSingle();
+
+      if (profileError) {
+        console.error('Profile error:', profileError);
+        toast.error('Error fetching user profile');
+        return null;
+      }
+
+      if (!profile) {
+        toast.error('User profile not found');
+        return null;
+      }
+
+      setUser(profile);
+      toast.success('Successfully signed in');
+      return profile;
+
     } catch (error) {
       console.error('Error signing in:', error);
       toast.error('Failed to sign in');
-      throw error;
+      return null;
     }
   };
 
