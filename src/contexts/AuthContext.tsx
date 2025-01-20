@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const newProfile = {
           user_id: userId,
           email: authUser.user.email,
-          role: 'OFFICE_ADMIN', // Changed from SUPER_USER to a valid role from UserRole type
+          role: 'CLIENT', // Changed to CLIENT which is a valid role from UserRole type
           firstname: '',
           lastname: '',
           createdat: new Date().toISOString(),
