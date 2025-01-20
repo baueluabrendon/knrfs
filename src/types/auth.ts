@@ -1,17 +1,17 @@
 export type UserRole = 
-  | "SUPER_USER"
-  | "CLIENT"
-  | "MANAGER"
-  | "SALES_OFFICER"
-  | "ACCOUNTS_OFFICER"
-  | "RECOVERIES_OFFICER"
-  | "OFFICE_ADMIN";
+  | "client"
+  | "sales officer"
+  | "accounts officer" 
+  | "recoveries officer"
+  | "administrator"
+  | "super user";
 
 export interface User {
-  user_id: string;
+  id: string;
   email: string;
   role: UserRole;
-  firstname: string;  // Changed from firstName
-  lastname: string;   // Changed from lastName
-  createdat: string;  // Changed from createdAt
+  firstName: string | null;
+  lastName: string | null;
+  createdAt: string;
+  password: string;
 }

@@ -23,11 +23,19 @@ const AuthWrapper = () => {
     return <Navigate to="/login" replace />;
   }
 
-  if (user.role === 'CLIENT') {
-    return <Navigate to="/client" replace />;
+  switch (user.role) {
+    case 'client':
+      return <Navigate to="/client" replace />;
+    case 'administrator':
+    case 'super user':
+      return <Navigate to="/admin" replace />;
+    case 'sales officer':
+    case 'accounts officer':
+    case 'recoveries officer':
+      return <Navigate to="/staff" replace />;
+    default:
+      return <Navigate to="/login" replace />;
   }
-
-  return <Navigate to="/admin" replace />;
 };
 
 const App = () => (

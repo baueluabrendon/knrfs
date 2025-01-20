@@ -42,9 +42,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function fetchUserProfile(userId: string) {
     try {
       const { data: profile, error } = await supabase
-        .from('user_profiles')
+        .from('Users')
         .select('*')
-        .eq('user_id', userId)
+        .eq('id', userId)
         .maybeSingle();
 
       if (error) {
@@ -55,9 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (profile) {
         setUser(profile);
-        console.log('Found existing profile:', profile);
       } else {
-        console.log('No profile found');
         setUser(null);
       }
     } catch (error) {
@@ -77,7 +75,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) {
-        console.error('Sign in error:', error.message);
         toast.error(error.message);
         throw error;
       }
