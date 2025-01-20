@@ -60,11 +60,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const newProfile = {
           user_id: userId,
           email: authUser.user.email,
-          role: 'SUPER_USER', // Default to SUPER_USER for testing
+          role: 'OFFICE_ADMIN', // Changed from SUPER_USER to a valid role from UserRole type
           firstname: '',
           lastname: '',
           createdat: new Date().toISOString(),
-          password: 'default-password' // Adding a default password to satisfy the not-null constraint
+          password: 'default-password'
         };
 
         const { data: insertedProfile, error: insertError } = await supabase
