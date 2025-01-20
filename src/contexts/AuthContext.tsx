@@ -51,6 +51,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('Profile fetch error:', error.message);
+        // If no profile exists, create one
+        if (error.message.includes("contains 0 rows")) {
+          const { data: authUser } = await supabase.auth.getUser();
+          if (authUser?.user) {
+            const newProfile = {
+              user_id: userId,
+              email: authUser.user.email,
+              role: 'CLIENT',
+              firstname: '',
+              lastname: '',
+              createdat: new Date().toISOString()
+            };
+            
+            const { data: createdProfile, error: createError } = await supabase
+              .from('user_profiles')
+              .insert([newProfile])
+              .select()
+              .single();
+
+            if (createError) {
+              throw createError;
+            }
+            
+            setUser(createdProfile);
+            return;
+          }
+        }
         throw error;
       }
 
