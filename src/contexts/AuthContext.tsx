@@ -41,14 +41,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function fetchUserProfile(userId: string) {
     try {
+      console.log('Fetching user profile for ID:', userId);
+      
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Detailed profile fetch error:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
 
+      console.log('Fetched user profile:', data);
       setUser(data);
     } catch (error) {
       console.error('Error fetching user profile:', error);
@@ -60,22 +71,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string): Promise<User | null> => {
     try {
+      console.log('Attempting to sign in with email:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Detailed sign in error:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
 
       if (data.user) {
+        console.log('Auth successful, fetching user profile...');
         const { data: profile, error: profileError } = await supabase
           .from('user_profiles')
           .select('*')
           .eq('id', data.user.id)
           .single();
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error('Detailed profile error:', {
+            message: profileError.message,
+            details: profileError.details,
+            hint: profileError.hint,
+            code: profileError.code
+          });
+          throw profileError;
+        }
 
+        console.log('Retrieved profile:', profile);
         if (profile) {
           setUser(profile);
           return profile;
