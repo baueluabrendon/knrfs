@@ -16,7 +16,7 @@ export const ClientRoute = ({ children }: ClientRouteProps) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (user.role !== 'CLIENT') {
+  if (user.role !== 'client') {
     return <Navigate to="/" replace />;
   }
 

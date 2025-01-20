@@ -20,7 +20,7 @@ const AuthForm = () => {
 
     try {
       const user = await signIn(email, password);
-      if (user && user.role === 'CLIENT') {
+      if (user && user.role === 'client') {
         navigate('/client');
       } else if (user) {
         navigate('/admin');
