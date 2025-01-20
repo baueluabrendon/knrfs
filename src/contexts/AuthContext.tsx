@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { AuthResponse, AuthError, User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from "@/lib/supabase";
 import { User } from "@/types/auth";
 import { toast } from "sonner";
@@ -54,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (profile) {
-        setUser(profile);
+        setUser(profile as User);
       } else {
         setUser(null);
       }
@@ -69,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string): Promise<User | null> => {
     try {
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      const { data: authData, error: authError }: AuthResponse = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -89,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('Users')
         .select('*')
         .eq('id', authData.user.id)
-        .maybeSingle();
+        .maybeSingle<User>();
 
       if (profileError) {
         console.error('Profile error:', profileError);
