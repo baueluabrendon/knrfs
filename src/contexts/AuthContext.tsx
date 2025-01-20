@@ -43,54 +43,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('Fetching user profile for ID:', userId);
       
-      // First, check if profile exists
-      const { data: existingProfile, error: fetchError } = await supabase
+      const { data: profile, error } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('user_id', userId)
         .single();
 
-      // If profile doesn't exist or there's an error, create a new one
-      if (fetchError || !existingProfile) {
-        const { data: authUser } = await supabase.auth.getUser();
-        
-        if (!authUser?.user) {
-          throw new Error('No authenticated user found');
-        }
+      if (error) {
+        console.error('Error fetching profile:', error);
+        toast.error('Error fetching user profile');
+        throw error;
+      }
 
-        // Check if it's the dev admin email
-        const isDevAdmin = authUser.user.email === 'bbauelua@gmail.com';
-
-        const newProfile = {
-          user_id: userId,
-          email: authUser.user.email,
-          role: isDevAdmin ? 'SUPER_USER' : 'CLIENT',
-          firstname: isDevAdmin ? 'Dev' : '',
-          lastname: isDevAdmin ? 'Admin' : '',
-          createdat: new Date().toISOString(),
-          password: 'default-password'
-        };
-
-        const { data: insertedProfile, error: insertError } = await supabase
-          .from('user_profiles')
-          .insert([newProfile])
-          .select()
-          .single();
-
-        if (insertError) {
-          console.error('Error creating profile:', insertError);
-          toast.error('Failed to create user profile');
-          throw insertError;
-        }
-
-        setUser(insertedProfile);
-        console.log('Created new profile:', insertedProfile);
+      if (!profile) {
+        console.error('No profile found');
+        toast.error('No user profile found');
         return;
       }
 
-      // If profile exists, use it
-      setUser(existingProfile);
-      console.log('Found existing profile:', existingProfile);
+      setUser(profile);
+      console.log('Found user profile:', profile);
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
       toast.error('Error with user profile');
