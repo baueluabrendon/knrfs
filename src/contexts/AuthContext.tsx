@@ -63,7 +63,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           role: 'SUPER_USER', // Default to SUPER_USER for testing
           firstname: '',
           lastname: '',
-          createdat: new Date().toISOString()
+          createdat: new Date().toISOString(),
+          password: 'default-password' // Adding a default password to satisfy the not-null constraint
         };
 
         const { data: insertedProfile, error: insertError } = await supabase
