@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       const { data, error } = await supabase
         .from('user_profiles')
-        .select('*')
+        .select('user_id, email, role, firstName, lastName, createdAt')
         .eq('user_id', userId)
         .single();
 
@@ -82,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('Auth successful, fetching user profile...');
         const { data: profile, error: profileError } = await supabase
           .from('user_profiles')
-          .select('*')
+          .select('user_id, email, role, firstName, lastName, createdAt')
           .eq('user_id', data.user.id)
           .single();
 
