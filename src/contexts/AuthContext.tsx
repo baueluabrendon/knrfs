@@ -66,10 +66,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const newProfile = {
           user_id: userId,
           email: authUser.user.email,
-          role: 'SUPER_USER', // Since this is your admin profile
+          role: 'SUPER_USER',
           firstname: 'Dev',
           lastname: 'Admin',
-          createdat: new Date().toISOString()
+          createdat: new Date().toISOString(),
+          password: authUser.user.email // Add the password field with a default value
         };
 
         const { data: createdProfile, error: createError } = await supabase
