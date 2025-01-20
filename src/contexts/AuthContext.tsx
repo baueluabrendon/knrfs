@@ -71,9 +71,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               .single();
 
             if (createError) {
+              console.error('Error creating profile:', createError);
+              toast.error('Error creating user profile');
               throw createError;
             }
             
+            console.log('Created new profile:', createdProfile);
             setUser(createdProfile);
             return;
           }
@@ -102,27 +105,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('Sign in error:', error.message);
+        toast.error(error.message);
         throw error;
       }
 
       if (data.user) {
         console.log('Auth successful, fetching user profile...');
-        const { data: profile, error: profileError } = await supabase
-          .from('user_profiles')
-          .select('user_id, email, role, firstname, lastname, createdat')
-          .eq('user_id', data.user.id)
-          .single();
-
-        if (profileError) {
-          console.error('Profile error:', profileError.message);
-          throw profileError;
-        }
-
-        console.log('Retrieved profile:', profile);
-        if (profile) {
-          setUser(profile);
-          return profile;
-        }
+        await fetchUserProfile(data.user.id);
+        toast.success('Successfully signed in');
+        return user;
       }
       return null;
     } catch (error) {
