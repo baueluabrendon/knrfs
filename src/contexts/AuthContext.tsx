@@ -31,20 +31,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
+        console.log("Session data:", session); // Debug log
         if (session?.user) {
           await fetchUserProfile(session.user.id);
+        } else {
+          setLoading(false);
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
         toast.error('Error initializing authentication');
-      } finally {
         setLoading(false);
       }
     };
 
     initializeAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session); // Debug log
       if (session?.user) {
         await fetchUserProfile(session.user.id);
       } else {
@@ -57,22 +60,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   async function fetchUserProfile(userId: string) {
+    console.log("Fetching user profile for ID:", userId); // Debug log
     try {
       const { data: profile, error } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('user_id', userId)
-        .maybeSingle();
+        .single();
+
+      console.log("Profile data:", profile, "Error:", error); // Debug log
 
       if (error) {
         console.error('Error fetching profile:', error);
         toast.error('Error fetching user profile');
         setUser(null);
+        setLoading(false);
         return;
       }
 
       if (profile) {
         setUser(profile as UserProfile);
+        console.log("User profile set:", profile); // Debug log
       } else {
         console.error('No profile found for user');
         toast.error('User profile not found');
@@ -89,10 +97,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string): Promise<UserProfile | null> => {
     try {
+      console.log("Attempting sign in for:", email); // Debug log
       const { data: authData, error: authError }: AuthResponse = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+
+      console.log("Auth response:", authData, "Error:", authError); // Debug log
 
       if (authError) {
         console.error('Auth error:', authError);
@@ -109,7 +120,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('user_profiles')
         .select('*')
         .eq('user_id', authData.user.id)
-        .maybeSingle();
+        .single();
+
+      console.log("Profile fetch response:", profile, "Error:", profileError); // Debug log
 
       if (profileError) {
         console.error('Profile error:', profileError);
