@@ -32,7 +32,7 @@ const AuthWrapper = () => {
     case 'sales officer':
     case 'accounts officer':
     case 'recoveries officer':
-      return <Navigate to="/staff" replace />;
+      return <Navigate to="/admin" replace />;
     default:
       return <Navigate to="/login" replace />;
   }
@@ -49,7 +49,7 @@ const App = () => (
             <Route path="/" element={<AuthWrapper />} />
             <Route path="/login" element={<AuthForm />} />
             <Route path="/apply" element={<LoanApplicationSteps />} />
-            {adminRoutes}
+            <Route path="/admin/*" element={adminRoutes} />
             {clientRoutes}
           </Routes>
         </TooltipProvider>
