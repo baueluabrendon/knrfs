@@ -28,17 +28,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        fetchUserProfile(session.user.id);
-      } else {
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          await fetchUserProfile(session.user.id);
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        toast.error('Error initializing authentication');
+      } finally {
         setLoading(false);
       }
-    });
+    };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    initializeAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
-        fetchUserProfile(session.user.id);
+        await fetchUserProfile(session.user.id);
       } else {
         setUser(null);
         setLoading(false);
@@ -59,18 +67,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         console.error('Error fetching profile:', error);
         toast.error('Error fetching user profile');
-        throw error;
+        setUser(null);
+        return;
       }
 
       if (profile) {
         setUser(profile as UserProfile);
       } else {
+        console.error('No profile found for user');
+        toast.error('User profile not found');
         setUser(null);
       }
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
       toast.error('Error with user profile');
-      throw error;
+      setUser(null);
     } finally {
       setLoading(false);
     }
