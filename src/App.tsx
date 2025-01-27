@@ -9,6 +9,7 @@ import { adminRoutes } from "./routes/adminRoutes";
 import { clientRoutes } from "./routes/clientRoutes";
 import { useAuth } from "@/contexts/AuthContext";
 import LoanApplicationSteps from "@/components/loan/LoanApplicationSteps";
+import { ProtectedRoute } from "./routes/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -28,7 +29,6 @@ const AuthWrapper = () => {
       return <Navigate to="/client" replace />;
     case 'administrator':
     case 'super user':
-      return <Navigate to="/admin" replace />;
     case 'sales officer':
     case 'accounts officer':
     case 'recoveries officer':
@@ -49,8 +49,29 @@ const App = () => (
             <Route path="/" element={<AuthWrapper />} />
             <Route path="/login" element={<AuthForm />} />
             <Route path="/apply" element={<LoanApplicationSteps />} />
-            <Route path="/admin/*" element={adminRoutes} />
-            {clientRoutes}
+            
+            {/* Admin Routes - Protected */}
+            <Route
+              path="/admin/*"
+              element={
+                <ProtectedRoute allowedRoles={['administrator', 'super user', 'sales officer', 'accounts officer', 'recoveries officer']}>
+                  {adminRoutes}
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Client Routes - Protected */}
+            <Route
+              path="/client/*"
+              element={
+                <ProtectedRoute allowedRoles={['client']}>
+                  {clientRoutes}
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Catch all - redirect to login */}
+            <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </TooltipProvider>
       </AuthProvider>

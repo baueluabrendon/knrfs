@@ -7,8 +7,18 @@ import { toast } from "sonner";
 
 const AuthForm = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, user } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if already logged in
+  if (user) {
+    if (user.role === 'client') {
+      navigate('/client');
+    } else {
+      navigate('/admin');
+    }
+    return null;
+  }
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -27,7 +37,7 @@ const AuthForm = () => {
       }
     } catch (error) {
       console.error("Sign in error:", error);
-      toast.error("Failed to sign in");
+      toast.error("Failed to sign in. Please check your credentials.");
     } finally {
       setIsLoading(false);
     }
