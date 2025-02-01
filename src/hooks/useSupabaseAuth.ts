@@ -16,6 +16,12 @@ export async function fetchUserProfile(userId: string) {
       return null;
     }
 
+    if (!profile) {
+      console.error('No profile found for user');
+      toast.error('User profile not found');
+      return null;
+    }
+
     return profile as UserProfile;
   } catch (error) {
     console.error('Error in fetchUserProfile:', error);
@@ -26,6 +32,8 @@ export async function fetchUserProfile(userId: string) {
 
 export async function signInWithSupabase(email: string, password: string) {
   try {
+    console.log('Attempting to sign in with email:', email);
+    
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -33,24 +41,27 @@ export async function signInWithSupabase(email: string, password: string) {
 
     if (authError) {
       console.error('Auth error:', authError);
-      toast.error(authError.message);
-      return null;
+      throw authError;
     }
 
     if (!authData.user) {
-      toast.error('No user data returned');
-      return null;
+      console.error('No user data returned');
+      throw new Error('No user data returned');
     }
 
+    console.log('Auth successful, fetching profile for user:', authData.user.id);
+    
     const profile = await fetchUserProfile(authData.user.id);
-    if (profile) {
-      toast.success('Successfully signed in');
+    if (!profile) {
+      throw new Error('Failed to fetch user profile');
     }
+
+    console.log('Successfully fetched profile:', profile);
+    toast.success('Successfully signed in');
     return profile;
   } catch (error) {
     console.error('Error signing in:', error);
-    toast.error('Failed to sign in');
-    return null;
+    throw error;
   }
 }
 

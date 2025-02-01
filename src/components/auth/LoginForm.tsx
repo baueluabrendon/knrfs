@@ -7,27 +7,41 @@ import { toast } from "sonner";
 
 export const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { signIn } = useAuth();
   const navigate = useNavigate();
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
     try {
+      console.log("Attempting to sign in with:", email); // Debug log
       const user = await signIn(email, password);
+      console.log("Sign in response:", user); // Debug log
+      
       if (user && user.role === 'client') {
         navigate('/client');
       } else if (user) {
         navigate('/admin');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Sign in error:", error);
-      toast.error("Failed to sign in. Please check your credentials.");
+      let errorMessage = "Failed to sign in. Please check your credentials.";
+      
+      if (error.message?.includes("Email not confirmed")) {
+        errorMessage = "Please verify your email address before logging in.";
+      } else if (error.message?.includes("Invalid login credentials")) {
+        errorMessage = "Invalid email or password. Please try again.";
+      }
+      
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -68,6 +82,12 @@ export const LoginForm = () => {
             required
           />
         </div>
+
+        {error && (
+          <div className="text-sm text-red-600">
+            {error}
+          </div>
+        )}
 
         <Button 
           type="submit" 
