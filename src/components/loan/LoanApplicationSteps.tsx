@@ -257,14 +257,14 @@ const LoanApplicationSteps = () => {
         )}
 
         <div className="flex justify-between mt-6">
+          <Button
+            variant="outline"
+            onClick={handlePrevious}
+            disabled={currentStep === 1}
+          >
+            Previous
+          </Button>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentStep === 1}
-            >
-              Previous
-            </Button>
             <Button
               variant="destructive"
               onClick={handleExit}
@@ -272,12 +272,12 @@ const LoanApplicationSteps = () => {
               <XCircle className="mr-2 h-4 w-4" />
               Exit
             </Button>
+            <Button
+              onClick={currentStep === 3 ? handleSubmit : handleNext}
+            >
+              {currentStep === 3 ? "Submit Application" : "Next"}
+            </Button>
           </div>
-          <Button
-            onClick={currentStep === 3 ? handleSubmit : handleNext}
-          >
-            {currentStep === 3 ? "Submit Application" : "Next"}
-          </Button>
         </div>
       </Card>
     </div>
