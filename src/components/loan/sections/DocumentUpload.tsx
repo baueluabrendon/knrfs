@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,10 +36,13 @@ export const DocumentUpload = ({
   const renderUploadBox = (key: string, doc: DocumentUpload) => {
     const isEnabled = isDocumentEnabled(doc);
     return (
-      <div className="space-y-2 w-full">
-        <Label className="text-sm font-medium text-gray-700">{doc.name}</Label>
+      <div className="space-y-1.5 w-full">
+        <Label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+          {doc.name}
+          {doc.required && <span className="text-red-500">*</span>}
+        </Label>
         <div className="relative">
-          <div className={`flex items-center justify-center w-full h-24 px-4 transition bg-white border-2 border-gray-300 border-dashed rounded-lg appearance-none cursor-pointer hover:border-gray-400 focus:outline-none ${!isEnabled && 'opacity-50 cursor-not-allowed'}`}>
+          <div className={`flex items-center justify-center w-full h-16 px-3 transition bg-white border border-gray-200 border-dashed rounded-md appearance-none cursor-pointer hover:border-primary/50 focus:outline-none ${!isEnabled && 'opacity-50 cursor-not-allowed'}`}>
             <Input
               type="file"
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
@@ -50,15 +52,13 @@ export const DocumentUpload = ({
                 if (file) onFileUpload(key, file);
               }}
             />
-            <div className="flex flex-col items-center justify-center">
+            <div className="flex items-center gap-2 text-sm text-gray-500">
               {!isEnabled ? (
-                <Lock className="w-6 h-6 text-gray-400" />
+                <Lock className="w-4 h-4" />
               ) : (
-                <Upload className="w-6 h-6 text-gray-400" />
+                <Upload className="w-4 h-4" />
               )}
-              <span className="mt-2 text-sm text-gray-500">
-                {`Upload ${doc.name}`}
-              </span>
+              <span>{`Upload ${doc.name}`}</span>
             </div>
           </div>
         </div>
@@ -68,9 +68,9 @@ export const DocumentUpload = ({
 
   if (currentStep === 1) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
         <h2 className="text-xl font-semibold">Initial Documents</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {Object.entries(documents)
             .filter(([key]) => ["applicationForm", "termsAndConditions"].includes(key))
             .map(([key, doc]) => renderUploadBox(key, doc))}
@@ -81,14 +81,15 @@ export const DocumentUpload = ({
 
   if (currentStep === 2) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
         <h2 className="text-xl font-semibold">Required Documents</h2>
         
-        <div className="flex gap-4 mb-6">
+        <div className="flex gap-3 mb-4">
           <Button
             onClick={() => onEmployerTypeSelect('public')}
             variant={selectedEmployerType === 'public' ? 'default' : 'outline'}
             className="flex-1"
+            size="sm"
           >
             <LandmarkIcon className="mr-2 h-4 w-4" />
             Public Service
@@ -97,6 +98,7 @@ export const DocumentUpload = ({
             onClick={() => onEmployerTypeSelect('statutory')}
             variant={selectedEmployerType === 'statutory' ? 'default' : 'outline'}
             className="flex-1"
+            size="sm"
           >
             <Building2 className="mr-2 h-4 w-4" />
             Statutory Body
@@ -105,13 +107,14 @@ export const DocumentUpload = ({
             onClick={() => onEmployerTypeSelect('company')}
             variant={selectedEmployerType === 'company' ? 'default' : 'outline'}
             className="flex-1"
+            size="sm"
           >
             <Briefcase className="mr-2 h-4 w-4" />
             Company
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {Object.entries(documents)
             .filter(([key]) => !["applicationForm", "termsAndConditions"].includes(key))
             .map(([key, doc]) => renderUploadBox(key, doc))}
