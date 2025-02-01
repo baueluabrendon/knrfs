@@ -1,45 +1,43 @@
-import { Route, Routes } from "react-router-dom";
-import { ProtectedRoute } from "./ProtectedRoute";
+import { Route } from "react-router-dom";
+import DashboardLayout from "@/components/DashboardLayout";
 import Index from "@/pages/Index";
-import Users from "@/pages/Users";
-import Applications from "@/pages/Applications";
 import Loans from "@/pages/Loans";
-import AddLoan from "@/pages/AddLoan";
-import BulkLoans from "@/pages/BulkLoans";
 import Borrowers from "@/pages/Borrowers";
-import BulkBorrowers from "@/pages/BulkBorrowers";
+import Applications from "@/pages/Applications";
 import Repayments from "@/pages/Repayments";
 import LoansInArrears from "@/pages/LoansInArrears";
 import MissedPayments from "@/pages/MissedPayments";
 import PartialPayments from "@/pages/PartialPayments";
-import ChartOfAccounts from "@/pages/ChartOfAccounts";
+import Recoveries from "@/pages/Recoveries";
+import Users from "@/pages/Users";
+import AddLoan from "@/pages/AddLoan";
+import BulkLoans from "@/pages/BulkLoans";
+import BulkBorrowers from "@/pages/BulkBorrowers";
+import Analytics from "@/pages/Analytics";
 import BalanceSheet from "@/pages/BalanceSheet";
 import ProfitAndLoss from "@/pages/ProfitAndLoss";
 import Cashflow from "@/pages/Cashflow";
-import Analytics from "@/pages/Analytics";
-
-const allowedRoles = ["administrator", "super user", "sales officer", "accounts officer", "recoveries officer"];
+import ChartOfAccounts from "@/pages/ChartOfAccounts";
 
 export const adminRoutes = (
-  <ProtectedRoute allowedRoles={allowedRoles}>
-    <Routes>
-      <Route path="/" element={<Index />} />
-      <Route path="/users" element={<Users />} />
-      <Route path="/applications" element={<Applications />} />
-      <Route path="/loans" element={<Loans />} />
-      <Route path="/loans/add" element={<AddLoan />} />
-      <Route path="/loans/bulk" element={<BulkLoans />} />
-      <Route path="/borrowers" element={<Borrowers />} />
-      <Route path="/borrowers/bulk" element={<BulkBorrowers />} />
-      <Route path="/repayments" element={<Repayments />} />
-      <Route path="/recoveries/arrears" element={<LoansInArrears />} />
-      <Route path="/recoveries/missed" element={<MissedPayments />} />
-      <Route path="/recoveries/partial" element={<PartialPayments />} />
-      <Route path="/accounting/chart-of-accounts" element={<ChartOfAccounts />} />
-      <Route path="/accounting/balance-sheet" element={<BalanceSheet />} />
-      <Route path="/accounting/profit-loss" element={<ProfitAndLoss />} />
-      <Route path="/accounting/cashflow" element={<Cashflow />} />
-      <Route path="/analytics" element={<Analytics />} />
-    </Routes>
-  </ProtectedRoute>
+  <Route path="/" element={<DashboardLayout />}>
+    <Route index element={<Index />} />
+    <Route path="loans" element={<Loans />} />
+    <Route path="borrowers" element={<Borrowers />} />
+    <Route path="applications" element={<Applications />} />
+    <Route path="repayments" element={<Repayments />} />
+    <Route path="loans-in-arrears" element={<LoansInArrears />} />
+    <Route path="missed-payments" element={<MissedPayments />} />
+    <Route path="partial-payments" element={<PartialPayments />} />
+    <Route path="recoveries" element={<Recoveries />} />
+    <Route path="users" element={<Users />} />
+    <Route path="add-loan" element={<AddLoan />} />
+    <Route path="bulk-loans" element={<BulkLoans />} />
+    <Route path="bulk-borrowers" element={<BulkBorrowers />} />
+    <Route path="analytics" element={<Analytics />} />
+    <Route path="balance-sheet" element={<BalanceSheet />} />
+    <Route path="profit-and-loss" element={<ProfitAndLoss />} />
+    <Route path="cashflow" element={<Cashflow />} />
+    <Route path="chart-of-accounts" element={<ChartOfAccounts />} />
+  </Route>
 );

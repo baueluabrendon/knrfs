@@ -12,14 +12,14 @@ import {
 } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
 
-const ClientLoans = () => {
+const ApplicationStatus = () => {
   const { user } = useAuth();
 
-  const { data: loans, isLoading } = useQuery({
-    queryKey: ['client-loans'],
+  const { data: applications, isLoading } = useQuery({
+    queryKey: ['loan-applications'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('loans')
+        .from('loan_applications')
         .select('*')
         .eq('borrower_id', user?.id);
       
@@ -38,36 +38,34 @@ const ClientLoans = () => {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold">My Loans</h1>
+      <h1 className="text-2xl font-bold">Application Status</h1>
       
       <Card className="p-6">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Loan ID</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Start Date</TableHead>
-              <TableHead>End Date</TableHead>
+              <TableHead>Application ID</TableHead>
+              <TableHead>Submission Date</TableHead>
+              <TableHead>Amount Requested</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Next Payment</TableHead>
+              <TableHead>Last Updated</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loans && loans.length > 0 ? (
-              loans.map((loan) => (
-                <TableRow key={loan.loan_id}>
-                  <TableCell>{loan.loan_id}</TableCell>
-                  <TableCell>${loan.loan_amount?.toLocaleString()}</TableCell>
-                  <TableCell>{loan.loan_start_date}</TableCell>
-                  <TableCell>{loan.loan_end_date}</TableCell>
-                  <TableCell>{loan.loan_status}</TableCell>
-                  <TableCell>{loan.next_payment_date || '-'}</TableCell>
+            {applications && applications.length > 0 ? (
+              applications.map((application) => (
+                <TableRow key={application.id}>
+                  <TableCell>{application.id}</TableCell>
+                  <TableCell>{application.created_at}</TableCell>
+                  <TableCell>${application.amount_requested?.toLocaleString()}</TableCell>
+                  <TableCell>{application.status}</TableCell>
+                  <TableCell>{application.updated_at}</TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                  No loans found
+                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  No applications found
                 </TableCell>
               </TableRow>
             )}
@@ -78,4 +76,4 @@ const ClientLoans = () => {
   );
 };
 
-export default ClientLoans;
+export default ApplicationStatus;
