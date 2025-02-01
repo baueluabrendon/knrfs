@@ -6,7 +6,7 @@ export const NavigationButtons = () => {
   const { currentStep, handlePrevious, handleNext, handleExit, handleSubmit } = useLoanApplication();
 
   return (
-    <div className="flex justify-between mt-8">
+    <div className="flex justify-between mt-6">
       <Button
         variant="outline"
         onClick={handlePrevious}
@@ -15,7 +15,7 @@ export const NavigationButtons = () => {
       >
         Previous
       </Button>
-      <div className="flex gap-3">
+      <div className="flex gap-2">
         <Button
           variant="outline"
           onClick={handleExit}

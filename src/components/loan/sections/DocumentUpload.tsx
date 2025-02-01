@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Building2, Briefcase, LandmarkIcon, Lock, Upload } from "lucide-react";
 import { useLoanApplication } from "@/contexts/LoanApplicationContext";
+import { DocumentUploadType, EmployerType } from "@/types/loan";
 
 export const DocumentUpload = () => {
   const {
@@ -13,21 +14,21 @@ export const DocumentUpload = () => {
     handleFileUpload,
   } = useLoanApplication();
 
-  const isDocumentEnabled = (doc: DocumentUpload) => {
+  const isDocumentEnabled = (doc: DocumentUploadType) => {
     if (!selectedEmployerType) return false;
     return doc.required || doc.employerTypes.includes(selectedEmployerType);
   };
 
-  const renderUploadBox = (key: string, doc: DocumentUpload) => {
+  const renderUploadBox = (key: string, doc: DocumentUploadType) => {
     const isEnabled = isDocumentEnabled(doc);
     return (
-      <div className="space-y-1.5 w-full">
+      <div className="space-y-1">
         <Label className="text-sm font-medium text-gray-700 flex items-center gap-1">
           {doc.name}
           {doc.required && <span className="text-red-500">*</span>}
         </Label>
         <div className="relative">
-          <div className={`flex items-center justify-center w-full h-16 px-3 transition bg-white border border-gray-200 border-dashed rounded-md appearance-none cursor-pointer hover:border-primary/50 focus:outline-none ${!isEnabled && 'opacity-50 cursor-not-allowed'}`}>
+          <div className={`flex items-center justify-center w-full h-12 px-3 transition bg-white border border-gray-200 border-dashed rounded-md appearance-none hover:border-primary/50 focus:outline-none ${!isEnabled && 'opacity-50 cursor-not-allowed'}`}>
             <Input
               type="file"
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
@@ -54,7 +55,7 @@ export const DocumentUpload = () => {
   if (currentStep === 1) {
     return (
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Initial Documents</h2>
+        <h2 className="text-xl font-semibold text-gray-800">Initial Documents</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {Object.entries(documents)
             .filter(([key]) => ["applicationForm", "termsAndConditions"].includes(key))
@@ -67,9 +68,9 @@ export const DocumentUpload = () => {
   if (currentStep === 2) {
     return (
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Required Documents</h2>
+        <h2 className="text-xl font-semibold text-gray-800">Required Documents</h2>
         
-        <div className="flex gap-3 mb-4">
+        <div className="flex gap-2 mb-4">
           <Button
             onClick={() => handleEmployerTypeSelect('public')}
             variant={selectedEmployerType === 'public' ? 'default' : 'outline'}
