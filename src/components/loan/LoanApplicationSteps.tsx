@@ -4,22 +4,89 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { Building2, Briefcase, LandmarkIcon, Lock, Upload } from "lucide-react";
+
+type EmployerType = 'public' | 'statutory' | 'company' | null;
 
 interface DocumentUpload {
   name: string;
   file: File | null;
+  required: boolean;
+  employerTypes: EmployerType[];
 }
 
 const LoanApplicationSteps = () => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [selectedEmployerType, setSelectedEmployerType] = useState<EmployerType>(null);
   const [documents, setDocuments] = useState<Record<string, DocumentUpload>>({
-    applicationForm: { name: "Application Form", file: null },
-    termsAndConditions: { name: "Terms and Conditions Form", file: null },
-    paySlip1: { name: "Pay Slip 1", file: null },
-    paySlip2: { name: "Pay Slip 2", file: null },
-    employmentLetter: { name: "Employment Confirmation Letter", file: null },
-    salaryDeduction: { name: "Irrevocable Salary Deduction Authority", file: null },
-    bankStatement: { name: "3 Months Bank Statement", file: null },
+    // Mandatory documents
+    paySlip1: { 
+      name: "Pay Slip 1", 
+      file: null, 
+      required: true,
+      employerTypes: ['public', 'statutory', 'company']
+    },
+    paySlip2: { 
+      name: "Pay Slip 2", 
+      file: null, 
+      required: true,
+      employerTypes: ['public', 'statutory', 'company']
+    },
+    employmentLetter: { 
+      name: "Employment Confirmation Letter", 
+      file: null, 
+      required: true,
+      employerTypes: ['public', 'statutory', 'company']
+    },
+    dataEntryForm: { 
+      name: "Data Entry Form", 
+      file: null, 
+      required: true,
+      employerTypes: ['public', 'statutory', 'company']
+    },
+    salaryDeduction: { 
+      name: "Irrevocable Salary Deduction Authority", 
+      file: null, 
+      required: true,
+      employerTypes: ['public', 'statutory', 'company']
+    },
+    idDocument: { 
+      name: "ID Document", 
+      file: null, 
+      required: true,
+      employerTypes: ['public', 'statutory', 'company']
+    },
+    // Conditional documents
+    permanentVariation: { 
+      name: "Permanent Variation Advice", 
+      file: null, 
+      required: false,
+      employerTypes: ['public']
+    },
+    paySlip3: { 
+      name: "Pay Slip 3", 
+      file: null, 
+      required: false,
+      employerTypes: ['company']
+    },
+    bankStatement: { 
+      name: "3 Months Bank Statement", 
+      file: null, 
+      required: false,
+      employerTypes: ['company']
+    },
+    nasfundForm: { 
+      name: "Nasfund Account Form", 
+      file: null, 
+      required: false,
+      employerTypes: ['company']
+    },
+    salaryDeductionConfirmation: { 
+      name: "Salary Deduction Confirmation Letter", 
+      file: null, 
+      required: false,
+      employerTypes: ['company']
+    },
   });
 
   const handleFileUpload = (documentKey: string, file: File) => {
@@ -28,6 +95,16 @@ const LoanApplicationSteps = () => {
       [documentKey]: { ...prev[documentKey], file }
     }));
     toast.success(`${documents[documentKey].name} uploaded successfully`);
+  };
+
+  const handleEmployerTypeSelect = (type: EmployerType) => {
+    setSelectedEmployerType(type);
+    toast.success(`Selected employer type: ${type}`);
+  };
+
+  const isDocumentEnabled = (doc: DocumentUpload) => {
+    if (!selectedEmployerType) return false;
+    return doc.required || doc.employerTypes.includes(selectedEmployerType);
   };
 
   const handleNext = () => {
@@ -40,7 +117,6 @@ const LoanApplicationSteps = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
     toast.success("Application submitted successfully");
   };
 
@@ -90,16 +166,49 @@ const LoanApplicationSteps = () => {
         )}
 
         {currentStep === 2 && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <h2 className="text-xl font-semibold">Required Documents</h2>
+            
+            <div className="flex gap-4 mb-6">
+              <Button
+                onClick={() => handleEmployerTypeSelect('public')}
+                variant={selectedEmployerType === 'public' ? 'default' : 'outline'}
+                className="flex-1"
+              >
+                <LandmarkIcon className="mr-2 h-4 w-4" />
+                Public Service
+              </Button>
+              <Button
+                onClick={() => handleEmployerTypeSelect('statutory')}
+                variant={selectedEmployerType === 'statutory' ? 'default' : 'outline'}
+                className="flex-1"
+              >
+                <Building2 className="mr-2 h-4 w-4" />
+                Statutory Body
+              </Button>
+              <Button
+                onClick={() => handleEmployerTypeSelect('company')}
+                variant={selectedEmployerType === 'company' ? 'default' : 'outline'}
+                className="flex-1"
+              >
+                <Briefcase className="mr-2 h-4 w-4" />
+                Company
+              </Button>
+            </div>
+
             <div className="grid gap-4">
               {Object.entries(documents)
                 .filter(([key]) => !["applicationForm", "termsAndConditions"].includes(key))
                 .map(([key, doc]) => (
                   <div key={key} className="space-y-2">
-                    <Label>{doc.name}</Label>
+                    <div className="flex items-center gap-2">
+                      <Label>{doc.name}</Label>
+                      {doc.required && <span className="text-red-500">*</span>}
+                      {!isDocumentEnabled(doc) && <Lock className="h-4 w-4 text-gray-400" />}
+                    </div>
                     <Input
                       type="file"
+                      disabled={!isDocumentEnabled(doc)}
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) handleFileUpload(key, file);
