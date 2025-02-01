@@ -27,11 +27,14 @@ export const LoginForm = () => {
       
       if (user && user.role === 'client') {
         navigate('/client');
+      } else if (user && (user.role === 'super user' || user.role === 'administrator')) {
+        navigate('/admin');
       } else if (user) {
+        // For other roles, still navigate to admin
         navigate('/admin');
       }
     } catch (error: any) {
-      console.error("Sign in error:", error);
+      console.error("Sign in error details:", error); // More detailed error logging
       let errorMessage = "Failed to sign in. Please check your credentials.";
       
       if (error.message?.includes("Email not confirmed")) {
