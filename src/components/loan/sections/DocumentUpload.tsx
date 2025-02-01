@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Building2, Briefcase, LandmarkIcon, Lock, Upload } from "lucide-react";
+import { Building2, Briefcase, LandmarkIcon, Upload } from "lucide-react";
 import { useLoanApplication } from "@/contexts/LoanApplicationContext";
 import { DocumentUploadType, EmployerType } from "@/types/loan";
 
@@ -15,6 +15,9 @@ export const DocumentUpload = () => {
   } = useLoanApplication();
 
   const isDocumentEnabled = (doc: DocumentUploadType) => {
+    // For stage 1, all initial documents should be enabled
+    if (currentStep === 1) return true;
+    // For stage 2, check employer type requirements
     if (!selectedEmployerType) return false;
     return doc.required || doc.employerTypes.includes(selectedEmployerType);
   };
@@ -39,11 +42,7 @@ export const DocumentUpload = () => {
               }}
             />
             <div className="flex items-center gap-2 text-sm text-gray-500">
-              {!isEnabled ? (
-                <Lock className="w-4 h-4" />
-              ) : (
-                <Upload className="w-4 h-4" />
-              )}
+              <Upload className="w-4 h-4" />
               <span>{`Upload ${doc.name}`}</span>
             </div>
           </div>
