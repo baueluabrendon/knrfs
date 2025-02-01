@@ -1,26 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { XCircle } from "lucide-react";
+import { useLoanApplication } from "@/contexts/LoanApplicationContext";
 
-interface NavigationButtonsProps {
-  currentStep: number;
-  onPrevious: () => void;
-  onNext: () => void;
-  onExit: () => void;
-  onSubmit: (e: React.FormEvent) => void;
-}
+export const NavigationButtons = () => {
+  const { currentStep, handlePrevious, handleNext, handleExit, handleSubmit } = useLoanApplication();
 
-export const NavigationButtons = ({
-  currentStep,
-  onPrevious,
-  onNext,
-  onExit,
-  onSubmit,
-}: NavigationButtonsProps) => {
   return (
     <div className="flex justify-between mt-8">
       <Button
         variant="outline"
-        onClick={onPrevious}
+        onClick={handlePrevious}
         disabled={currentStep === 1}
         className="border-gray-200 hover:bg-gray-50"
       >
@@ -29,14 +18,14 @@ export const NavigationButtons = ({
       <div className="flex gap-3">
         <Button
           variant="outline"
-          onClick={onExit}
+          onClick={handleExit}
           className="border-gray-200 hover:bg-gray-50 text-gray-700"
         >
           <XCircle className="mr-2 h-4 w-4" />
           Exit
         </Button>
         <Button
-          onClick={currentStep === 3 ? onSubmit : onNext}
+          onClick={currentStep === 3 ? handleSubmit : handleNext}
           className="bg-primary hover:bg-primary/90"
         >
           {currentStep === 3 ? "Submit Application" : "Next"}

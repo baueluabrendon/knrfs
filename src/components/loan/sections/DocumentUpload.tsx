@@ -2,32 +2,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Building2, Briefcase, LandmarkIcon, Lock, Upload } from "lucide-react";
-import { toast } from "sonner";
+import { useLoanApplication } from "@/contexts/LoanApplicationContext";
 
-type EmployerType = 'public' | 'statutory' | 'company' | null;
+export const DocumentUpload = () => {
+  const {
+    currentStep,
+    selectedEmployerType,
+    documents,
+    handleEmployerTypeSelect,
+    handleFileUpload,
+  } = useLoanApplication();
 
-interface DocumentUpload {
-  name: string;
-  file: File | null;
-  required: boolean;
-  employerTypes: EmployerType[];
-}
-
-interface DocumentUploadProps {
-  currentStep: number;
-  selectedEmployerType: EmployerType;
-  documents: Record<string, DocumentUpload>;
-  onEmployerTypeSelect: (type: EmployerType) => void;
-  onFileUpload: (documentKey: string, file: File) => void;
-}
-
-export const DocumentUpload = ({
-  currentStep,
-  selectedEmployerType,
-  documents,
-  onEmployerTypeSelect,
-  onFileUpload,
-}: DocumentUploadProps) => {
   const isDocumentEnabled = (doc: DocumentUpload) => {
     if (!selectedEmployerType) return false;
     return doc.required || doc.employerTypes.includes(selectedEmployerType);
@@ -49,7 +34,7 @@ export const DocumentUpload = ({
               disabled={!isEnabled}
               onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (file) onFileUpload(key, file);
+                if (file) handleFileUpload(key, file);
               }}
             />
             <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -86,7 +71,7 @@ export const DocumentUpload = ({
         
         <div className="flex gap-3 mb-4">
           <Button
-            onClick={() => onEmployerTypeSelect('public')}
+            onClick={() => handleEmployerTypeSelect('public')}
             variant={selectedEmployerType === 'public' ? 'default' : 'outline'}
             className="flex-1"
             size="sm"
@@ -95,7 +80,7 @@ export const DocumentUpload = ({
             Public Service
           </Button>
           <Button
-            onClick={() => onEmployerTypeSelect('statutory')}
+            onClick={() => handleEmployerTypeSelect('statutory')}
             variant={selectedEmployerType === 'statutory' ? 'default' : 'outline'}
             className="flex-1"
             size="sm"
@@ -104,7 +89,7 @@ export const DocumentUpload = ({
             Statutory Body
           </Button>
           <Button
-            onClick={() => onEmployerTypeSelect('company')}
+            onClick={() => handleEmployerTypeSelect('company')}
             variant={selectedEmployerType === 'company' ? 'default' : 'outline'}
             className="flex-1"
             size="sm"
