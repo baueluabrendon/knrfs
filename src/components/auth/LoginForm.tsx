@@ -21,20 +21,28 @@ export const LoginForm = () => {
     const password = formData.get("password") as string;
 
     try {
-      console.log("Attempting to sign in with:", email); // Debug log
+      console.log("Starting sign in process..."); // Debug log
+      console.log("Attempting to sign in with email:", email);
+      
       const user = await signIn(email, password);
       console.log("Sign in response:", user); // Debug log
       
-      if (user && user.role === 'client') {
+      if (!user) {
+        throw new Error("No user data returned from sign in");
+      }
+
+      console.log("User role:", user.role); // Debug log
+      
+      if (user.role === 'client') {
         navigate('/client');
-      } else if (user && (user.role === 'super user' || user.role === 'administrator')) {
+      } else if (user.role === 'super user' || user.role === 'administrator') {
         navigate('/admin');
-      } else if (user) {
+      } else {
         // For other roles, still navigate to admin
         navigate('/admin');
       }
     } catch (error: any) {
-      console.error("Sign in error details:", error); // More detailed error logging
+      console.error("Sign in error details:", error);
       let errorMessage = "Failed to sign in. Please check your credentials.";
       
       if (error.message?.includes("Email not confirmed")) {

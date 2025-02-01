@@ -1,9 +1,5 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
 import { AuthHeader } from "./AuthHeader";
 import { LoginForm } from "./LoginForm";
 
@@ -13,6 +9,7 @@ const AuthForm = () => {
 
   // Redirect if already logged in
   if (user) {
+    console.log("User already logged in, redirecting...", user); // Debug log
     if (user.role === 'client') {
       navigate('/client');
     } else {
