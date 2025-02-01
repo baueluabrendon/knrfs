@@ -9,8 +9,25 @@ import { StepIndicator } from "./sections/StepIndicator";
 import { NavigationButtons } from "./sections/NavigationButtons";
 import { useLoanApplication, LoanApplicationProvider } from "@/contexts/LoanApplicationContext";
 
+const ApplicationForm = () => {
+  const { handleSubmit } = useLoanApplication();
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold text-gray-800">Application Details</h2>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <PersonalInfo />
+        <EmploymentInfo />
+        <ResidentialInfo />
+        <FinancialInfo />
+        <LoanDetails />
+      </form>
+    </div>
+  );
+};
+
 const LoanApplicationContent = () => {
-  const { currentStep, handleSubmit } = useLoanApplication();
+  const { currentStep } = useLoanApplication();
 
   return (
     <div className="container mx-auto p-4 max-w-4xl">
@@ -21,20 +38,7 @@ const LoanApplicationContent = () => {
 
       <Card className="p-6">
         {(currentStep === 1 || currentStep === 2) && <DocumentUpload />}
-
-        {currentStep === 3 && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-gray-800">Application Details</h2>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <PersonalInfo />
-              <EmploymentInfo />
-              <ResidentialInfo />
-              <FinancialInfo />
-              <LoanDetails />
-            </form>
-          </div>
-        )}
-
+        {currentStep === 3 && <ApplicationForm />}
         <NavigationButtons />
       </Card>
     </div>
