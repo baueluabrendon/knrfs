@@ -4,7 +4,12 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Building2, Briefcase, LandmarkIcon, Lock, Upload } from "lucide-react";
+import { Building2, Briefcase, LandmarkIcon, Lock, Upload, XCircle } from "lucide-react";
+import { PersonalInfo } from "./sections/PersonalInfo";
+import { EmploymentInfo } from "./sections/EmploymentInfo";
+import { ResidentialInfo } from "./sections/ResidentialInfo";
+import { FinancialInfo } from "./sections/FinancialInfo";
+import { LoanDetails } from "./sections/LoanDetails";
 
 type EmployerType = 'public' | 'statutory' | 'company' | null;
 
@@ -19,7 +24,20 @@ const LoanApplicationSteps = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedEmployerType, setSelectedEmployerType] = useState<EmployerType>(null);
   const [documents, setDocuments] = useState<Record<string, DocumentUpload>>({
-    // Mandatory documents
+    // Stage 1 documents
+    applicationForm: { 
+      name: "Application Form", 
+      file: null, 
+      required: true,
+      employerTypes: ['public', 'statutory', 'company']
+    },
+    termsAndConditions: { 
+      name: "Terms and Conditions", 
+      file: null, 
+      required: true,
+      employerTypes: ['public', 'statutory', 'company']
+    },
+    // Stage 2 mandatory documents
     paySlip1: { 
       name: "Pay Slip 1", 
       file: null, 
@@ -113,6 +131,11 @@ const LoanApplicationSteps = () => {
 
   const handlePrevious = () => {
     setCurrentStep(prev => Math.max(prev - 1, 1));
+  };
+
+  const handleExit = () => {
+    // Navigate back to the dashboard or previous page
+    window.history.back();
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -221,47 +244,35 @@ const LoanApplicationSteps = () => {
         )}
 
         {currentStep === 3 && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <h2 className="text-xl font-semibold">Application Details</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Given Name</Label>
-                  <Input required />
-                </div>
-                <div className="space-y-2">
-                  <Label>Surname</Label>
-                  <Input required />
-                </div>
-                <div className="space-y-2">
-                  <Label>Date of Birth</Label>
-                  <Input type="date" required />
-                </div>
-                <div className="space-y-2">
-                  <Label>Gender</Label>
-                  <Input required />
-                </div>
-                <div className="space-y-2">
-                  <Label>Mobile Number</Label>
-                  <Input type="tel" required />
-                </div>
-                <div className="space-y-2">
-                  <Label>Email</Label>
-                  <Input type="email" required />
-                </div>
-              </div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <PersonalInfo />
+              <EmploymentInfo />
+              <ResidentialInfo />
+              <FinancialInfo />
+              <LoanDetails />
             </form>
           </div>
         )}
 
         <div className="flex justify-between mt-6">
-          <Button
-            variant="outline"
-            onClick={handlePrevious}
-            disabled={currentStep === 1}
-          >
-            Previous
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={currentStep === 1}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleExit}
+            >
+              <XCircle className="mr-2 h-4 w-4" />
+              Exit
+            </Button>
+          </div>
           <Button
             onClick={currentStep === 3 ? handleSubmit : handleNext}
           >
