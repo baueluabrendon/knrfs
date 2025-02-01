@@ -7,7 +7,7 @@ import { FinancialInfo } from "./sections/FinancialInfo";
 import { LoanDetails } from "./sections/LoanDetails";
 import { StepIndicator } from "./sections/StepIndicator";
 import { NavigationButtons } from "./sections/NavigationButtons";
-import { useLoanApplication } from "@/contexts/LoanApplicationContext";
+import { useLoanApplication, LoanApplicationProvider } from "@/contexts/LoanApplicationContext";
 
 const LoanApplicationContent = () => {
   const { currentStep, handleSubmit } = useLoanApplication();
@@ -43,9 +43,11 @@ const LoanApplicationContent = () => {
 
 const LoanApplicationSteps = () => {
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <LoanApplicationContent />
-    </div>
+    <LoanApplicationProvider>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <LoanApplicationContent />
+      </div>
+    </LoanApplicationProvider>
   );
 };
 
