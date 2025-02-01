@@ -21,7 +21,7 @@ const ApplicationStatus = () => {
       const { data, error } = await supabase
         .from('loan_applications')
         .select('*')
-        .eq('borrower_id', user?.id);
+        .eq('borrower_id', user?.user_id);
       
       if (error) throw error;
       return data;

@@ -21,7 +21,7 @@ const ClientRepayments = () => {
       const { data, error } = await supabase
         .from('loan_repayments')
         .select('*')
-        .eq('borrower_id', user?.id);
+        .eq('borrower_id', user?.user_id);
       
       if (error) throw error;
       return data;

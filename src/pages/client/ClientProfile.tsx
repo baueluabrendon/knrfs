@@ -13,7 +13,7 @@ const ClientProfile = () => {
       const { data, error } = await supabase
         .from('borrowers')
         .select('*')
-        .eq('borrower_id', user?.id)
+        .eq('borrower_id', user?.user_id)
         .single();
       
       if (error) throw error;

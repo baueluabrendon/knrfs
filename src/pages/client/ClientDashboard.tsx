@@ -13,7 +13,7 @@ const ClientDashboard = () => {
       const { data, error } = await supabase
         .from('loans')
         .select('*')
-        .eq('borrower_id', user?.id);
+        .eq('borrower_id', user?.user_id);
       
       if (error) throw error;
       return data;
