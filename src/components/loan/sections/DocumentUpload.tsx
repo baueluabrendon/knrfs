@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Building2, Briefcase, LandmarkIcon, Lock } from "lucide-react";
+import { Building2, Briefcase, LandmarkIcon, Lock, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 type EmployerType = 'public' | 'statutory' | 'company' | null;
@@ -34,25 +34,46 @@ export const DocumentUpload = ({
     return doc.required || doc.employerTypes.includes(selectedEmployerType);
   };
 
+  const renderUploadBox = (key: string, doc: DocumentUpload) => {
+    const isEnabled = isDocumentEnabled(doc);
+    return (
+      <div className="space-y-2 w-full">
+        <Label className="text-sm font-medium text-gray-700">{doc.name}</Label>
+        <div className="relative">
+          <div className={`flex items-center justify-center w-full h-24 px-4 transition bg-white border-2 border-gray-300 border-dashed rounded-lg appearance-none cursor-pointer hover:border-gray-400 focus:outline-none ${!isEnabled && 'opacity-50 cursor-not-allowed'}`}>
+            <Input
+              type="file"
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              disabled={!isEnabled}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) onFileUpload(key, file);
+              }}
+            />
+            <div className="flex flex-col items-center justify-center">
+              {!isEnabled ? (
+                <Lock className="w-6 h-6 text-gray-400" />
+              ) : (
+                <Upload className="w-6 h-6 text-gray-400" />
+              )}
+              <span className="mt-2 text-sm text-gray-500">
+                {`Upload ${doc.name}`}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (currentStep === 1) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
         <h2 className="text-xl font-semibold">Initial Documents</h2>
-        <div className="grid gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {Object.entries(documents)
             .filter(([key]) => ["applicationForm", "termsAndConditions"].includes(key))
-            .map(([key, doc]) => (
-              <div key={key} className="space-y-2">
-                <Label>{doc.name}</Label>
-                <Input
-                  type="file"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) onFileUpload(key, file);
-                  }}
-                />
-              </div>
-            ))}
+            .map(([key, doc]) => renderUploadBox(key, doc))}
         </div>
       </div>
     );
@@ -90,26 +111,10 @@ export const DocumentUpload = ({
           </Button>
         </div>
 
-        <div className="grid gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {Object.entries(documents)
             .filter(([key]) => !["applicationForm", "termsAndConditions"].includes(key))
-            .map(([key, doc]) => (
-              <div key={key} className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Label>{doc.name}</Label>
-                  {doc.required && <span className="text-red-500">*</span>}
-                  {!isDocumentEnabled(doc) && <Lock className="h-4 w-4 text-gray-400" />}
-                </div>
-                <Input
-                  type="file"
-                  disabled={!isDocumentEnabled(doc)}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) onFileUpload(key, file);
-                  }}
-                />
-              </div>
-            ))}
+            .map(([key, doc]) => renderUploadBox(key, doc))}
         </div>
       </div>
     );
