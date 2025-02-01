@@ -126,6 +126,95 @@ export type Database = {
         }
         Relationships: []
       }
+      loan_applications: {
+        Row: {
+          application_id: string
+          borrower_id: string | null
+          created_at: string | null
+          loan_amount: number
+          loan_term: number
+          purpose: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          application_id?: string
+          borrower_id?: string | null
+          created_at?: string | null
+          loan_amount: number
+          loan_term: number
+          purpose?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          application_id?: string
+          borrower_id?: string | null
+          created_at?: string | null
+          loan_amount?: number
+          loan_term?: number
+          purpose?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loan_applications_borrower_id_fkey"
+            columns: ["borrower_id"]
+            isOneToOne: false
+            referencedRelation: "borrowers"
+            referencedColumns: ["borrower_id"]
+          },
+        ]
+      }
+      loan_repayments: {
+        Row: {
+          amount: number
+          borrower_id: string | null
+          created_at: string | null
+          loan_id: string | null
+          payment_date: string | null
+          payment_method: string | null
+          repayment_id: string
+          status: string | null
+        }
+        Insert: {
+          amount: number
+          borrower_id?: string | null
+          created_at?: string | null
+          loan_id?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          repayment_id?: string
+          status?: string | null
+        }
+        Update: {
+          amount?: number
+          borrower_id?: string | null
+          created_at?: string | null
+          loan_id?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          repayment_id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loan_repayments_borrower_id_fkey"
+            columns: ["borrower_id"]
+            isOneToOne: false
+            referencedRelation: "borrowers"
+            referencedColumns: ["borrower_id"]
+          },
+          {
+            foreignKeyName: "loan_repayments_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans"
+            referencedColumns: ["loan_id"]
+          },
+        ]
+      }
       loans: {
         Row: {
           borrower_id: string
