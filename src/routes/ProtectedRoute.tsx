@@ -18,6 +18,7 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
+    console.log("User role not allowed:", user.role); // Debug log
     return <Navigate to="/" replace />;
   }
 

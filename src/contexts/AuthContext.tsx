@@ -29,6 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       const userData = await authApi.login(email, password);
+      console.log("Login response:", userData); // Debug log
       setUser(userData);
       return userData;
     } catch (error: any) {
