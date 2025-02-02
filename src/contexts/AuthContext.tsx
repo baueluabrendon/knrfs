@@ -1,9 +1,15 @@
-import { createContext, useContext, useEffect } from "react";
+import { createContext, useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/lib/supabase";
-import { useAuthState } from "@/hooks/useAuthState";
-import { fetchUserProfile, signInWithSupabase, signOutFromSupabase } from "@/hooks/useSupabaseAuth";
-import { UserProfile } from "@/types/auth";
+import { authApi } from "@/lib/api";
+import { toast } from "sonner";
+
+interface UserProfile {
+  user_id: string;
+  email: string;
+  role: string;
+  first_name: string | null;
+  last_name: string | null;
+}
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -16,49 +22,35 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
-  const { user, setUser, loading, setLoading } = useAuthState();
-
-  useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          const profile = await fetchUserProfile(session.user.id);
-          setUser(profile);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initializeAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        const profile = await fetchUserProfile(session.user.id);
-        setUser(profile);
-      } else {
-        setUser(null);
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [setUser, setLoading]);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const signIn = async (email: string, password: string) => {
-    const profile = await signInWithSupabase(email, password);
-    if (profile) {
-      setUser(profile);
+    try {
+      setLoading(true);
+      const userData = await authApi.login(email, password);
+      setUser(userData);
+      return userData;
+    } catch (error: any) {
+      console.error("Login error:", error);
+      toast.error(error.message || "Failed to sign in");
+      return null;
+    } finally {
+      setLoading(false);
     }
-    return profile;
   };
 
   const signOut = async () => {
-    const success = await signOutFromSupabase();
-    if (success) {
+    try {
+      setLoading(true);
+      await authApi.logout();
       setUser(null);
       navigate('/login');
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Failed to sign out");
+    } finally {
+      setLoading(false);
     }
   };
 

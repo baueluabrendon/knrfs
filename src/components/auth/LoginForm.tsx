@@ -22,37 +22,23 @@ export const LoginForm = () => {
 
     try {
       console.log("Starting sign in process..."); // Debug log
-      console.log("Attempting to sign in with email:", email);
-      
       const user = await signIn(email, password);
-      console.log("Sign in response:", user); // Debug log
       
       if (!user) {
-        throw new Error("No user data returned from sign in");
+        throw new Error("Login failed");
       }
 
       console.log("User role:", user.role); // Debug log
       
       if (user.role === 'client') {
         navigate('/client');
-      } else if (user.role === 'super user' || user.role === 'administrator') {
-        navigate('/admin');
       } else {
-        // For other roles, still navigate to admin
         navigate('/admin');
       }
     } catch (error: any) {
-      console.error("Sign in error details:", error);
-      let errorMessage = "Failed to sign in. Please check your credentials.";
-      
-      if (error.message?.includes("Email not confirmed")) {
-        errorMessage = "Please verify your email address before logging in.";
-      } else if (error.message?.includes("Invalid login credentials")) {
-        errorMessage = "Invalid email or password. Please try again.";
-      }
-      
-      setError(errorMessage);
-      toast.error(errorMessage);
+      console.error("Sign in error:", error);
+      setError(error.message || "Failed to sign in");
+      toast.error(error.message || "Failed to sign in");
     } finally {
       setIsLoading(false);
     }
