@@ -15,6 +15,12 @@ const queryClient = new QueryClient();
 
 const AuthWrapper = () => {
   const { user, loading } = useAuth();
+  const isDevelopment = process.env.NODE_ENV === 'development';
+
+  // Skip authentication in development mode
+  if (isDevelopment) {
+    return <Navigate to="/admin" replace />;
+  }
 
   if (loading) {
     return <div>Loading...</div>;

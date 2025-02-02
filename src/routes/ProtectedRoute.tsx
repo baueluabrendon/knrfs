@@ -8,6 +8,12 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
+  const isDevelopment = process.env.NODE_ENV === 'development';
+
+  // Allow access in development mode
+  if (isDevelopment) {
+    return <>{children}</>;
+  }
 
   if (loading) {
     return <div>Loading...</div>;
