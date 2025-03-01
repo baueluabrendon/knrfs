@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext"; // Added useAuth import
 import AuthForm from "@/components/auth/AuthForm";
 import { adminRoutes } from "./routes/adminRoutes";
 import { clientRoutes } from "./routes/clientRoutes";
