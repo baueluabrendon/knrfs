@@ -243,6 +243,7 @@ export type Database = {
           payment_count: number | null
           principal: number
           principal_repayment: number | null
+          product: string | null
           repayment_completion_percentage: number | null
           total_payment_count: number | null
           updated_at: string | null
@@ -274,6 +275,7 @@ export type Database = {
           payment_count?: number | null
           principal: number
           principal_repayment?: number | null
+          product?: string | null
           repayment_completion_percentage?: number | null
           total_payment_count?: number | null
           updated_at?: string | null
@@ -305,6 +307,7 @@ export type Database = {
           payment_count?: number | null
           principal?: number
           principal_repayment?: number | null
+          product?: string | null
           repayment_completion_percentage?: number | null
           total_payment_count?: number | null
           updated_at?: string | null
