@@ -1,3 +1,4 @@
+
 import { Route } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import Index from "@/pages/Index";
@@ -20,7 +21,7 @@ import Cashflow from "@/pages/Cashflow";
 import ChartOfAccounts from "@/pages/ChartOfAccounts";
 
 export const adminRoutes = (
-  <Route path="/" element={<DashboardLayout><Index /></DashboardLayout>}>
+  <Route path="/" element={<DashboardLayout />}>
     <Route index element={<Index />} />
     <Route path="loans" element={<Loans />} />
     <Route path="borrowers" element={<Borrowers />} />

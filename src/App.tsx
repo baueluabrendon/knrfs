@@ -60,10 +60,18 @@ const App = () => (
             <Route path="/apply" element={<LoanApplicationSteps />} />
             
             {/* Admin Routes */}
-            <Route path="/admin/*" element={adminRoutes} />
+            <Route path="/admin/*" element={
+              <ProtectedRoute allowedRoles={['administrator', 'super user', 'sales officer', 'accounts officer', 'recoveries officer']}>
+                {adminRoutes}
+              </ProtectedRoute>
+            } />
 
             {/* Client Routes */}
-            <Route path="/client/*" element={clientRoutes} />
+            <Route path="/client/*" element={
+              <ProtectedRoute allowedRoles={['client']}>
+                {clientRoutes}
+              </ProtectedRoute>
+            } />
 
             {/* Catch all - redirect to login */}
             <Route path="*" element={<Navigate to="/login" replace />} />
