@@ -22,15 +22,15 @@ export const LoginForm = () => {
     const password = formData.get("password") as string;
 
     try {
-      console.log("Starting sign in process with:", email); // Debug log
+      console.log("Starting sign in process with:", email);
       const user = await signIn(email, password);
       
       if (!user) {
-        throw new Error("Login failed - no user returned");
+        throw new Error("Invalid email or password");
       }
 
-      console.log("User signed in successfully:", user); // Debug log
-      console.log("User role:", user.role); // Debug log
+      console.log("User signed in successfully:", user);
+      console.log("User role:", user.role);
       
       // Route based on user role
       if (user.role === 'client') {
@@ -42,8 +42,15 @@ export const LoginForm = () => {
       toast.success("Successfully logged in!");
     } catch (error: any) {
       console.error("Sign in error:", error);
-      setError(error.message || "Failed to sign in");
-      toast.error(error.message || "Failed to sign in");
+      
+      // Display a more user-friendly error message
+      if (error.code === "invalid_credentials") {
+        setError("Invalid email or password");
+        toast.error("Invalid email or password");
+      } else {
+        setError(error.message || "Failed to sign in");
+        toast.error(error.message || "Failed to sign in");
+      }
     } finally {
       setIsLoading(false);
     }

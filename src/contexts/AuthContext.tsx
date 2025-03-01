@@ -144,8 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return userData;
     } catch (error: any) {
       console.error("Login error:", error);
-      toast.error(error.message || "Failed to sign in");
-      return null;
+      throw error; // Propagate the error to be handled by the component
     } finally {
       setLoading(false);
     }
