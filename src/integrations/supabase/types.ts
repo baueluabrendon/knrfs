@@ -224,27 +224,27 @@ export type Database = {
           documentation_fee: number | null
           due_date: string | null
           fortnightly_installment: number
+          gross_loan: number
           gst_amount: number | null
           gst_rate: number | null
           interest_amount: number
           interest_rate: number
           last_status_update: string | null
-          loan_amount: number
-          loan_end_date: string | null
           loan_id: string
           loan_repayment_status: string | null
           loan_risk_insurance: number
           loan_start_date: string | null
           loan_status: string | null
           loan_term: number
+          maturity_date: string | null
           missed_payments_count: number | null
           partial_payment_penalty_fees_accumulated: number | null
           partial_payments_count: number | null
           payment_count: number | null
+          principal: number
           principal_repayment: number | null
           repayment_completion_percentage: number | null
-          total_loan_repayable: number
-          total_payments_count: number | null
+          total_payment_count: number | null
           updated_at: string | null
         }
         Insert: {
@@ -255,27 +255,27 @@ export type Database = {
           documentation_fee?: number | null
           due_date?: string | null
           fortnightly_installment: number
+          gross_loan: number
           gst_amount?: number | null
           gst_rate?: number | null
           interest_amount: number
           interest_rate: number
           last_status_update?: string | null
-          loan_amount: number
-          loan_end_date?: string | null
           loan_id: string
           loan_repayment_status?: string | null
           loan_risk_insurance: number
           loan_start_date?: string | null
           loan_status?: string | null
           loan_term: number
+          maturity_date?: string | null
           missed_payments_count?: number | null
           partial_payment_penalty_fees_accumulated?: number | null
           partial_payments_count?: number | null
           payment_count?: number | null
+          principal: number
           principal_repayment?: number | null
           repayment_completion_percentage?: number | null
-          total_loan_repayable: number
-          total_payments_count?: number | null
+          total_payment_count?: number | null
           updated_at?: string | null
         }
         Update: {
@@ -286,27 +286,27 @@ export type Database = {
           documentation_fee?: number | null
           due_date?: string | null
           fortnightly_installment?: number
+          gross_loan?: number
           gst_amount?: number | null
           gst_rate?: number | null
           interest_amount?: number
           interest_rate?: number
           last_status_update?: string | null
-          loan_amount?: number
-          loan_end_date?: string | null
           loan_id?: string
           loan_repayment_status?: string | null
           loan_risk_insurance?: number
           loan_start_date?: string | null
           loan_status?: string | null
           loan_term?: number
+          maturity_date?: string | null
           missed_payments_count?: number | null
           partial_payment_penalty_fees_accumulated?: number | null
           partial_payments_count?: number | null
           payment_count?: number | null
+          principal?: number
           principal_repayment?: number | null
           repayment_completion_percentage?: number | null
-          total_loan_repayable?: number
-          total_payments_count?: number | null
+          total_payment_count?: number | null
           updated_at?: string | null
         }
         Relationships: [
