@@ -1,23 +1,39 @@
-import { ApiResponse } from './types';
 
-const API_BASE_URL = 'http://localhost:5000';
+import { supabase } from "@/integrations/supabase/client";
+import { ApiResponse } from './types';
 
 export const authApi = {
   async login(email: string, password: string) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
       
-      const data: ApiResponse<any> = await response.json();
-      if (!data.success) {
-        throw new Error(data.error || 'Login failed');
+      if (error) {
+        throw new Error(error.message || 'Login failed');
       }
-      return data.data;
+
+      // Fetch user profile data after successful authentication
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', data.user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching user profile:', profileError);
+        throw new Error('Failed to fetch user profile');
+      }
+
+      // Return user data in the expected format
+      return {
+        user_id: data.user.id,
+        email: data.user.email || '',
+        role: profile?.role || 'client', // Default to client if no role found
+        first_name: profile?.first_name || null,
+        last_name: profile?.last_name || null
+      };
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -26,11 +42,11 @@ export const authApi = {
 
   async logout() {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/logout`, {
-        method: 'POST',
-      });
-      const data: ApiResponse<any> = await response.json();
-      return data.success;
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        throw error;
+      }
+      return true;
     } catch (error) {
       console.error('Logout error:', error);
       throw error;

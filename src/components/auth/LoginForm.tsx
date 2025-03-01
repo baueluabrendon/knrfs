@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -35,6 +36,8 @@ export const LoginForm = () => {
       } else {
         navigate('/admin');
       }
+      
+      toast.success("Successfully logged in!");
     } catch (error: any) {
       console.error("Sign in error:", error);
       setError(error.message || "Failed to sign in");
