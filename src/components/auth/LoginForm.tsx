@@ -34,12 +34,12 @@ export const LoginForm = () => {
       
       // Route based on user role
       if (user.role === 'client') {
+        toast.success("Successfully logged in as client!");
         navigate('/client');
       } else {
+        toast.success(`Successfully logged in as ${user.role}!`);
         navigate('/admin');
       }
-      
-      toast.success("Successfully logged in!");
     } catch (error: any) {
       console.error("Sign in error:", error);
       

@@ -30,9 +30,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkSession = async () => {
       try {
+        console.log("Checking existing session...");
         const { data } = await supabase.auth.getSession();
         
         if (data.session) {
+          console.log("Existing session found:", data.session.user.id);
           // Fetch user profile if session exists
           const { data: profile, error: profileError } = await supabase
             .from('user_profiles')
@@ -41,6 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             .single();
             
           if (!profileError && profile) {
+            console.log("User profile found:", profile);
             setUser({
               user_id: data.session.user.id,
               email: data.session.user.email || '',
@@ -48,7 +51,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               first_name: profile.first_name || null,
               last_name: profile.last_name || null
             });
+          } else {
+            console.error("Error fetching user profile:", profileError);
           }
+        } else {
+          console.log("No existing session found");
         }
       } catch (error) {
         console.error("Session check error:", error);
@@ -72,6 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               .single();
               
             if (!profileError && profile) {
+              console.log("User profile retrieved on auth state change:", profile);
               setUser({
                 user_id: session.user.id,
                 email: session.user.email || '',
@@ -79,6 +87,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 first_name: profile.first_name || null,
                 last_name: profile.last_name || null
               });
+            } else {
+              console.error("Error fetching profile on auth state change:", profileError);
             }
           } catch (error) {
             console.error("Profile fetch error:", error);
@@ -86,6 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setLoading(false);
           }
         } else if (event === 'SIGNED_OUT') {
+          console.log("User signed out");
           setUser(null);
           setLoading(false);
         }
