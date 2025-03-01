@@ -1,5 +1,7 @@
+
 import { useState } from "react";
 import { toast } from "sonner";
+import { Outlet } from "react-router-dom";
 import SidebarNav from "./SidebarNav";
 import DashboardHeader from "./DashboardHeader";
 import SidebarHeader from "./SidebarHeader";
@@ -7,7 +9,7 @@ import BorrowerDialog from "./borrowers/BorrowerDialog";
 import { menuItems as defaultMenuItems } from "@/config/menuItems";
 import { BorrowerFormData } from "./borrowers/BorrowerForm";
 
-const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
+const DashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [showAddBorrower, setShowAddBorrower] = useState(false);
@@ -53,7 +55,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       <div className="flex-1">
         <DashboardHeader onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
         <main className="p-6 bg-background">
-          {children}
+          <Outlet />
         </main>
       </div>
 
