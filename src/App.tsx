@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,8 +18,9 @@ const AuthWrapper = () => {
   const { user, loading } = useAuth();
   const isDevelopment = process.env.NODE_ENV === 'development';
 
-  // Skip authentication in development mode
+  // During development, redirect to admin dashboard
   if (isDevelopment) {
+    console.log("Development mode: redirecting to admin dashboard");
     return <Navigate to="/admin" replace />;
   }
 
@@ -30,6 +32,7 @@ const AuthWrapper = () => {
     return <Navigate to="/login" replace />;
   }
 
+  // Route based on user role
   switch (user.role) {
     case 'client':
       return <Navigate to="/client" replace />;
@@ -56,25 +59,11 @@ const App = () => (
             <Route path="/login" element={<AuthForm />} />
             <Route path="/apply" element={<LoanApplicationSteps />} />
             
-            {/* Admin Routes - Protected */}
-            <Route
-              path="/admin/*"
-              element={
-                <ProtectedRoute allowedRoles={['administrator', 'super user', 'sales officer', 'accounts officer', 'recoveries officer']}>
-                  {adminRoutes}
-                </ProtectedRoute>
-              }
-            />
+            {/* Admin Routes */}
+            <Route path="/admin/*" element={adminRoutes} />
 
-            {/* Client Routes - Protected */}
-            <Route
-              path="/client/*"
-              element={
-                <ProtectedRoute allowedRoles={['client']}>
-                  {clientRoutes}
-                </ProtectedRoute>
-              }
-            />
+            {/* Client Routes */}
+            <Route path="/client/*" element={clientRoutes} />
 
             {/* Catch all - redirect to login */}
             <Route path="*" element={<Navigate to="/login" replace />} />

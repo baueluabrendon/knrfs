@@ -22,15 +22,17 @@ export const LoginForm = () => {
     const password = formData.get("password") as string;
 
     try {
-      console.log("Starting sign in process..."); // Debug log
+      console.log("Starting sign in process with:", email); // Debug log
       const user = await signIn(email, password);
       
       if (!user) {
-        throw new Error("Login failed");
+        throw new Error("Login failed - no user returned");
       }
 
+      console.log("User signed in successfully:", user); // Debug log
       console.log("User role:", user.role); // Debug log
       
+      // Route based on user role
       if (user.role === 'client') {
         navigate('/client');
       } else {
