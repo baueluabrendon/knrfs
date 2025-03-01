@@ -35,6 +35,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (data.session) {
           console.log("Existing session found:", data.session.user.id);
+          console.log("Attempting to fetch user profile for ID:", data.session.user.id);
+          
           // Fetch user profile if session exists
           const { data: profile, error: profileError } = await supabase
             .from('user_profiles')
@@ -44,6 +46,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             
           if (!profileError && profile) {
             console.log("User profile found:", profile);
+            console.log("User role from profile:", profile.role);
+            
             setUser({
               user_id: data.session.user.id,
               email: data.session.user.email || '',
@@ -51,8 +55,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               first_name: profile.first_name || null,
               last_name: profile.last_name || null
             });
+            
+            console.log("User state set with role:", profile.role);
           } else {
             console.error("Error fetching user profile:", profileError);
+            console.log("Will attempt to create a profile for this user...");
+            
+            // If no profile exists, try to create one with administrator role
+            const { data: newProfile, error: createError } = await supabase
+              .from('user_profiles')
+              .insert([
+                { 
+                  user_id: data.session.user.id,
+                  email: data.session.user.email,
+                  role: 'administrator',
+                  first_name: 'Test',
+                  last_name: 'User'
+                }
+              ])
+              .select()
+              .single();
+              
+            if (!createError && newProfile) {
+              console.log("Created new user profile:", newProfile);
+              setUser({
+                user_id: data.session.user.id,
+                email: data.session.user.email || '',
+                role: newProfile.role,
+                first_name: newProfile.first_name || null,
+                last_name: newProfile.last_name || null
+              });
+            } else {
+              console.error("Failed to create user profile:", createError);
+            }
           }
         } else {
           console.log("No existing session found");
@@ -71,6 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (event === 'SIGNED_IN' && session) {
           try {
+            console.log("User signed in, fetching profile for:", session.user.id);
             // Fetch user profile when signed in
             const { data: profile, error: profileError } = await supabase
               .from('user_profiles')
@@ -80,6 +116,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               
             if (!profileError && profile) {
               console.log("User profile retrieved on auth state change:", profile);
+              console.log("User role from profile:", profile.role);
+              
               setUser({
                 user_id: session.user.id,
                 email: session.user.email || '',
@@ -87,8 +125,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 first_name: profile.first_name || null,
                 last_name: profile.last_name || null
               });
+              
+              console.log("User state updated with role:", profile.role);
             } else {
               console.error("Error fetching profile on auth state change:", profileError);
+              console.log("Will attempt to create a profile on sign in...");
+              
+              // If no profile exists, try to create one with administrator role
+              const { data: newProfile, error: createError } = await supabase
+                .from('user_profiles')
+                .insert([
+                  { 
+                    user_id: session.user.id,
+                    email: session.user.email,
+                    role: 'administrator',
+                    first_name: 'Test',
+                    last_name: 'User'
+                  }
+                ])
+                .select()
+                .single();
+                
+              if (!createError && newProfile) {
+                console.log("Created new user profile on sign in:", newProfile);
+                setUser({
+                  user_id: session.user.id,
+                  email: session.user.email || '',
+                  role: newProfile.role,
+                  first_name: newProfile.first_name || null,
+                  last_name: newProfile.last_name || null
+                });
+              } else {
+                console.error("Failed to create user profile on sign in:", createError);
+              }
             }
           } catch (error) {
             console.error("Profile fetch error:", error);
@@ -127,6 +196,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       console.log("Supabase auth successful:", data);
+      console.log("Fetching user profile for user ID:", data.user.id);
       
       // Fetch user profile after successful authentication
       const { data: profile, error: profileError } = await supabase
@@ -137,10 +207,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (profileError) {
         console.error('Error fetching user profile:', profileError);
-        throw new Error('Failed to fetch user profile');
+        console.log("Will attempt to create a profile for this user...");
+        
+        // If no profile exists, try to create one with administrator role
+        const { data: newProfile, error: createError } = await supabase
+          .from('user_profiles')
+          .insert([
+            { 
+              user_id: data.user.id,
+              email: data.user.email,
+              role: 'administrator',
+              first_name: 'Test',
+              last_name: 'User'
+            }
+          ])
+          .select()
+          .single();
+          
+        if (!createError && newProfile) {
+          console.log("Created new user profile on sign in:", newProfile);
+          
+          const userData: UserProfile = {
+            user_id: data.user.id,
+            email: data.user.email || '',
+            role: newProfile.role,
+            first_name: newProfile.first_name || null,
+            last_name: newProfile.last_name || null
+          };
+          
+          setUser(userData);
+          return userData;
+        } else {
+          console.error("Failed to create user profile:", createError);
+          throw new Error('Failed to create user profile');
+        }
       }
 
       console.log("User profile retrieved:", profile);
+      console.log("User role from profile:", profile?.role);
       
       // Construct user data
       const userData: UserProfile = {
@@ -151,6 +255,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         last_name: profile?.last_name || null
       };
       
+      console.log("Setting user state with role:", userData.role);
       setUser(userData);
       return userData;
     } catch (error: any) {
