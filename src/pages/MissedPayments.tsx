@@ -1,5 +1,4 @@
-import DashboardLayout from "@/components/DashboardLayout";
-import { Card } from "@/components/ui/card";
+
 import {
   Table,
   TableBody,
@@ -8,6 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Card } from "@/components/ui/card";
 
 interface MissedPayment {
   id: string;
@@ -40,39 +40,37 @@ const MissedPayments = () => {
   ];
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Missed Payments</h1>
-        </div>
-        <Card className="p-6">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Payment ID</TableHead>
-                <TableHead>Borrower Name</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Amount Due</TableHead>
-                <TableHead>Days Late</TableHead>
-                <TableHead>Loan ID</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {missedPayments.map((payment) => (
-                <TableRow key={payment.id}>
-                  <TableCell>{payment.id}</TableCell>
-                  <TableCell>{payment.borrowerName}</TableCell>
-                  <TableCell>{payment.paymentDueDate}</TableCell>
-                  <TableCell>${payment.amountDue.toLocaleString()}</TableCell>
-                  <TableCell>{payment.daysLate}</TableCell>
-                  <TableCell>{payment.loanId}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Missed Payments</h1>
       </div>
-    </DashboardLayout>
+      <Card className="p-6">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Payment ID</TableHead>
+              <TableHead>Borrower Name</TableHead>
+              <TableHead>Due Date</TableHead>
+              <TableHead>Amount Due</TableHead>
+              <TableHead>Days Late</TableHead>
+              <TableHead>Loan ID</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {missedPayments.map((payment) => (
+              <TableRow key={payment.id}>
+                <TableCell>{payment.id}</TableCell>
+                <TableCell>{payment.borrowerName}</TableCell>
+                <TableCell>{payment.paymentDueDate}</TableCell>
+                <TableCell>${payment.amountDue.toLocaleString()}</TableCell>
+                <TableCell>{payment.daysLate}</TableCell>
+                <TableCell>{payment.loanId}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Card>
+    </div>
   );
 };
 

@@ -1,5 +1,4 @@
-import DashboardLayout from "@/components/DashboardLayout";
-import { Card } from "@/components/ui/card";
+
 import {
   Table,
   TableBody,
@@ -8,6 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Card } from "@/components/ui/card";
 
 interface PartialPayment {
   id: string;
@@ -43,41 +43,39 @@ const PartialPayments = () => {
   ];
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Partial Payments</h1>
-        </div>
-        <Card className="p-6">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Payment ID</TableHead>
-                <TableHead>Borrower Name</TableHead>
-                <TableHead>Payment Date</TableHead>
-                <TableHead>Amount Due</TableHead>
-                <TableHead>Amount Paid</TableHead>
-                <TableHead>Shortfall</TableHead>
-                <TableHead>Loan ID</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {partialPayments.map((payment) => (
-                <TableRow key={payment.id}>
-                  <TableCell>{payment.id}</TableCell>
-                  <TableCell>{payment.borrowerName}</TableCell>
-                  <TableCell>{payment.paymentDate}</TableCell>
-                  <TableCell>${payment.amountDue.toLocaleString()}</TableCell>
-                  <TableCell>${payment.amountPaid.toLocaleString()}</TableCell>
-                  <TableCell>${payment.shortfall.toLocaleString()}</TableCell>
-                  <TableCell>{payment.loanId}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Partial Payments</h1>
       </div>
-    </DashboardLayout>
+      <Card className="p-6">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Payment ID</TableHead>
+              <TableHead>Borrower Name</TableHead>
+              <TableHead>Payment Date</TableHead>
+              <TableHead>Amount Due</TableHead>
+              <TableHead>Amount Paid</TableHead>
+              <TableHead>Shortfall</TableHead>
+              <TableHead>Loan ID</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {partialPayments.map((payment) => (
+              <TableRow key={payment.id}>
+                <TableCell>{payment.id}</TableCell>
+                <TableCell>{payment.borrowerName}</TableCell>
+                <TableCell>{payment.paymentDate}</TableCell>
+                <TableCell>${payment.amountDue.toLocaleString()}</TableCell>
+                <TableCell>${payment.amountPaid.toLocaleString()}</TableCell>
+                <TableCell>${payment.shortfall.toLocaleString()}</TableCell>
+                <TableCell>{payment.loanId}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Card>
+    </div>
   );
 };
 
