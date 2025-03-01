@@ -16,12 +16,6 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
     return <div>Loading...</div>;
   }
 
-  // Allow access in development mode if enabled
-  if (isDevelopment) {
-    console.log("Development mode: bypassing authentication");
-    return <>{children}</>;
-  }
-
   // Redirect to login if not authenticated
   if (!user) {
     console.log("User not authenticated, redirecting to login");

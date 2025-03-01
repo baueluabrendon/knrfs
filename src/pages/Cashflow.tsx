@@ -42,77 +42,75 @@ const Cashflow = () => {
   const netCashflow = operatingCashflow + investingCashflow + financingCashflow;
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-semibold">Statement of Cash Flows</h1>
-          <p className="text-sm text-muted-foreground">For the period ending {new Date().toLocaleDateString()}</p>
-        </div>
-
-        <Card className="p-6">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[50%]">Description</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {/* Operating Activities */}
-              <TableRow className="font-semibold">
-                <TableCell colSpan={2}>Cash Flows from Operating Activities</TableCell>
-              </TableRow>
-              {cashflowData.operating.map((item) => (
-                <TableRow key={item.name}>
-                  <TableCell className="pl-8">{item.name}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
-                </TableRow>
-              ))}
-              <TableRow className="font-semibold">
-                <TableCell>Net Cash from Operating Activities</TableCell>
-                <TableCell className="text-right">{formatCurrency(operatingCashflow)}</TableCell>
-              </TableRow>
-
-              {/* Investing Activities */}
-              <TableRow className="font-semibold">
-                <TableCell colSpan={2}>Cash Flows from Investing Activities</TableCell>
-              </TableRow>
-              {cashflowData.investing.map((item) => (
-                <TableRow key={item.name}>
-                  <TableCell className="pl-8">{item.name}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
-                </TableRow>
-              ))}
-              <TableRow className="font-semibold">
-                <TableCell>Net Cash from Investing Activities</TableCell>
-                <TableCell className="text-right">{formatCurrency(investingCashflow)}</TableCell>
-              </TableRow>
-
-              {/* Financing Activities */}
-              <TableRow className="font-semibold">
-                <TableCell colSpan={2}>Cash Flows from Financing Activities</TableCell>
-              </TableRow>
-              {cashflowData.financing.map((item) => (
-                <TableRow key={item.name}>
-                  <TableCell className="pl-8">{item.name}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
-                </TableRow>
-              ))}
-              <TableRow className="font-semibold">
-                <TableCell>Net Cash from Financing Activities</TableCell>
-                <TableCell className="text-right">{formatCurrency(financingCashflow)}</TableCell>
-              </TableRow>
-
-              {/* Net Change in Cash */}
-              <TableRow className="font-semibold text-lg">
-                <TableCell>Net Increase/(Decrease) in Cash</TableCell>
-                <TableCell className="text-right">{formatCurrency(netCashflow)}</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </Card>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-semibold">Statement of Cash Flows</h1>
+        <p className="text-sm text-muted-foreground">For the period ending {new Date().toLocaleDateString()}</p>
       </div>
-    </DashboardLayout>
+
+      <Card className="p-6">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[50%]">Description</TableHead>
+              <TableHead className="text-right">Amount</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {/* Operating Activities */}
+            <TableRow className="font-semibold">
+              <TableCell colSpan={2}>Cash Flows from Operating Activities</TableCell>
+            </TableRow>
+            {cashflowData.operating.map((item) => (
+              <TableRow key={item.name}>
+                <TableCell className="pl-8">{item.name}</TableCell>
+                <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
+              </TableRow>
+            ))}
+            <TableRow className="font-semibold">
+              <TableCell>Net Cash from Operating Activities</TableCell>
+              <TableCell className="text-right">{formatCurrency(operatingCashflow)}</TableCell>
+            </TableRow>
+
+            {/* Investing Activities */}
+            <TableRow className="font-semibold">
+              <TableCell colSpan={2}>Cash Flows from Investing Activities</TableCell>
+            </TableRow>
+            {cashflowData.investing.map((item) => (
+              <TableRow key={item.name}>
+                <TableCell className="pl-8">{item.name}</TableCell>
+                <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
+              </TableRow>
+            ))}
+            <TableRow className="font-semibold">
+              <TableCell>Net Cash from Investing Activities</TableCell>
+              <TableCell className="text-right">{formatCurrency(investingCashflow)}</TableCell>
+            </TableRow>
+
+            {/* Financing Activities */}
+            <TableRow className="font-semibold">
+              <TableCell colSpan={2}>Cash Flows from Financing Activities</TableCell>
+            </TableRow>
+            {cashflowData.financing.map((item) => (
+              <TableRow key={item.name}>
+                <TableCell className="pl-8">{item.name}</TableCell>
+                <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
+              </TableRow>
+            ))}
+            <TableRow className="font-semibold">
+              <TableCell>Net Cash from Financing Activities</TableCell>
+              <TableCell className="text-right">{formatCurrency(financingCashflow)}</TableCell>
+            </TableRow>
+
+            {/* Net Change in Cash */}
+            <TableRow className="font-semibold text-lg">
+              <TableCell>Net Increase/(Decrease) in Cash</TableCell>
+              <TableCell className="text-right">{formatCurrency(netCashflow)}</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </Card>
+    </div>
   );
 };
 

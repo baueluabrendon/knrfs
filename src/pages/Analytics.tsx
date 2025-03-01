@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import {
@@ -7,7 +8,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import DashboardLayout from "@/components/DashboardLayout";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 // Sample data - in a real app, this would come from an API
@@ -44,60 +44,58 @@ const Analytics = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
-        </div>
-
-        <div className="flex flex-col md:flex-row gap-4">
-          <Select value={selectedReport} onValueChange={setSelectedReport}>
-            <SelectTrigger className="w-full md:w-[200px]">
-              <SelectValue placeholder="Select report type" />
-            </SelectTrigger>
-            <SelectContent>
-              {reportTypes.map((type) => (
-                <SelectItem key={type} value={type}>
-                  {type}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={timeFilter} onValueChange={handleTimeFilterChange}>
-            <SelectTrigger className="w-full md:w-[200px]">
-              <SelectValue placeholder="Select time period" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="week">Week</SelectItem>
-              <SelectItem value="month">Month</SelectItem>
-              <SelectItem value="quarter">Quarter</SelectItem>
-              <SelectItem value="year">Year</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-4">{selectedReport}</h2>
-          <div className="h-[400px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth={2}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
       </div>
-    </DashboardLayout>
+
+      <div className="flex flex-col md:flex-row gap-4">
+        <Select value={selectedReport} onValueChange={setSelectedReport}>
+          <SelectTrigger className="w-full md:w-[200px]">
+            <SelectValue placeholder="Select report type" />
+          </SelectTrigger>
+          <SelectContent>
+            {reportTypes.map((type) => (
+              <SelectItem key={type} value={type}>
+                {type}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={timeFilter} onValueChange={handleTimeFilterChange}>
+          <SelectTrigger className="w-full md:w-[200px]">
+            <SelectValue placeholder="Select time period" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="week">Week</SelectItem>
+            <SelectItem value="month">Month</SelectItem>
+            <SelectItem value="quarter">Quarter</SelectItem>
+            <SelectItem value="year">Year</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Card className="p-6">
+        <h2 className="text-lg font-semibold mb-4">{selectedReport}</h2>
+        <div className="h-[400px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke="hsl(var(--primary))"
+                strokeWidth={2}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </Card>
+    </div>
   );
 };
 

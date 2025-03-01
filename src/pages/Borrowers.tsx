@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import DashboardLayout from "@/components/DashboardLayout";
 import BorrowerForm, { BorrowerFormData } from "@/components/borrowers/BorrowerForm";
 import BorrowerDetails from "@/components/borrowers/BorrowerDetails";
 import BorrowersTable from "@/components/borrowers/BorrowersTable";
@@ -106,54 +106,52 @@ const Borrowers = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Borrowers Management</h1>
-          <Dialog open={showAddBorrower} onOpenChange={setShowAddBorrower}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Borrower
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Add New Borrower</DialogTitle>
-              </DialogHeader>
-              <BorrowerForm 
-                onSubmit={handleAddBorrower}
-                onCancel={() => setShowAddBorrower(false)}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        <Card className="p-6">
-          <BorrowersTable 
-            borrowers={borrowers}
-            onBorrowerClick={handleBorrowerClick}
-          />
-        </Card>
-
-        <Dialog open={showBorrowerDetails} onOpenChange={setShowBorrowerDetails}>
-          <DialogContent className="sm:max-w-[700px]">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Borrowers Management</h1>
+        <Dialog open={showAddBorrower} onOpenChange={setShowAddBorrower}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Borrower
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Borrower Details</DialogTitle>
+              <DialogTitle>Add New Borrower</DialogTitle>
             </DialogHeader>
-            {selectedBorrower && (
-              <BorrowerDetails
-                borrower={selectedBorrower}
-                loanHistory={loanHistory}
-                onClose={() => setShowBorrowerDetails(false)}
-                onPrint={handlePrint}
-                onEmail={handleEmail}
-              />
-            )}
+            <BorrowerForm 
+              onSubmit={handleAddBorrower}
+              onCancel={() => setShowAddBorrower(false)}
+            />
           </DialogContent>
         </Dialog>
       </div>
-    </DashboardLayout>
+
+      <Card className="p-6">
+        <BorrowersTable 
+          borrowers={borrowers}
+          onBorrowerClick={handleBorrowerClick}
+        />
+      </Card>
+
+      <Dialog open={showBorrowerDetails} onOpenChange={setShowBorrowerDetails}>
+        <DialogContent className="sm:max-w-[700px]">
+          <DialogHeader>
+            <DialogTitle>Borrower Details</DialogTitle>
+          </DialogHeader>
+          {selectedBorrower && (
+            <BorrowerDetails
+              borrower={selectedBorrower}
+              loanHistory={loanHistory}
+              onClose={() => setShowBorrowerDetails(false)}
+              onPrint={handlePrint}
+              onEmail={handleEmail}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
 

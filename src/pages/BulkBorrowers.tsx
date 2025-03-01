@@ -85,72 +85,70 @@ const BulkBorrowers = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Bulk Borrower Upload</h1>
-        </div>
-
-        <Card className="p-6">
-          <div className="space-y-4">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                className="relative"
-                disabled={isLoading}
-              >
-                <input
-                  type="file"
-                  accept=".csv"
-                  onChange={handleFileUpload}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                <Upload className="mr-2 h-4 w-4" />
-                Select CSV File
-              </Button>
-              <Button
-                onClick={handleSubmit}
-                disabled={csvData.length === 0 || isLoading}
-              >
-                Upload Borrowers
-              </Button>
-            </div>
-
-            {csvData.length > 0 && (
-              <div className="mt-6">
-                <h2 className="text-lg font-semibold mb-4">Preview</h2>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Address</TableHead>
-                        <TableHead>Occupation</TableHead>
-                        <TableHead>Monthly Income</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {csvData.map((borrower, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{borrower.name}</TableCell>
-                          <TableCell>{borrower.email}</TableCell>
-                          <TableCell>{borrower.phone}</TableCell>
-                          <TableCell>{borrower.address}</TableCell>
-                          <TableCell>{borrower.occupation}</TableCell>
-                          <TableCell>${borrower.monthlyIncome}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-            )}
-          </div>
-        </Card>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Bulk Borrower Upload</h1>
       </div>
-    </DashboardLayout>
+
+      <Card className="p-6">
+        <div className="space-y-4">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="outline"
+              className="relative"
+              disabled={isLoading}
+            >
+              <input
+                type="file"
+                accept=".csv"
+                onChange={handleFileUpload}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <Upload className="mr-2 h-4 w-4" />
+              Select CSV File
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={csvData.length === 0 || isLoading}
+            >
+              Upload Borrowers
+            </Button>
+          </div>
+
+          {csvData.length > 0 && (
+            <div className="mt-6">
+              <h2 className="text-lg font-semibold mb-4">Preview</h2>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Address</TableHead>
+                      <TableHead>Occupation</TableHead>
+                      <TableHead>Monthly Income</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {csvData.map((borrower, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{borrower.name}</TableCell>
+                        <TableCell>{borrower.email}</TableCell>
+                        <TableCell>{borrower.phone}</TableCell>
+                        <TableCell>{borrower.address}</TableCell>
+                        <TableCell>{borrower.occupation}</TableCell>
+                        <TableCell>${borrower.monthlyIncome}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
+    </div>
   );
 };
 

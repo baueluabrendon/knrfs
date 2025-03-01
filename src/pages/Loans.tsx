@@ -62,73 +62,71 @@ const Loans = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Loans Management</h1>
-          <Button onClick={() => navigate("/loans/add")}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Loan
-          </Button>
-        </div>
-        
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Loan ID</TableHead>
-                <TableHead>Borrower</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Interest Rate</TableHead>
-                <TableHead>Start Date</TableHead>
-                <TableHead>End Date</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loans.map((loan) => (
-                <TableRow 
-                  key={loan.id}
-                  className="cursor-pointer hover:bg-gray-50"
-                  onClick={() => setSelectedLoan(loan)}
-                >
-                  <TableCell className="font-medium text-blue-600 hover:underline">
-                    {loan.id}
-                  </TableCell>
-                  <TableCell>{loan.borrowerName}</TableCell>
-                  <TableCell>${loan.amount.toLocaleString()}</TableCell>
-                  <TableCell>{loan.interestRate}%</TableCell>
-                  <TableCell>{new Date(loan.startDate).toLocaleDateString()}</TableCell>
-                  <TableCell>{new Date(loan.endDate).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      loan.status === 'active' ? 'bg-green-100 text-green-800' :
-                      loan.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {loan.status.charAt(0).toUpperCase() + loan.status.slice(1)}
-                    </span>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-
-        <Dialog open={!!selectedLoan} onOpenChange={(open) => !open && setSelectedLoan(null)}>
-          <DialogContent className="max-w-4xl">
-            {selectedLoan && (
-              <LoanDetails
-                loan={selectedLoan}
-                onClose={() => setSelectedLoan(null)}
-                onPrint={handlePrint}
-                onEmail={handleEmail}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Loans Management</h1>
+        <Button onClick={() => navigate("/loans/add")}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Loan
+        </Button>
       </div>
-    </DashboardLayout>
+      
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Loan ID</TableHead>
+              <TableHead>Borrower</TableHead>
+              <TableHead>Amount</TableHead>
+              <TableHead>Interest Rate</TableHead>
+              <TableHead>Start Date</TableHead>
+              <TableHead>End Date</TableHead>
+              <TableHead>Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loans.map((loan) => (
+              <TableRow 
+                key={loan.id}
+                className="cursor-pointer hover:bg-gray-50"
+                onClick={() => setSelectedLoan(loan)}
+              >
+                <TableCell className="font-medium text-blue-600 hover:underline">
+                  {loan.id}
+                </TableCell>
+                <TableCell>{loan.borrowerName}</TableCell>
+                <TableCell>${loan.amount.toLocaleString()}</TableCell>
+                <TableCell>{loan.interestRate}%</TableCell>
+                <TableCell>{new Date(loan.startDate).toLocaleDateString()}</TableCell>
+                <TableCell>{new Date(loan.endDate).toLocaleDateString()}</TableCell>
+                <TableCell>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    loan.status === 'active' ? 'bg-green-100 text-green-800' :
+                    loan.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                    'bg-red-100 text-red-800'
+                  }`}>
+                    {loan.status.charAt(0).toUpperCase() + loan.status.slice(1)}
+                  </span>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <Dialog open={!!selectedLoan} onOpenChange={(open) => !open && setSelectedLoan(null)}>
+        <DialogContent className="max-w-4xl">
+          {selectedLoan && (
+            <LoanDetails
+              loan={selectedLoan}
+              onClose={() => setSelectedLoan(null)}
+              onPrint={handlePrint}
+              onEmail={handleEmail}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
 

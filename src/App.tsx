@@ -8,7 +8,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import AuthForm from "@/components/auth/AuthForm";
 import { adminRoutes } from "./routes/adminRoutes";
 import { clientRoutes } from "./routes/clientRoutes";
-import { useAuth } from "@/contexts/AuthContext";
 import LoanApplicationSteps from "@/components/loan/LoanApplicationSteps";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 
@@ -16,13 +15,6 @@ const queryClient = new QueryClient();
 
 const AuthWrapper = () => {
   const { user, loading } = useAuth();
-  const isDevelopment = process.env.NODE_ENV === 'development';
-
-  // During development, redirect to admin dashboard
-  if (isDevelopment) {
-    console.log("Development mode: redirecting to admin dashboard");
-    return <Navigate to="/admin" replace />;
-  }
 
   if (loading) {
     return <div>Loading...</div>;

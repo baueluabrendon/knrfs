@@ -50,103 +50,101 @@ const BalanceSheet = () => {
   const totalEquity = calculateTotal(balanceSheetData.equity);
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-semibold">Balance Sheet</h1>
-          <p className="text-sm text-muted-foreground">As of {new Date().toLocaleDateString()}</p>
-        </div>
-
-        <Card className="p-6">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[50%]">Account</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {/* Assets */}
-              <TableRow className="font-semibold">
-                <TableCell colSpan={2}>Assets</TableCell>
-              </TableRow>
-              {balanceSheetData.assets.map((section) => (
-                <>
-                  <TableRow key={section.name} className="bg-muted/50">
-                    <TableCell className="font-medium">{section.name}</TableCell>
-                    <TableCell></TableCell>
-                  </TableRow>
-                  {section.items.map((item) => (
-                    <TableRow key={item.name}>
-                      <TableCell className="pl-8">{item.name}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
-                    </TableRow>
-                  ))}
-                </>
-              ))}
-              <TableRow className="font-semibold">
-                <TableCell>Total Assets</TableCell>
-                <TableCell className="text-right">{formatCurrency(totalAssets)}</TableCell>
-              </TableRow>
-
-              {/* Liabilities */}
-              <TableRow className="font-semibold">
-                <TableCell colSpan={2}>Liabilities</TableCell>
-              </TableRow>
-              {balanceSheetData.liabilities.map((section) => (
-                <>
-                  <TableRow key={section.name} className="bg-muted/50">
-                    <TableCell className="font-medium">{section.name}</TableCell>
-                    <TableCell></TableCell>
-                  </TableRow>
-                  {section.items.map((item) => (
-                    <TableRow key={item.name}>
-                      <TableCell className="pl-8">{item.name}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
-                    </TableRow>
-                  ))}
-                </>
-              ))}
-              <TableRow className="font-semibold">
-                <TableCell>Total Liabilities</TableCell>
-                <TableCell className="text-right">{formatCurrency(totalLiabilities)}</TableCell>
-              </TableRow>
-
-              {/* Equity */}
-              <TableRow className="font-semibold">
-                <TableCell colSpan={2}>Equity</TableCell>
-              </TableRow>
-              {balanceSheetData.equity.map((section) => (
-                <>
-                  <TableRow key={section.name} className="bg-muted/50">
-                    <TableCell className="font-medium">{section.name}</TableCell>
-                    <TableCell></TableCell>
-                  </TableRow>
-                  {section.items.map((item) => (
-                    <TableRow key={item.name}>
-                      <TableCell className="pl-8">{item.name}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
-                    </TableRow>
-                  ))}
-                </>
-              ))}
-              <TableRow className="font-semibold">
-                <TableCell>Total Equity</TableCell>
-                <TableCell className="text-right">{formatCurrency(totalEquity)}</TableCell>
-              </TableRow>
-
-              {/* Total Liabilities and Equity */}
-              <TableRow className="font-semibold text-lg">
-                <TableCell>Total Liabilities and Equity</TableCell>
-                <TableCell className="text-right">
-                  {formatCurrency(totalLiabilities + totalEquity)}
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </Card>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-semibold">Balance Sheet</h1>
+        <p className="text-sm text-muted-foreground">As of {new Date().toLocaleDateString()}</p>
       </div>
-    </DashboardLayout>
+
+      <Card className="p-6">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[50%]">Account</TableHead>
+              <TableHead className="text-right">Amount</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {/* Assets */}
+            <TableRow className="font-semibold">
+              <TableCell colSpan={2}>Assets</TableCell>
+            </TableRow>
+            {balanceSheetData.assets.map((section) => (
+              <>
+                <TableRow key={section.name} className="bg-muted/50">
+                  <TableCell className="font-medium">{section.name}</TableCell>
+                  <TableCell></TableCell>
+                </TableRow>
+                {section.items.map((item) => (
+                  <TableRow key={item.name}>
+                    <TableCell className="pl-8">{item.name}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
+                  </TableRow>
+                ))}
+              </>
+            ))}
+            <TableRow className="font-semibold">
+              <TableCell>Total Assets</TableCell>
+              <TableCell className="text-right">{formatCurrency(totalAssets)}</TableCell>
+            </TableRow>
+
+            {/* Liabilities */}
+            <TableRow className="font-semibold">
+              <TableCell colSpan={2}>Liabilities</TableCell>
+            </TableRow>
+            {balanceSheetData.liabilities.map((section) => (
+              <>
+                <TableRow key={section.name} className="bg-muted/50">
+                  <TableCell className="font-medium">{section.name}</TableCell>
+                  <TableCell></TableCell>
+                </TableRow>
+                {section.items.map((item) => (
+                  <TableRow key={item.name}>
+                    <TableCell className="pl-8">{item.name}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
+                  </TableRow>
+                ))}
+              </>
+            ))}
+            <TableRow className="font-semibold">
+              <TableCell>Total Liabilities</TableCell>
+              <TableCell className="text-right">{formatCurrency(totalLiabilities)}</TableCell>
+            </TableRow>
+
+            {/* Equity */}
+            <TableRow className="font-semibold">
+              <TableCell colSpan={2}>Equity</TableCell>
+            </TableRow>
+            {balanceSheetData.equity.map((section) => (
+              <>
+                <TableRow key={section.name} className="bg-muted/50">
+                  <TableCell className="font-medium">{section.name}</TableCell>
+                  <TableCell></TableCell>
+                </TableRow>
+                {section.items.map((item) => (
+                  <TableRow key={item.name}>
+                    <TableCell className="pl-8">{item.name}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
+                  </TableRow>
+                ))}
+              </>
+            ))}
+            <TableRow className="font-semibold">
+              <TableCell>Total Equity</TableCell>
+              <TableCell className="text-right">{formatCurrency(totalEquity)}</TableCell>
+            </TableRow>
+
+            {/* Total Liabilities and Equity */}
+            <TableRow className="font-semibold text-lg">
+              <TableCell>Total Liabilities and Equity</TableCell>
+              <TableCell className="text-right">
+                {formatCurrency(totalLiabilities + totalEquity)}
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </Card>
+    </div>
   );
 };
 

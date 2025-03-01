@@ -56,115 +56,113 @@ const ChartOfAccounts = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-semibold">Chart of Accounts</h1>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Account
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Account</DialogTitle>
-              </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="accountName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Account Name</FormLabel>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-semibold">Chart of Accounts</h1>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Account
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Account</DialogTitle>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="accountName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Account Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter account name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="accountNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Account Number</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter account number" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="accountType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Account Type</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <Input {...field} placeholder="Enter account name" />
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select account type" />
+                          </SelectTrigger>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="accountNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Account Number</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter account number" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="accountType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Account Type</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select account type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Asset">Asset</SelectItem>
-                            <SelectItem value="Liability">Liability</SelectItem>
-                            <SelectItem value="Equity">Equity</SelectItem>
-                            <SelectItem value="Income">Income</SelectItem>
-                            <SelectItem value="Expense">Expense</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter account description" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" className="w-full">Add Account</Button>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Account Number</TableHead>
-              <TableHead>Account Name</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Description</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {accounts.map((account) => (
-              <TableRow key={account.accountNumber}>
-                <TableCell>{account.accountNumber}</TableCell>
-                <TableCell>{account.accountName}</TableCell>
-                <TableCell>{account.accountType}</TableCell>
-                <TableCell>{account.description}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                        <SelectContent>
+                          <SelectItem value="Asset">Asset</SelectItem>
+                          <SelectItem value="Liability">Liability</SelectItem>
+                          <SelectItem value="Equity">Equity</SelectItem>
+                          <SelectItem value="Income">Income</SelectItem>
+                          <SelectItem value="Expense">Expense</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter account description" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full">Add Account</Button>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
       </div>
-    </DashboardLayout>
+
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Account Number</TableHead>
+            <TableHead>Account Name</TableHead>
+            <TableHead>Type</TableHead>
+            <TableHead>Description</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {accounts.map((account) => (
+            <TableRow key={account.accountNumber}>
+              <TableCell>{account.accountNumber}</TableCell>
+              <TableCell>{account.accountName}</TableCell>
+              <TableCell>{account.accountType}</TableCell>
+              <TableCell>{account.description}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 };
 
