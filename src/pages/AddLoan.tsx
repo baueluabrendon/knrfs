@@ -10,14 +10,21 @@ import { Form } from "@/components/ui/form";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import LoanFormFields from "@/components/loans/LoanFormFields";
-import { calculateLoanValues } from "@/utils/loanCalculations";
+import { calculateLoanValues, VALID_LOAN_TERMS } from "@/utils/loanCalculations";
 
 // Validation schema for loan form
 const loanFormSchema = z.object({
   borrowerId: z.string().min(1, { message: "Please select a borrower" }),
   principal: z.coerce.number().positive({ message: "Loan amount must be positive" }),
-  loanTerm: z.coerce.number().int().positive({ message: "Loan term must be a positive integer" }),
+  loanTerm: z.coerce.number().refine(value => VALID_LOAN_TERMS.includes(value), {
+    message: "Please select a valid loan term"
+  }),
   fortnightlyInstallment: z.number().nullable(),
+  interest: z.number().nullable(),
+  interestRate: z.number().nullable(),
+  loanRiskInsurance: z.number().nullable(),
+  grossLoan: z.number().nullable(),
+  documentationFee: z.number().nullable(),
 });
 
 type LoanFormValues = z.infer<typeof loanFormSchema>;
@@ -32,8 +39,13 @@ const AddLoan = () => {
     defaultValues: {
       borrowerId: "",
       principal: 0,
-      loanTerm: 12,
+      loanTerm: VALID_LOAN_TERMS[0],
       fortnightlyInstallment: null,
+      interest: null,
+      interestRate: null,
+      loanRiskInsurance: null,
+      grossLoan: null,
+      documentationFee: 50,
     },
   });
 
@@ -43,12 +55,14 @@ const AddLoan = () => {
       // Generate a loan ID
       const loanId = `L${Date.now().toString().slice(-6)}`;
       
-      // Calculate all required loan values
+      // Calculate all required loan values to ensure consistency
       const {
         grossLoan,
         interest,
         interestRate,
-        loanRiskInsurance
+        loanRiskInsurance,
+        fortnightlyInstallment,
+        documentationFee
       } = calculateLoanValues(values.principal, values.loanTerm);
       
       // Create the loan record with all required fields
@@ -57,11 +71,12 @@ const AddLoan = () => {
         borrower_id: values.borrowerId,
         principal: values.principal,
         loan_term: values.loanTerm,
-        fortnightly_installment: values.fortnightlyInstallment || 0,
+        fortnightly_installment: fortnightlyInstallment,
         gross_loan: grossLoan,
         interest: interest,
         interest_rate: interestRate,
-        loan_risk_insurance: loanRiskInsurance
+        loan_risk_insurance: loanRiskInsurance,
+        documentation_fee: documentationFee
       });
 
       if (error) {

@@ -318,14 +318,18 @@ export type Database = {
           gst_amount: number | null
           gst_rate: number | null
           interest: number
-          interest_rate: number
+          interest_rate:
+            | Database["public"]["Enums"]["interest_rate_enum"]
+            | null
           loan_id: string
           loan_repayment_status:
             | Database["public"]["Enums"]["repayment_status_enum"]
             | null
           loan_risk_insurance: number
           loan_status: Database["public"]["Enums"]["loan_status_enum"] | null
-          loan_term: number
+          loan_term:
+            | Database["public"]["Enums"]["bi_weekly_loan_term_enum"]
+            | null
           maturity_date: string | null
           missed_payments_count: number | null
           partial_payment_penalty_fees_accumulated: number | null
@@ -352,14 +356,18 @@ export type Database = {
           gst_amount?: number | null
           gst_rate?: number | null
           interest: number
-          interest_rate: number
+          interest_rate?:
+            | Database["public"]["Enums"]["interest_rate_enum"]
+            | null
           loan_id: string
           loan_repayment_status?:
             | Database["public"]["Enums"]["repayment_status_enum"]
             | null
           loan_risk_insurance: number
           loan_status?: Database["public"]["Enums"]["loan_status_enum"] | null
-          loan_term: number
+          loan_term?:
+            | Database["public"]["Enums"]["bi_weekly_loan_term_enum"]
+            | null
           maturity_date?: string | null
           missed_payments_count?: number | null
           partial_payment_penalty_fees_accumulated?: number | null
@@ -386,14 +394,18 @@ export type Database = {
           gst_amount?: number | null
           gst_rate?: number | null
           interest?: number
-          interest_rate?: number
+          interest_rate?:
+            | Database["public"]["Enums"]["interest_rate_enum"]
+            | null
           loan_id?: string
           loan_repayment_status?:
             | Database["public"]["Enums"]["repayment_status_enum"]
             | null
           loan_risk_insurance?: number
           loan_status?: Database["public"]["Enums"]["loan_status_enum"] | null
-          loan_term?: number
+          loan_term?:
+            | Database["public"]["Enums"]["bi_weekly_loan_term_enum"]
+            | null
           maturity_date?: string | null
           missed_payments_count?: number | null
           partial_payment_penalty_fees_accumulated?: number | null
