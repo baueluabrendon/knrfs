@@ -2,8 +2,9 @@
 import { createContext, useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { UserProfile, signInWithEmailAndPassword, signOut } from "@/services/authService";
+import { signInWithEmailAndPassword, signOut } from "@/services/authService";
 import { useAuthState } from "@/hooks/useAuthState";
+import { UserProfile } from "@/types/auth";
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -27,14 +28,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (userData) {
         console.log("AuthContext: Sign in successful, user data:", userData);
         console.log("AuthContext: User role:", userData.role);
-        // Explicitly set the user in state
-        setUser(userData);
-        console.log("AuthContext: User state updated", userData);
+        
+        // Transform the userData to match the UserProfile type from types/auth.ts
+        const userProfile: UserProfile = {
+          user_id: userData.user_id,
+          id: userData.user_id, // Using user_id as id since it's required
+          email: userData.email,
+          role: userData.role as UserProfile['role'], // Cast to ensure type safety
+          first_name: userData.first_name,
+          last_name: userData.last_name,
+          created_at: new Date().toISOString(), // Adding a default created_at since it's required
+        };
+        
+        // Update user state with the properly formatted user profile
+        setUser(userProfile);
+        console.log("AuthContext: User state updated with formatted profile:", userProfile);
       } else {
         console.error("AuthContext: Sign in returned no user data");
       }
       
-      return userData;
+      return userData as unknown as UserProfile; // Cast to satisfy the return type
     } catch (error: any) {
       console.error("AuthContext: Login error:", error);
       throw error;

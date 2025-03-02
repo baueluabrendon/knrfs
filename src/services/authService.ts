@@ -1,7 +1,9 @@
 
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { UserProfile as AuthUserProfile } from "@/types/auth";
 
+// Local service interface that will be transformed to match the app's UserProfile type
 export interface UserProfile {
   user_id: string;
   email: string;
