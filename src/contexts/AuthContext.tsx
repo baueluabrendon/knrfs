@@ -43,6 +43,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Update user state with the properly formatted user profile
         setUser(userProfile);
         console.log("AuthContext: User state updated with formatted profile:", userProfile);
+        
+        // Redirect based on user role immediately after setting user
+        if (userProfile.role === 'client') {
+          console.log("AuthContext: Redirecting to /client");
+          navigate('/client');
+        } else {
+          console.log("AuthContext: Redirecting to /admin");
+          navigate('/admin');
+        }
       } else {
         console.error("AuthContext: Sign in returned no user data");
       }

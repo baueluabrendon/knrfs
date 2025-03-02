@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +9,6 @@ export const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { signIn, user } = useAuth();
-  const navigate = useNavigate();
 
   // Debug log for initial render
   useEffect(() => {
@@ -29,25 +27,11 @@ export const LoginForm = () => {
 
     try {
       console.log("LoginForm: Starting sign in process with:", email);
-      const user = await signIn(email, password);
+      await signIn(email, password);
       
-      if (!user) {
-        throw new Error("Invalid email or password");
-      }
-
-      console.log("LoginForm: User signed in successfully:", user);
-      console.log("LoginForm: User role:", user.role);
-      
-      // Route based on user role
-      if (user.role === 'client') {
-        console.log("LoginForm: Navigating to client dashboard");
-        toast.success("Successfully logged in as client!");
-        navigate('/client');
-      } else {
-        console.log("LoginForm: Navigating to admin dashboard with role:", user.role);
-        toast.success(`Successfully logged in as ${user.role}!`);
-        navigate('/admin');
-      }
+      // Navigation is now handled directly in AuthContext
+      console.log("LoginForm: Sign in successful, navigation handled by AuthContext");
+      toast.success("Successfully logged in!");
     } catch (error: any) {
       console.error("LoginForm: Sign in error:", error);
       

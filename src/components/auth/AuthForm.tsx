@@ -19,10 +19,10 @@ const AuthForm = () => {
       
       if (user.role === 'client') {
         console.log("AuthForm: Redirecting to /client");
-        navigate('/client');
+        navigate('/client', { replace: true });
       } else {
         console.log("AuthForm: Redirecting to /admin with role:", user.role);
-        navigate('/admin');
+        navigate('/admin', { replace: true });
       }
     }
   }, [user, navigate]);
