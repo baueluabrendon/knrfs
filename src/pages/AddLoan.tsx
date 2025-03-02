@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -63,7 +63,7 @@ const AddLoan = () => {
   });
 
   // Fetch borrowers on component mount
-  useState(() => {
+  useEffect(() => {
     const fetchBorrowers = async () => {
       try {
         const { data, error } = await supabase
@@ -93,6 +93,9 @@ const AddLoan = () => {
       const totalRepayment = values.principal + interest + gstAmount;
       const fortnightlyInstallment = totalRepayment / (values.loanTerm * 2); // Assuming fortnightly payments
       
+      // Set default loan risk insurance (1% of principal)
+      const loanRiskInsurance = values.principal * 0.01;
+      
       // Generate a loan ID
       const loanId = `L${Date.now().toString().slice(-6)}`;
       
@@ -110,6 +113,7 @@ const AddLoan = () => {
         gross_loan: values.principal,
         description: values.description,
         product: values.product,
+        loan_risk_insurance: loanRiskInsurance,
       });
 
       if (error) {
