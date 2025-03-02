@@ -39,7 +39,8 @@ export const calculateFortnightlyInstallment = (
   // Calculation based on formula: Bi-Weekly Repayment = Gross Loan divided by Loan Term
   const installment = grossLoan / loanTerm;
   
-  return Number(installment.toFixed(2));
+  // Round to 2 decimal places
+  return Math.round(installment * 100) / 100;
 };
 
 /**
@@ -67,7 +68,7 @@ export const calculateLoanValues = (
   const interest = (principal * interestRate) / 100;
   
   // Calculate loan risk insurance (2% of principal)
-  const loanRiskInsurance = principal * 0.02;
+  const loanRiskInsurance = (principal * 0.02);
   
   // Fixed documentation fee
   const documentationFee = 50;
@@ -79,12 +80,13 @@ export const calculateLoanValues = (
   // Calculate fortnightly installment using the formula: Bi-Weekly Repayment = Gross Loan divided by Loan Term
   const fortnightlyInstallment = calculateFortnightlyInstallment(grossLoan, loanTerm);
   
+  // Return values rounded to 2 decimal places for consistency
   return {
     fortnightlyInstallment,
-    grossLoan,
-    interest,
+    grossLoan: Math.round(grossLoan * 100) / 100,
+    interest: Math.round(interest * 100) / 100,
     interestRate,
-    loanRiskInsurance,
+    loanRiskInsurance: Math.round(loanRiskInsurance * 100) / 100,
     documentationFee
   };
 };
