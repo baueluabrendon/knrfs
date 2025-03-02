@@ -34,7 +34,7 @@ const App = () => {
                 path="/client/*"
                 element={
                   <ProtectedRoute allowedRoles={["client"]}>
-                    <Routes>{clientRoutes.props.children}</Routes>
+                    {clientRoutes}
                   </ProtectedRoute>
                 }
               />
@@ -52,7 +52,7 @@ const App = () => {
                       "recoveries_officer",
                     ]}
                   >
-                    <Routes>{adminRoutes.props.children}</Routes>
+                    {adminRoutes}
                   </ProtectedRoute>
                 }
               />
