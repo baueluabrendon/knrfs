@@ -450,48 +450,6 @@ export type Database = {
         }
         Relationships: []
       }
-      repayment_document: {
-        Row: {
-          borrower_id: string
-          document_id: number
-          document_path: string | null
-          document_type: string | null
-          loan_id: string
-          uploaded_at: string | null
-        }
-        Insert: {
-          borrower_id: string
-          document_id?: number
-          document_path?: string | null
-          document_type?: string | null
-          loan_id: string
-          uploaded_at?: string | null
-        }
-        Update: {
-          borrower_id?: string
-          document_id?: number
-          document_path?: string | null
-          document_type?: string | null
-          loan_id?: string
-          uploaded_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "repayment_document_borrower_id_fkey"
-            columns: ["borrower_id"]
-            isOneToOne: false
-            referencedRelation: "borrowers"
-            referencedColumns: ["borrower_id"]
-          },
-          {
-            foreignKeyName: "repayment_document_loan_id_fkey"
-            columns: ["loan_id"]
-            isOneToOne: false
-            referencedRelation: "loans"
-            referencedColumns: ["loan_id"]
-          },
-        ]
-      }
       repayment_schedule: {
         Row: {
           borrower_id: string
@@ -598,6 +556,7 @@ export type Database = {
           loan_id: string | null
           payment_date: string | null
           payment_method: string | null
+          receipt: string | null
           repayment_id: string
           status: string | null
         }
@@ -608,6 +567,7 @@ export type Database = {
           loan_id?: string | null
           payment_date?: string | null
           payment_method?: string | null
+          receipt?: string | null
           repayment_id?: string
           status?: string | null
         }
@@ -618,6 +578,7 @@ export type Database = {
           loan_id?: string | null
           payment_date?: string | null
           payment_method?: string | null
+          receipt?: string | null
           repayment_id?: string
           status?: string | null
         }
