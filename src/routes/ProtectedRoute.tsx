@@ -36,3 +36,5 @@ export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) 
 
   return children ? <>{children}</> : <Outlet />;
 };
+
+export default ProtectedRoute;
