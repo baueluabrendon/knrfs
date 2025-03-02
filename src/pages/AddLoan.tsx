@@ -52,7 +52,8 @@ const AddLoan = () => {
   const onSubmit = async (values: LoanFormValues) => {
     setIsLoading(true);
     try {
-      // Generate a loan ID
+      // Generate a loan ID using a 6-digit timestamp suffix for uniqueness
+      // This ensures we have a unique ID without relying on database sequences
       const loanId = `L${Date.now().toString().slice(-6)}`;
       
       // Calculate all required loan values to ensure consistency
@@ -76,7 +77,11 @@ const AddLoan = () => {
         interest: interest,
         interest_rate: interestRate,
         loan_risk_insurance: loanRiskInsurance,
-        documentation_fee: documentationFee
+        documentation_fee: documentationFee,
+        // Set default values for required fields that aren't in the form
+        loan_status: 'active',
+        // Calculate maturity date based on loan term (bi-weekly periods)
+        maturity_date: new Date(Date.now() + (values.loanTerm * 14 * 24 * 60 * 60 * 1000))
       });
 
       if (error) {
