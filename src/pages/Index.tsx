@@ -1,5 +1,5 @@
+
 import { Card } from "@/components/ui/card";
-import DashboardLayout from "@/components/DashboardLayout";
 import {
   BarChart,
   Bar,
@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { ArrowUpRight, ArrowDownRight, DollarSign, Users, FileText, AlertCircle } from "lucide-react";
+import { useState, useEffect } from "react";
 
 const data = [
   { name: "Jan", amount: 4000 },
@@ -20,6 +21,20 @@ const data = [
 ];
 
 const Index = () => {
+  const [error, setError] = useState<Error | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  
+  useEffect(() => {
+    try {
+      // Simulate data loading
+      console.log("Index component mounted");
+      setIsLoaded(true);
+    } catch (err) {
+      console.error("Error loading dashboard data:", err);
+      setError(err instanceof Error ? err : new Error("Unknown error occurred"));
+    }
+  }, []);
+
   const stats = [
     {
       title: "Total Loans",
@@ -50,6 +65,19 @@ const Index = () => {
       icon: AlertCircle,
     },
   ];
+
+  if (error) {
+    return (
+      <div className="p-6 text-center">
+        <h2 className="text-xl font-semibold text-destructive mb-2">Error Loading Dashboard</h2>
+        <p className="text-gray-600">{error.message}</p>
+      </div>
+    );
+  }
+
+  if (!isLoaded) {
+    return <div className="p-6 text-center">Loading dashboard data...</div>;
+  }
 
   return (
     <div className="space-y-6">

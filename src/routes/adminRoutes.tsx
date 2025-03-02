@@ -21,7 +21,7 @@ import Cashflow from "@/pages/Cashflow";
 import ChartOfAccounts from "@/pages/ChartOfAccounts";
 
 export const adminRoutes = (
-  <Route path="/admin" element={<DashboardLayout />}>
+  <Route path="/" element={<DashboardLayout />}>
     <Route index element={<Index />} />  
     <Route path="loans/view" element={<Loans />} />
     <Route path="borrowers" element={<Borrowers />} />
@@ -41,7 +41,7 @@ export const adminRoutes = (
     <Route path="accounting/cashflow" element={<Cashflow />} />
     <Route path="accounting/chart-of-accounts" element={<ChartOfAccounts />} />
 
-    {/* Catch-all for unknown admin routes, redirect to `/admin` */}
+    {/* Catch-all for unknown admin routes, redirect to index */}
     <Route path="*" element={<Index />} />
   </Route>
 );
