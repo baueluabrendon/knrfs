@@ -353,7 +353,7 @@ export type Database = {
           gst_rate?: number | null
           interest: number
           interest_rate: number
-          loan_id?: string
+          loan_id: string
           loan_repayment_status?:
             | Database["public"]["Enums"]["repayment_status_enum"]
             | null
@@ -670,14 +670,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      generate_borrower_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_loan_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      [_ in never]: never
     }
     Enums: {
       accounts_enum: "Revenue" | "Expense" | "Asset" | "Liability" | "Equity"
