@@ -1,5 +1,5 @@
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { UserProfile, signInWithEmailAndPassword, signOut } from "@/services/authService";
@@ -16,7 +16,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
-  const { user, loading, setUser } = useAuthState();
+  const { user, loading, setUser, setLoading } = useAuthState();
 
   const handleSignIn = async (email: string, password: string) => {
     try {

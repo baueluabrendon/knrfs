@@ -1,48 +1,38 @@
 
-import { Navigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { ReactNode, useEffect } from "react";
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
   allowedRoles?: string[];
+  children?: ReactNode;
 }
 
-export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
+export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
-  const isDevelopment = process.env.NODE_ENV === 'development';
+  const navigate = useNavigate();
+  const isDevelopment = import.meta.env.VITE_DEV_MODE === "true";
 
-  console.log("ProtectedRoute - Current user:", user);
-  console.log("ProtectedRoute - Allowed roles:", allowedRoles);
-  console.log("ProtectedRoute - Is loading:", loading);
+  useEffect(() => {
+    if (isDevelopment) return; // Skip protection in development mode
 
-  // Show loading state
-  if (loading) {
-    console.log("ProtectedRoute - Still loading user data");
-    return <div className="flex h-screen items-center justify-center">
-      <div className="text-xl font-semibold">Loading authentication details...</div>
-    </div>;
-  }
-
-  // Redirect to login if not authenticated
-  if (!user) {
-    console.log("ProtectedRoute - User not authenticated, redirecting to login");
-    return <Navigate to="/login" replace />;
-  }
-
-  // Check role authorization
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
-    console.log("ProtectedRoute - User role not allowed:", user.role, "Required roles:", allowedRoles);
-    // Redirect based on role
-    if (user.role === 'client') {
-      console.log("ProtectedRoute - Redirecting to client dashboard");
-      return <Navigate to="/client" replace />;
-    } else {
-      console.log("ProtectedRoute - Redirecting to admin dashboard");
-      return <Navigate to="/admin" replace />;
+    if (!loading) {
+      if (!user) {
+        navigate("/login", { replace: true });
+      } else if (allowedRoles && !allowedRoles.includes(user.role)) {
+        console.log("User role not allowed:", user.role);
+        navigate("/", { replace: true });
+      }
     }
+  }, [user, loading, navigate, allowedRoles, isDevelopment]);
+
+  if (isDevelopment) {
+    return children ? <>{children}</> : <Outlet />;
   }
 
-  console.log("ProtectedRoute - Access granted to:", user.role);
-  // Allow access
-  return <>{children}</>;
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  return children ? <>{children}</> : <Outlet />;
 };
