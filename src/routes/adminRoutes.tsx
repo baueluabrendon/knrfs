@@ -25,7 +25,10 @@ export const adminRoutes = (
     <Route element={<DashboardLayout />}>
       <Route index element={<Index />} />  
       <Route path="loans/view" element={<Loans />} />
+      <Route path="loans/add" element={<AddLoan />} />
+      <Route path="loans/bulk" element={<BulkLoans />} />
       <Route path="borrowers" element={<Borrowers />} />
+      <Route path="borrowers/bulk" element={<BulkBorrowers />} />
       <Route path="applications" element={<Applications />} />
       <Route path="repayments" element={<Repayments />} />
       <Route path="recoveries/loans-in-arrears" element={<LoansInArrears />} />
@@ -33,9 +36,6 @@ export const adminRoutes = (
       <Route path="recoveries/partial-payments" element={<PartialPayments />} />
       <Route path="recoveries" element={<Recoveries />} />
       <Route path="users" element={<Users />} />
-      <Route path="loans/add" element={<AddLoan />} />
-      <Route path="loans/bulk" element={<BulkLoans />} />
-      <Route path="borrowers/bulk" element={<BulkBorrowers />} />
       <Route path="analytics" element={<Analytics />} />
       <Route path="accounting/balance-sheet" element={<BalanceSheet />} />
       <Route path="accounting/profit-loss" element={<ProfitAndLoss />} />

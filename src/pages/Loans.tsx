@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -65,7 +66,7 @@ const Loans = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Loans Management</h1>
-        <Button onClick={() => navigate("/loans/add")}>
+        <Button onClick={() => navigate("/admin/loans/add")}>
           <Plus className="h-4 w-4 mr-2" />
           Add Loan
         </Button>
