@@ -14,25 +14,29 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // Validation schema for loan form
 const loanFormSchema = z.object({
   borrowerId: z.string().min(1, { message: "Please select a borrower" }),
-  principal: z.coerce.number().positive({ message: "Amount must be positive" }),
-  interestRate: z.coerce.number().positive({ message: "Interest rate must be positive" }),
+  principal: z.coerce.number().positive({ message: "Loan amount must be positive" }),
   loanTerm: z.coerce.number().int().positive({ message: "Loan term must be a positive integer" }),
-  description: z.string().optional(),
-  product: z.string().min(1, { message: "Please select a loan product" }),
 });
 
 type LoanFormValues = z.infer<typeof loanFormSchema>;
@@ -48,6 +52,9 @@ const AddLoan = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [borrowers, setBorrowers] = useState<Borrower[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [open, setOpen] = useState(false);
+  const [fortnightlyInstallment, setFortnightlyInstallment] = useState<number | null>(null);
 
   // Initialize the form with react-hook-form
   const form = useForm<LoanFormValues>({
@@ -55,10 +62,7 @@ const AddLoan = () => {
     defaultValues: {
       borrowerId: "",
       principal: 0,
-      interestRate: 5.0,
       loanTerm: 12,
-      description: "",
-      product: "Personal Loan",
     },
   });
 
@@ -84,36 +88,46 @@ const AddLoan = () => {
     fetchBorrowers();
   }, []);
 
+  // Calculate fortnightly installment when principal or loanTerm changes
+  useEffect(() => {
+    const principal = form.watch("principal");
+    const loanTerm = form.watch("loanTerm");
+    
+    if (principal > 0 && loanTerm > 0) {
+      // Simple calculation for demonstration - in reality would include interest
+      const totalRepayment = principal * 1.1; // Example: 10% total interest
+      const installment = totalRepayment / (loanTerm * 2); // Assuming fortnightly payments
+      setFortnightlyInstallment(Number(installment.toFixed(2)));
+    } else {
+      setFortnightlyInstallment(null);
+    }
+  }, [form.watch("principal"), form.watch("loanTerm")]);
+
+  const filteredBorrowers = borrowers.filter(borrower => 
+    `${borrower.given_name} ${borrower.surname}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    borrower.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const onSubmit = async (values: LoanFormValues) => {
     setIsLoading(true);
     try {
-      // Calculate additional loan details
-      const interest = (values.principal * values.interestRate / 100) * (values.loanTerm / 12);
-      const gstAmount = interest * 0.1; // Assuming 10% GST on interest
-      const totalRepayment = values.principal + interest + gstAmount;
-      const fortnightlyInstallment = totalRepayment / (values.loanTerm * 2); // Assuming fortnightly payments
-      
-      // Set default loan risk insurance (1% of principal)
-      const loanRiskInsurance = values.principal * 0.01;
-      
       // Generate a loan ID
       const loanId = `L${Date.now().toString().slice(-6)}`;
       
-      // Create the loan record
+      // Find the selected borrower to get their full information
+      const selectedBorrower = borrowers.find(b => b.borrower_id === values.borrowerId);
+      
+      if (!selectedBorrower) {
+        throw new Error("Selected borrower not found");
+      }
+      
+      // Create the loan record with minimal required fields
       const { error } = await supabase.from("loans").insert({
         loan_id: loanId,
         borrower_id: values.borrowerId,
         principal: values.principal,
-        interest_rate: values.interestRate,
-        interest: interest,
         loan_term: values.loanTerm,
-        fortnightly_installment: fortnightlyInstallment,
-        gst_amount: gstAmount,
-        total_repayment: totalRepayment,
-        gross_loan: values.principal,
-        description: values.description,
-        product: values.product,
-        loan_risk_insurance: loanRiskInsurance,
+        fortnightly_installment: fortnightlyInstallment || 0,
       });
 
       if (error) {
@@ -143,55 +157,62 @@ const AddLoan = () => {
                 control={form.control}
                 name="borrowerId"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>Borrower</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select borrower" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {borrowers.map((borrower) => (
-                          <SelectItem
-                            key={borrower.borrower_id}
-                            value={borrower.borrower_id}
+                    <Popover open={open} onOpenChange={setOpen}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={open}
+                            className="justify-between h-10 w-full"
                           >
-                            {borrower.given_name} {borrower.surname} ({borrower.email})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="product"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Loan Product</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select loan product" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Personal Loan">Personal Loan</SelectItem>
-                        <SelectItem value="Home Loan">Home Loan</SelectItem>
-                        <SelectItem value="Car Loan">Car Loan</SelectItem>
-                        <SelectItem value="Business Loan">Business Loan</SelectItem>
-                      </SelectContent>
-                    </Select>
+                            {field.value
+                              ? borrowers.find((borrower) => borrower.borrower_id === field.value)
+                                ? `${borrowers.find((borrower) => borrower.borrower_id === field.value)?.given_name} ${borrowers.find((borrower) => borrower.borrower_id === field.value)?.surname}`
+                                : "Select borrower"
+                              : "Select borrower"}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[--popover-width] p-0" style={{ "--popover-width": "var(--radix-popover-trigger-width)" } as React.CSSProperties}>
+                        <Command>
+                          <CommandInput 
+                            placeholder="Search borrower..." 
+                            onValueChange={setSearchTerm} 
+                            className="h-9" 
+                          />
+                          <CommandEmpty>No borrower found.</CommandEmpty>
+                          <CommandGroup className="max-h-64 overflow-auto">
+                            {filteredBorrowers.map((borrower) => (
+                              <CommandItem
+                                key={borrower.borrower_id}
+                                value={`${borrower.given_name} ${borrower.surname}`}
+                                onSelect={() => {
+                                  form.setValue("borrowerId", borrower.borrower_id);
+                                  setOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    borrower.borrower_id === field.value
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                <div className="flex flex-col">
+                                  <span>{borrower.given_name} {borrower.surname}</span>
+                                  <span className="text-xs text-muted-foreground">{borrower.email}</span>
+                                </div>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -203,20 +224,6 @@ const AddLoan = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Loan Amount</FormLabel>
-                    <FormControl>
-                      <Input type="number" step="0.01" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="interestRate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Interest Rate (%)</FormLabel>
                     <FormControl>
                       <Input type="number" step="0.01" {...field} />
                     </FormControl>
@@ -239,19 +246,19 @@ const AddLoan = () => {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description (Optional)</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <FormItem>
+                <FormLabel>Fortnightly Repayment (Calculated)</FormLabel>
+                <Input 
+                  type="number" 
+                  value={fortnightlyInstallment || ""} 
+                  readOnly 
+                  disabled 
+                  className="bg-gray-50"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  This value is calculated based on loan amount and term
+                </p>
+              </FormItem>
             </div>
 
             <div className="flex justify-end space-x-2">
