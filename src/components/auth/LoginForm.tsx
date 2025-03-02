@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -9,8 +9,14 @@ import { toast } from "sonner";
 export const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { signIn } = useAuth();
+  const { signIn, user } = useAuth();
   const navigate = useNavigate();
+
+  // Debug log for initial render
+  useEffect(() => {
+    console.log("LoginForm: Component mounted");
+    console.log("LoginForm: Initial user state:", user);
+  }, [user]);
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -22,26 +28,28 @@ export const LoginForm = () => {
     const password = formData.get("password") as string;
 
     try {
-      console.log("Starting sign in process with:", email);
+      console.log("LoginForm: Starting sign in process with:", email);
       const user = await signIn(email, password);
       
       if (!user) {
         throw new Error("Invalid email or password");
       }
 
-      console.log("User signed in successfully:", user);
-      console.log("User role:", user.role);
+      console.log("LoginForm: User signed in successfully:", user);
+      console.log("LoginForm: User role:", user.role);
       
       // Route based on user role
       if (user.role === 'client') {
+        console.log("LoginForm: Navigating to client dashboard");
         toast.success("Successfully logged in as client!");
         navigate('/client');
       } else {
+        console.log("LoginForm: Navigating to admin dashboard with role:", user.role);
         toast.success(`Successfully logged in as ${user.role}!`);
         navigate('/admin');
       }
     } catch (error: any) {
-      console.error("Sign in error:", error);
+      console.error("LoginForm: Sign in error:", error);
       
       // Display a more user-friendly error message
       if (error.code === "invalid_credentials") {
@@ -55,6 +63,15 @@ export const LoginForm = () => {
       setIsLoading(false);
     }
   };
+
+  // Add debug log for when user state changes
+  useEffect(() => {
+    console.log("LoginForm: User state changed:", user);
+    
+    if (user) {
+      console.log("LoginForm: User is logged in, role:", user.role);
+    }
+  }, [user]);
 
   return (
     <div className="w-[400px] bg-white rounded-lg shadow-md p-8">

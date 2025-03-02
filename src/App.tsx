@@ -19,20 +19,35 @@ const AuthWrapper = () => {
   const navigate = useNavigate();
   const isDevelopment = import.meta.env.VITE_DEV_MODE === "true";
 
+  console.log("AuthWrapper: Component rendered");
+  console.log("AuthWrapper: User state:", user);
+  console.log("AuthWrapper: Loading state:", loading);
+  console.log("AuthWrapper: isDevelopment:", isDevelopment);
+
   useEffect(() => {
+    console.log("AuthWrapper: useEffect triggered");
+    console.log("AuthWrapper: Current user:", user);
+    console.log("AuthWrapper: Loading state:", loading);
+
     if (isDevelopment) {
+      console.log("AuthWrapper: Development mode, navigating to /admin");
       navigate("/admin", { replace: true });
       return;
     }
 
     if (!loading) {
       if (!user) {
+        console.log("AuthWrapper: No user, navigating to /login");
         navigate("/login", { replace: true });
       } else if (user.role === "client") {
+        console.log("AuthWrapper: User is client, navigating to /client");
         navigate("/client", { replace: true });
       } else {
+        console.log("AuthWrapper: User is admin, navigating to /admin with role:", user.role);
         navigate("/admin", { replace: true });
       }
+    } else {
+      console.log("AuthWrapper: Still loading user data");
     }
   }, [user, loading, navigate, isDevelopment]);
 

@@ -21,10 +21,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const handleSignIn = async (email: string, password: string) => {
     try {
       setLoading(true);
+      console.log("AuthContext: Starting sign in process with:", email);
       const userData = await signInWithEmailAndPassword(email, password);
+      
+      if (userData) {
+        console.log("AuthContext: Sign in successful, user data:", userData);
+        console.log("AuthContext: User role:", userData.role);
+        // Explicitly set the user in state
+        setUser(userData);
+        console.log("AuthContext: User state updated", userData);
+      } else {
+        console.error("AuthContext: Sign in returned no user data");
+      }
+      
       return userData;
     } catch (error: any) {
-      console.error("Login error:", error);
+      console.error("AuthContext: Login error:", error);
       throw error;
     } finally {
       setLoading(false);
@@ -35,14 +47,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       await signOut();
+      // Clear the user state
+      setUser(null);
+      console.log("AuthContext: User signed out, user state cleared");
       navigate('/login');
     } catch (error: any) {
-      console.error("Logout error:", error);
+      console.error("AuthContext: Logout error:", error);
       toast.error(error.message || "Failed to sign out");
     } finally {
       setLoading(false);
     }
   };
+
+  console.log("AuthContext: Current user state:", user);
+  console.log("AuthContext: Loading state:", loading);
 
   return (
     <AuthContext.Provider value={{ 
