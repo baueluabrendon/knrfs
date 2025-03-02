@@ -28,6 +28,7 @@ export const VALID_LOAN_TERMS = Object.keys(LOAN_TERM_INTEREST_RATE_MAP).map(Num
 
 /**
  * Calculates the fortnightly installment amount based on gross loan and loan term
+ * Formula: Bi-Weekly Repayment = Gross Loan divided by Loan Term
  */
 export const calculateFortnightlyInstallment = (
   grossLoan: number,
@@ -35,7 +36,7 @@ export const calculateFortnightlyInstallment = (
 ): number => {
   if (grossLoan <= 0 || loanTerm <= 0) return 0;
   
-  // Simple calculation based on provided formula: grossLoan / loanTerm
+  // Calculation based on formula: Bi-Weekly Repayment = Gross Loan divided by Loan Term
   const installment = grossLoan / loanTerm;
   
   return Number(installment.toFixed(2));
@@ -62,7 +63,7 @@ export const calculateLoanValues = (
   // Get interest rate from the mapping based on loan term
   const interestRate = LOAN_TERM_INTEREST_RATE_MAP[loanTerm] || 0;
   
-  // Calculate interest amount based on principal and rate
+  // Calculate interest amount based on formula: Interest = Loan Amount * Interest Rate
   const interest = (principal * interestRate) / 100;
   
   // Calculate loan risk insurance (2% of principal)
@@ -71,10 +72,11 @@ export const calculateLoanValues = (
   // Fixed documentation fee
   const documentationFee = 50;
   
-  // Calculate gross loan (principal + interest + insurance + documentation fee)
+  // Calculate gross loan based on formula: 
+  // Gross Loan = Loan Amount + Interest + Loan Risk Insurance + Documentation Fee
   const grossLoan = principal + interest + loanRiskInsurance + documentationFee;
   
-  // Calculate fortnightly installment using the formula: grossLoan / loanTerm
+  // Calculate fortnightly installment using the formula: Bi-Weekly Repayment = Gross Loan divided by Loan Term
   const fortnightlyInstallment = calculateFortnightlyInstallment(grossLoan, loanTerm);
   
   return {
