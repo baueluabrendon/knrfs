@@ -27,7 +27,7 @@ const Applications = () => {
 
       if (error) throw error;
       
-      const functionUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mhndkefbyvxasvayigvx.supabase.co'}/functions/v1/process-approved-application`;
+      const functionUrl = "https://mhndkefbyvxasvayigvx.supabase.co/functions/v1/process-approved-application";
       
       const response = await fetch(functionUrl, {
         method: 'POST',
