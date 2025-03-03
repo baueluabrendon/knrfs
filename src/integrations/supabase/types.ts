@@ -11,19 +11,25 @@ export type Database = {
     Tables: {
       accounts: {
         Row: {
-          account_id: number
+          account_id: string
           account_name: string
           account_type: Database["public"]["Enums"]["accounts_enum"]
+          created_at: string | null
+          updated_at: string | null
         }
         Insert: {
-          account_id?: number
+          account_id: string
           account_name: string
           account_type: Database["public"]["Enums"]["accounts_enum"]
+          created_at?: string | null
+          updated_at?: string | null
         }
         Update: {
-          account_id?: number
+          account_id?: string
           account_name?: string
           account_type?: Database["public"]["Enums"]["accounts_enum"]
+          created_at?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -267,7 +273,7 @@ export type Database = {
       }
       journal_entry: {
         Row: {
-          account_id: number
+          account_id: string
           amount: number
           created_at: string | null
           description: string | null
@@ -276,7 +282,7 @@ export type Database = {
           transaction_date: string
         }
         Insert: {
-          account_id: number
+          account_id: string
           amount: number
           created_at?: string | null
           description?: string | null
@@ -285,7 +291,7 @@ export type Database = {
           transaction_date: string
         }
         Update: {
-          account_id?: number
+          account_id?: string
           amount?: number
           created_at?: string | null
           description?: string | null
@@ -643,7 +649,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_account_id: {
+        Args: {
+          p_account_type: Database["public"]["Enums"]["accounts_enum"]
+        }
+        Returns: string
+      }
     }
     Enums: {
       accounts_enum: "Revenue" | "Expense" | "Asset" | "Liability" | "Equity"

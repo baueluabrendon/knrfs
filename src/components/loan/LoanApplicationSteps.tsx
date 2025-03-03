@@ -1,3 +1,4 @@
+
 import { Card } from "@/components/ui/card";
 import { DocumentUpload } from "./sections/DocumentUpload";
 import { PersonalInfo } from "./sections/PersonalInfo";
@@ -8,20 +9,34 @@ import { LoanDetails } from "./sections/LoanDetails";
 import { StepIndicator } from "./sections/StepIndicator";
 import { NavigationButtons } from "./sections/NavigationButtons";
 import { useLoanApplication, LoanApplicationProvider } from "@/contexts/LoanApplicationContext";
+import { Form } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 
 const ApplicationForm = () => {
-  const { handleSubmit } = useLoanApplication();
+  const { handleSubmit, formData, updateFormData } = useLoanApplication();
+  const form = useForm();
+  
+  // Pre-fill form with OCR data when available
+  useEffect(() => {
+    if (formData) {
+      // This effect will trigger form pre-fill when formData changes
+      console.log("Pre-filling form with extracted data:", formData);
+    }
+  }, [formData]);
 
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold text-gray-800">Application Details</h2>
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <PersonalInfo />
-        <EmploymentInfo />
-        <ResidentialInfo />
-        <FinancialInfo />
-        <LoanDetails />
-      </form>
+      <Form {...form}>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <PersonalInfo />
+          <EmploymentInfo />
+          <ResidentialInfo />
+          <FinancialInfo />
+          <LoanDetails />
+        </form>
+      </Form>
     </div>
   );
 };

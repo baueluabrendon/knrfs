@@ -1,5 +1,7 @@
+
 import React, { createContext, useContext, useState } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 type EmployerType = 'public' | 'statutory' | 'company' | null;
 
@@ -10,10 +12,48 @@ interface DocumentUpload {
   employerTypes: EmployerType[];
 }
 
+interface PersonalDetails {
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  dateOfBirth: string;
+  gender: string;
+  email: string;
+  phone: string;
+  idType: string;
+  idNumber: string;
+}
+
+interface EmploymentDetails {
+  employerName: string;
+  employmentDate: string;
+  occupation: string;
+  salary: string;
+  payDay: string;
+}
+
+interface ResidentialDetails {
+  address: string;
+  suburb: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  residentialStatus: string;
+  yearsAtAddress: string;
+}
+
+interface FormData {
+  personalDetails: PersonalDetails;
+  employmentDetails: EmploymentDetails;
+  residentialDetails: ResidentialDetails;
+}
+
 interface LoanApplicationContextType {
   currentStep: number;
   selectedEmployerType: EmployerType;
   documents: Record<string, DocumentUpload>;
+  formData: FormData;
+  isProcessingOCR: boolean;
   setCurrentStep: (step: number) => void;
   handleEmployerTypeSelect: (type: EmployerType) => void;
   handleFileUpload: (documentKey: string, file: File) => void;
@@ -21,13 +61,52 @@ interface LoanApplicationContextType {
   handlePrevious: () => void;
   handleExit: () => void;
   handleSubmit: (e: React.FormEvent) => void;
+  processApplicationForm: () => Promise<void>;
+  updateFormData: (section: keyof FormData, data: any) => void;
 }
+
+const defaultPersonalDetails: PersonalDetails = {
+  firstName: "",
+  middleName: "",
+  lastName: "",
+  dateOfBirth: "",
+  gender: "",
+  email: "",
+  phone: "",
+  idType: "",
+  idNumber: "",
+};
+
+const defaultEmploymentDetails: EmploymentDetails = {
+  employerName: "",
+  employmentDate: "",
+  occupation: "",
+  salary: "",
+  payDay: "",
+};
+
+const defaultResidentialDetails: ResidentialDetails = {
+  address: "",
+  suburb: "",
+  city: "",
+  province: "",
+  postalCode: "",
+  residentialStatus: "",
+  yearsAtAddress: "",
+};
 
 const LoanApplicationContext = createContext<LoanApplicationContextType | undefined>(undefined);
 
 export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedEmployerType, setSelectedEmployerType] = useState<EmployerType>(null);
+  const [isProcessingOCR, setIsProcessingOCR] = useState(false);
+  const [formData, setFormData] = useState<FormData>({
+    personalDetails: { ...defaultPersonalDetails },
+    employmentDetails: { ...defaultEmploymentDetails },
+    residentialDetails: { ...defaultResidentialDetails },
+  });
+  
   const [documents, setDocuments] = useState<Record<string, DocumentUpload>>({
     // Stage 1 documents
     applicationForm: { 
@@ -124,6 +203,84 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
     toast.success(`${documents[documentKey].name} uploaded successfully`);
   };
 
+  const processApplicationForm = async (): Promise<void> => {
+    if (!documents.applicationForm.file) {
+      toast.error("No application form uploaded");
+      return;
+    }
+    
+    setIsProcessingOCR(true);
+    
+    try {
+      // Create form data for file upload
+      const formData = new FormData();
+      formData.append('file', documents.applicationForm.file);
+      
+      // Call the Supabase Edge Function for OCR processing
+      const response = await fetch(`${supabase.functions.url}/process-application-form`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          Authorization: `Bearer ${supabase.auth.session()?.access_token || ''}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('OCR processing failed');
+      }
+      
+      const result = await response.json();
+      
+      // Update form data with extracted information
+      setFormData({
+        personalDetails: {
+          firstName: result.firstName || '',
+          middleName: result.middleName || '',
+          lastName: result.lastName || '',
+          dateOfBirth: result.dateOfBirth || '',
+          gender: result.gender || '',
+          email: result.email || '',
+          phone: result.phone || '',
+          idType: result.idType || '',
+          idNumber: result.idNumber || '',
+        },
+        employmentDetails: {
+          employerName: result.employerName || '',
+          employmentDate: result.employmentDate || '',
+          occupation: result.occupation || '',
+          salary: result.salary || '',
+          payDay: result.payDay || '',
+        },
+        residentialDetails: {
+          address: result.address || '',
+          suburb: result.suburb || '',
+          city: result.city || '',
+          province: result.province || '',
+          postalCode: result.postalCode || '',
+          residentialStatus: result.residentialStatus || '',
+          yearsAtAddress: result.yearsAtAddress || '',
+        },
+      });
+      
+      toast.success('Application form processed successfully');
+    } catch (error) {
+      console.error('Error processing application form:', error);
+      toast.error('Failed to process application form');
+    } finally {
+      setIsProcessingOCR(false);
+    }
+  };
+
+  const updateFormData = (section: keyof FormData, data: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        ...data
+      }
+    }));
+  };
+
   const handleNext = () => {
     setCurrentStep(prev => Math.min(prev + 1, 3));
   };
@@ -147,6 +304,8 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
         currentStep,
         selectedEmployerType,
         documents,
+        formData,
+        isProcessingOCR,
         setCurrentStep,
         handleEmployerTypeSelect,
         handleFileUpload,
@@ -154,6 +313,8 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
         handlePrevious,
         handleExit,
         handleSubmit,
+        processApplicationForm,
+        updateFormData,
       }}
     >
       {children}
