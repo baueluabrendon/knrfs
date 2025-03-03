@@ -36,6 +36,7 @@ export type Database = {
       applications: {
         Row: {
           application_id: string
+          document: string | null
           jsonb_data: Json | null
           status: Database["public"]["Enums"]["application_status_enum"] | null
           updated_at: string | null
@@ -43,6 +44,7 @@ export type Database = {
         }
         Insert: {
           application_id?: string
+          document?: string | null
           jsonb_data?: Json | null
           status?: Database["public"]["Enums"]["application_status_enum"] | null
           updated_at?: string | null
@@ -50,6 +52,7 @@ export type Database = {
         }
         Update: {
           application_id?: string
+          document?: string | null
           jsonb_data?: Json | null
           status?: Database["public"]["Enums"]["application_status_enum"] | null
           updated_at?: string | null
