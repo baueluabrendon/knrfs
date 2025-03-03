@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -6,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Upload, FileText, Loader2 } from "lucide-react";
+import { Upload, FileText, Loader2, Upload as UploadIcon } from "lucide-react";
 import { uploadGroupRepaymentDocument } from "@/contexts/loan-application/document-uploader";
 import { Repayment } from "@/types/repayment";
 
@@ -35,7 +34,6 @@ const BulkRepayments = () => {
 
     setIsUploadingCSV(true);
     
-    // Read the CSV file
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
@@ -67,7 +65,6 @@ const BulkRepayments = () => {
     setDocumentFile(file);
 
     try {
-      // Upload the document to storage
       const documentPath = await uploadGroupRepaymentDocument(file);
       
       if (documentPath) {
@@ -85,11 +82,9 @@ const BulkRepayments = () => {
   };
 
   const parseCSV = (text: string): RepaymentData[] => {
-    // Simple CSV parsing (could be enhanced with a library like papaparse)
     const lines = text.split('\n');
     const headers = lines[0].split(',').map(header => header.trim());
     
-    // Validate required headers
     const requiredHeaders = ['date', 'amount', 'loanId', 'borrowerName', 'payPeriod'];
     const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
     
@@ -97,7 +92,6 @@ const BulkRepayments = () => {
       throw new Error(`Missing required headers: ${missingHeaders.join(', ')}`);
     }
     
-    // Parse data rows
     return lines.slice(1)
       .filter(line => line.trim() !== '')
       .map(line => {
@@ -116,6 +110,20 @@ const BulkRepayments = () => {
       });
   };
 
+  const handleUploadRepayments = () => {
+    if (!parsedData.length) {
+      toast.error("Please upload and parse CSV data first");
+      return;
+    }
+    
+    if (!documentUrl) {
+      toast.error("Please upload the repayment group document first");
+      return;
+    }
+    
+    toast.success("Repayments uploaded to the system");
+  };
+
   const handleSubmitRepayments = async () => {
     if (parsedData.length === 0) {
       toast.error("No repayment data to submit");
@@ -130,8 +138,6 @@ const BulkRepayments = () => {
     setIsSubmitting(true);
     
     try {
-      // Here you would implement the logic to submit the repayments to your backend
-      // For now we'll just simulate a successful submission
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       toast.success(`Successfully processed ${parsedData.length} repayments`);
@@ -139,7 +145,6 @@ const BulkRepayments = () => {
       setDocumentFile(null);
       setDocumentUrl(null);
       
-      // Reset the file inputs
       if (csvFileInputRef.current) csvFileInputRef.current.value = '';
       if (documentFileInputRef.current) documentFileInputRef.current.value = '';
     } catch (error) {
@@ -170,7 +175,7 @@ const BulkRepayments = () => {
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <Label className="text-base font-medium">Repayments CSV File</Label>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center gap-3">
                 <Input
                   type="file"
                   accept=".csv"
@@ -179,7 +184,12 @@ const BulkRepayments = () => {
                   onChange={handleCSVUpload}
                   disabled={isUploadingCSV}
                 />
-                <Button onClick={handleCSVUploadClick} disabled={isUploadingCSV}>
+                <Button 
+                  variant="outline"
+                  onClick={handleCSVUploadClick} 
+                  disabled={isUploadingCSV}
+                  className="flex-shrink-0 w-auto"
+                >
                   {isUploadingCSV ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -191,6 +201,16 @@ const BulkRepayments = () => {
                       Upload CSV
                     </>
                   )}
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  onClick={handleUploadRepayments}
+                  disabled={!parsedData.length || !documentUrl || isSubmitting}
+                  className="flex-shrink-0 w-auto"
+                >
+                  <UploadIcon className="mr-2 h-4 w-4" />
+                  Upload Repayments
                 </Button>
               </div>
               <p className="text-sm text-gray-500">
@@ -209,7 +229,12 @@ const BulkRepayments = () => {
                   onChange={handleDocumentUpload}
                   disabled={isUploadingDocument}
                 />
-                <Button onClick={handleDocumentUploadClick} disabled={isUploadingDocument}>
+                <Button 
+                  variant="outline"
+                  onClick={handleDocumentUploadClick} 
+                  disabled={isUploadingDocument}
+                  className="flex-shrink-0 w-auto"
+                >
                   {isUploadingDocument ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />

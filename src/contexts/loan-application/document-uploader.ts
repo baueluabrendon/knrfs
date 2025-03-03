@@ -1,192 +1,325 @@
-
-import { supabase } from "@/integrations/supabase/client";
-import { DocumentUploadType } from "@/types/loan";
+import { useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
+import { Upload, FileText, Loader2, Upload as UploadIcon } from "lucide-react";
+import { uploadGroupRepaymentDocument } from "@/contexts/loan-application/document-uploader";
+import { Repayment } from "@/types/repayment";
 
-/**
- * Uploads a document to Supabase storage and records it in the appropriate table
- */
-export async function uploadDocumentToSupabase(
-  documentKey: string,
-  file: File,
-  applicationUuid: string
-): Promise<boolean> {
-  try {
-    // 1. Sanitize the filename
-    const fileExt = file.name.split('.').pop();
-    const fileNameWithoutExt = file.name.split('.').slice(0, -1).join('.');
-    const sanitizedFileName = fileNameWithoutExt.replace(/[^\x00-\x7F]/g, '');
-    const finalFileName = sanitizedFileName 
-      ? `${sanitizedFileName}.${fileExt}` 
-      : `${documentKey}_${new Date().toISOString().slice(0, -5)}.${fileExt}`;
+interface RepaymentData {
+  date: string;
+  amount: number;
+  loanId: string;
+  borrowerName: string;
+  payPeriod: string;
+}
+
+const BulkRepayments = () => {
+  const [parsedData, setParsedData] = useState<RepaymentData[]>([]);
+  const [isUploadingCSV, setIsUploadingCSV] = useState(false);
+  const [isUploadingDocument, setIsUploadingDocument] = useState(false);
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [documentUrl, setDocumentUrl] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const csvFileInputRef = useRef<HTMLInputElement>(null);
+  const documentFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleCSVUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingCSV(true);
     
-    // 2. Create a unique path for the file
-    const filePath = `applications/${applicationUuid}/${documentKey}_${crypto.randomUUID()}.${fileExt}`;
+    // Read the CSV file
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target?.result as string;
+        const result = parseCSV(text);
+        setParsedData(result);
+        toast.success("CSV file parsed successfully");
+      } catch (error) {
+        console.error("Error parsing CSV:", error);
+        toast.error("Failed to parse CSV file. Please check the format.");
+      } finally {
+        setIsUploadingCSV(false);
+      }
+    };
     
-    console.log(`Uploading ${documentKey} to ${filePath}`);
+    reader.onerror = () => {
+      toast.error("Error reading file");
+      setIsUploadingCSV(false);
+    };
     
-    // 3. Upload the file to Supabase Storage
-    const { data: storageData, error: storageError } = await supabase.storage
-      .from('documents')
-      .upload(filePath, file, {
-        contentType: file.type,
-        upsert: false
-      });
+    reader.readAsText(file);
+  };
+
+  const handleDocumentUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingDocument(true);
+    setDocumentFile(file);
+
+    try {
+      // Upload the document to storage
+      const documentPath = await uploadGroupRepaymentDocument(file);
       
-    if (storageError) {
-      console.error("Error uploading file to storage:", storageError);
-      toast.error(`Failed to upload ${documentKey}: ${storageError.message}`);
-      return false;
+      if (documentPath) {
+        setDocumentUrl(documentPath);
+        toast.success("Repayment document uploaded successfully");
+      } else {
+        toast.error("Failed to upload repayment document");
+      }
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      toast.error("Error uploading document. Please try again.");
+    } finally {
+      setIsUploadingDocument(false);
+    }
+  };
+
+  const parseCSV = (text: string): RepaymentData[] => {
+    // Simple CSV parsing (could be enhanced with a library like papaparse)
+    const lines = text.split('\n');
+    const headers = lines[0].split(',').map(header => header.trim());
+    
+    // Validate required headers
+    const requiredHeaders = ['date', 'amount', 'loanId', 'borrowerName', 'payPeriod'];
+    const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
+    
+    if (missingHeaders.length > 0) {
+      throw new Error(`Missing required headers: ${missingHeaders.join(', ')}`);
     }
     
-    // 4. Record the document in the appropriate table based on document type
-    if (documentKey === "applicationForm") {
-      // Store application form in the applications table
-      const { error: dbError } = await supabase
-        .from('applications')
-        .insert({
-          application_id: applicationUuid,
-          document: filePath,
-          uploaded_at: new Date().toISOString()
+    // Parse data rows
+    return lines.slice(1)
+      .filter(line => line.trim() !== '')
+      .map(line => {
+        const values = line.split(',').map(value => value.trim());
+        const data: any = {};
+        
+        headers.forEach((header, index) => {
+          if (header === 'amount') {
+            data[header] = parseFloat(values[index]);
+          } else {
+            data[header] = values[index];
+          }
         });
         
-      if (dbError) {
-        console.error("Error recording application in database:", dbError);
-        toast.error(`Failed to record application: ${dbError.message}`);
-        return false;
-      }
-    } else {
-      // Store supporting documents in the documents table
-      // Fix: Ensure document_type is properly typed as expected by the database
-      const { error: dbError } = await supabase
-        .from('documents')
-        .insert({
-          application_uuid: applicationUuid,
-          document_path: filePath,
-          document_type: documentKey, // The database expects this to be a specific value
-          uploaded_at: new Date().toISOString()
-        });
-        
-      if (dbError) {
-        console.error("Error recording document in database:", dbError);
-        toast.error(`Failed to record ${documentKey} in database: ${dbError.message}`);
-        return false;
-      }
-    }
-    
-    console.log(`Successfully uploaded and recorded ${documentKey}`);
-    return true;
-  } catch (error) {
-    console.error("Unexpected error during document upload:", error);
-    toast.error(`Failed to process ${documentKey}: ${error.message || 'Unknown error'}`);
-    return false;
-  }
-}
-
-/**
- * Generate a unique application UUID to group documents together
- */
-export function generateApplicationUuid(): string {
-  return crypto.randomUUID();
-}
-
-/**
- * Uploads a receipt document to Supabase storage and records it in the repayments table
- */
-export async function uploadReceiptToSupabase(
-  file: File,
-  loanId: string,
-  repaymentId?: string
-): Promise<boolean> {
-  try {
-    // 1. Sanitize the filename
-    const fileExt = file.name.split('.').pop();
-    const fileNameWithoutExt = file.name.split('.').slice(0, -1).join('.');
-    const sanitizedFileName = fileNameWithoutExt.replace(/[^\x00-\x7F]/g, '');
-    const finalFileName = sanitizedFileName 
-      ? `${sanitizedFileName}.${fileExt}` 
-      : `receipt_${new Date().toISOString().slice(0, -5)}.${fileExt}`;
-    
-    // 2. Create a unique path for the file
-    const filePath = `repayments/${loanId}/${crypto.randomUUID()}.${fileExt}`;
-    
-    console.log(`Uploading receipt to ${filePath}`);
-    
-    // 3. Upload the file to Supabase Storage
-    const { data: storageData, error: storageError } = await supabase.storage
-      .from('documents')
-      .upload(filePath, file, {
-        contentType: file.type,
-        upsert: false
+        return data as RepaymentData;
       });
-      
-    if (storageError) {
-      console.error("Error uploading receipt to storage:", storageError);
-      toast.error(`Failed to upload receipt: ${storageError.message}`);
-      return false;
-    }
-    
-    // 4. If a repaymentId is provided, update the existing repayment record
-    if (repaymentId) {
-      const { error: dbError } = await supabase
-        .from('repayments')
-        .update({ receipt: filePath })
-        .eq('repayment_id', repaymentId);
-        
-      if (dbError) {
-        console.error("Error updating repayment record:", dbError);
-        toast.error(`Failed to update repayment with receipt: ${dbError.message}`);
-        return false;
-      }
-    }
-    
-    console.log(`Successfully uploaded receipt`);
-    return true;
-  } catch (error) {
-    console.error("Unexpected error during receipt upload:", error);
-    toast.error(`Failed to process receipt: ${error.message || 'Unknown error'}`);
-    return false;
-  }
-}
+  };
 
-/**
- * Uploads a group repayment document to Supabase storage and records it
- */
-export async function uploadGroupRepaymentDocument(
-  file: File
-): Promise<string | null> {
-  try {
-    // 1. Sanitize the filename
-    const fileExt = file.name.split('.').pop();
-    const fileNameWithoutExt = file.name.split('.').slice(0, -1).join('.');
-    const sanitizedFileName = fileNameWithoutExt.replace(/[^\x00-\x7F]/g, '');
-    const finalFileName = sanitizedFileName 
-      ? `${sanitizedFileName}.${fileExt}` 
-      : `group_repayment_${new Date().toISOString().slice(0, -5)}.${fileExt}`;
-    
-    // 2. Create a unique path for the file
-    const filePath = `group_repayments/${crypto.randomUUID()}.${fileExt}`;
-    
-    console.log(`Uploading group repayment document to ${filePath}`);
-    
-    // 3. Upload the file to Supabase Storage
-    const { data: storageData, error: storageError } = await supabase.storage
-      .from('documents')
-      .upload(filePath, file, {
-        contentType: file.type,
-        upsert: false
-      });
-      
-    if (storageError) {
-      console.error("Error uploading group repayment document to storage:", storageError);
-      toast.error(`Failed to upload group repayment document: ${storageError.message}`);
-      return null;
+  const handleUploadRepayments = () => {
+    if (!parsedData.length) {
+      toast.error("Please upload and parse CSV data first");
+      return;
     }
     
-    return filePath;
-  } catch (error) {
-    console.error("Unexpected error during group repayment document upload:", error);
-    toast.error(`Failed to process group repayment document: ${error.message || 'Unknown error'}`);
-    return null;
-  }
-}
+    if (!documentUrl) {
+      toast.error("Please upload the repayment group document first");
+      return;
+    }
+    
+    // This would eventually integrate with an API to upload the repayment data
+    toast.success("Repayments uploaded to the system");
+  };
+
+  const handleSubmitRepayments = async () => {
+    if (parsedData.length === 0) {
+      toast.error("No repayment data to submit");
+      return;
+    }
+    
+    if (!documentUrl) {
+      toast.error("Please upload a repayment group document");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Here you would implement the logic to submit the repayments to your backend
+      // For now we'll just simulate a successful submission
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      toast.success(`Successfully processed ${parsedData.length} repayments`);
+      setParsedData([]);
+      setDocumentFile(null);
+      setDocumentUrl(null);
+      
+      // Reset the file inputs
+      if (csvFileInputRef.current) csvFileInputRef.current.value = '';
+      if (documentFileInputRef.current) documentFileInputRef.current.value = '';
+    } catch (error) {
+      console.error("Error submitting repayments:", error);
+      toast.error("Failed to submit repayments. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCSVUploadClick = () => {
+    if (csvFileInputRef.current) {
+      csvFileInputRef.current.click();
+    }
+  };
+
+  const handleDocumentUploadClick = () => {
+    if (documentFileInputRef.current) {
+      documentFileInputRef.current.click();
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-semibold text-gray-800">Bulk Repayments Upload</h1>
+      <Card className="p-6">
+        <div className="space-y-6">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <Label className="text-base font-medium">Repayments CSV File</Label>
+              <div className="flex flex-wrap items-center gap-3">
+                <Input
+                  type="file"
+                  accept=".csv"
+                  className="hidden"
+                  ref={csvFileInputRef}
+                  onChange={handleCSVUpload}
+                  disabled={isUploadingCSV}
+                />
+                <Button 
+                  variant="outline"
+                  onClick={handleCSVUploadClick} 
+                  disabled={isUploadingCSV}
+                  className="flex-shrink-0 w-auto"
+                >
+                  {isUploadingCSV ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload CSV
+                    </>
+                  )}
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  onClick={handleUploadRepayments}
+                  disabled={!parsedData.length || !documentUrl || isSubmitting}
+                  className="flex-shrink-0 w-auto"
+                >
+                  <UploadIcon className="mr-2 h-4 w-4" />
+                  Upload Repayments
+                </Button>
+              </div>
+              <p className="text-sm text-gray-500">
+                Upload a CSV file with columns: date, amount, loanId, borrowerName, payPeriod
+              </p>
+            </div>
+            
+            <div className="space-y-4">
+              <Label className="text-base font-medium">Repayment Group Document</Label>
+              <div className="flex items-center gap-4">
+                <Input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+                  className="hidden"
+                  ref={documentFileInputRef}
+                  onChange={handleDocumentUpload}
+                  disabled={isUploadingDocument}
+                />
+                <Button 
+                  variant="outline"
+                  onClick={handleDocumentUploadClick} 
+                  disabled={isUploadingDocument}
+                  className="flex-shrink-0 w-auto"
+                >
+                  {isUploadingDocument ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="mr-2 h-4 w-4" />
+                      Upload Document
+                    </>
+                  )}
+                </Button>
+              </div>
+              <p className="text-sm text-gray-500">
+                Upload the source document for this group of repayments
+              </p>
+              
+              {documentFile && (
+                <div className="mt-2 flex items-center text-sm text-green-600">
+                  <FileText className="mr-2 h-4 w-4" />
+                  {documentFile.name}
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {parsedData.length > 0 && (
+            <div className="mt-6">
+              <h2 className="text-lg font-semibold mb-4">Preview ({parsedData.length} repayments)</h2>
+              <div className="rounded-md border overflow-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Loan ID</TableHead>
+                      <TableHead>Borrower Name</TableHead>
+                      <TableHead>Pay Period</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {parsedData.map((repayment, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{repayment.date}</TableCell>
+                        <TableCell>${repayment.amount.toFixed(2)}</TableCell>
+                        <TableCell>{repayment.loanId}</TableCell>
+                        <TableCell>{repayment.borrowerName}</TableCell>
+                        <TableCell>{repayment.payPeriod}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              
+              <div className="mt-6 flex justify-end">
+                <Button 
+                  onClick={handleSubmitRepayments} 
+                  disabled={isSubmitting || !documentUrl}
+                  className="w-full md:w-auto"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Submit Repayments"
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
+    </div>
+  );
+};
+
+export default BulkRepayments;
