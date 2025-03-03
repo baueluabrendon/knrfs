@@ -22,8 +22,33 @@ const ApplicationForm = () => {
     if (formData) {
       // This effect will trigger form pre-fill when formData changes
       console.log("Pre-filling form with extracted data:", formData);
+      
+      // Pre-fill the form fields using useForm's setValue method
+      if (formData.personalDetails) {
+        Object.entries(formData.personalDetails).forEach(([key, value]) => {
+          form.setValue(`personalDetails.${key}`, value);
+        });
+      }
+      
+      if (formData.employmentDetails) {
+        Object.entries(formData.employmentDetails).forEach(([key, value]) => {
+          form.setValue(`employmentDetails.${key}`, value);
+        });
+      }
+      
+      if (formData.residentialDetails) {
+        Object.entries(formData.residentialDetails).forEach(([key, value]) => {
+          form.setValue(`residentialDetails.${key}`, value);
+        });
+      }
+      
+      if (formData.financialDetails) {
+        Object.entries(formData.financialDetails).forEach(([key, value]) => {
+          form.setValue(`financialDetails.${key}`, value);
+        });
+      }
     }
-  }, [formData]);
+  }, [formData, form]);
 
   return (
     <div className="space-y-6">

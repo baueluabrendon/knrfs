@@ -1,58 +1,21 @@
-
 import React, { createContext, useContext, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-
-type EmployerType = 'public' | 'statutory' | 'company' | null;
-
-interface DocumentUpload {
-  name: string;
-  file: File | null;
-  required: boolean;
-  employerTypes: EmployerType[];
-}
-
-interface PersonalDetails {
-  firstName: string;
-  middleName: string;
-  lastName: string;
-  dateOfBirth: string;
-  gender: string;
-  email: string;
-  phone: string;
-  idType: string;
-  idNumber: string;
-}
-
-interface EmploymentDetails {
-  employerName: string;
-  employmentDate: string;
-  occupation: string;
-  salary: string;
-  payDay: string;
-}
-
-interface ResidentialDetails {
-  address: string;
-  suburb: string;
-  city: string;
-  province: string;
-  postalCode: string;
-  residentialStatus: string;
-  yearsAtAddress: string;
-}
-
-interface FormData {
-  personalDetails: PersonalDetails;
-  employmentDetails: EmploymentDetails;
-  residentialDetails: ResidentialDetails;
-}
+import { 
+  EmployerType, 
+  DocumentUploadType, 
+  PersonalDetailsType, 
+  EmploymentDetailsType, 
+  ResidentialDetailsType,
+  FinancialDetailsType,
+  FormDataType
+} from "@/types/loan";
 
 interface LoanApplicationContextType {
   currentStep: number;
   selectedEmployerType: EmployerType;
-  documents: Record<string, DocumentUpload>;
-  formData: FormData;
+  documents: Record<string, DocumentUploadType>;
+  formData: FormDataType;
   isProcessingOCR: boolean;
   setCurrentStep: (step: number) => void;
   handleEmployerTypeSelect: (type: EmployerType) => void;
@@ -62,10 +25,10 @@ interface LoanApplicationContextType {
   handleExit: () => void;
   handleSubmit: (e: React.FormEvent) => void;
   processApplicationForm: () => Promise<void>;
-  updateFormData: (section: keyof FormData, data: any) => void;
+  updateFormData: (section: keyof FormDataType, data: any) => void;
 }
 
-const defaultPersonalDetails: PersonalDetails = {
+const defaultPersonalDetails: PersonalDetailsType = {
   firstName: "",
   middleName: "",
   lastName: "",
@@ -77,7 +40,7 @@ const defaultPersonalDetails: PersonalDetails = {
   idNumber: "",
 };
 
-const defaultEmploymentDetails: EmploymentDetails = {
+const defaultEmploymentDetails: EmploymentDetailsType = {
   employerName: "",
   employmentDate: "",
   occupation: "",
@@ -85,7 +48,7 @@ const defaultEmploymentDetails: EmploymentDetails = {
   payDay: "",
 };
 
-const defaultResidentialDetails: ResidentialDetails = {
+const defaultResidentialDetails: ResidentialDetailsType = {
   address: "",
   suburb: "",
   city: "",
@@ -95,19 +58,35 @@ const defaultResidentialDetails: ResidentialDetails = {
   yearsAtAddress: "",
 };
 
+const defaultFinancialDetails: FinancialDetailsType = {
+  monthlyIncome: "",
+  otherIncome: "",
+  totalExpenses: "",
+  loanAmount: "",
+  loanPurpose: "",
+  loanTerm: "",
+  interestRate: "",
+  interest: "",
+  loanRiskInsurance: "",
+  documentationFee: "",
+  fortnightlyInstallment: "",
+  grossLoan: ""
+};
+
 const LoanApplicationContext = createContext<LoanApplicationContextType | undefined>(undefined);
 
 export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedEmployerType, setSelectedEmployerType] = useState<EmployerType>(null);
   const [isProcessingOCR, setIsProcessingOCR] = useState(false);
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<FormDataType>({
     personalDetails: { ...defaultPersonalDetails },
     employmentDetails: { ...defaultEmploymentDetails },
     residentialDetails: { ...defaultResidentialDetails },
+    financialDetails: { ...defaultFinancialDetails }
   });
   
-  const [documents, setDocuments] = useState<Record<string, DocumentUpload>>({
+  const [documents, setDocuments] = useState<Record<string, DocumentUploadType>>({
     // Stage 1 documents
     applicationForm: { 
       name: "Application Form", 
@@ -217,11 +196,18 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
       formData.append('file', documents.applicationForm.file);
       
       // Call the Supabase Edge Function for OCR processing
-      const response = await fetch(`${supabase.functions.url}/process-application-form`, {
+      const functionUrl = `${process.env.SUPABASE_URL}/functions/v1/process-application-form`;
+      const token = supabase.auth.getSession().then(({ data }) => data.session?.access_token);
+      
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+      
+      const response = await fetch(functionUrl, {
         method: 'POST',
         body: formData,
         headers: {
-          Authorization: `Bearer ${supabase.auth.session()?.access_token || ''}`,
+          Authorization: `Bearer ${await token}`,
         },
       });
       
@@ -260,6 +246,20 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
           residentialStatus: result.residentialStatus || '',
           yearsAtAddress: result.yearsAtAddress || '',
         },
+        financialDetails: {
+          monthlyIncome: result.monthlyIncome || '',
+          otherIncome: result.otherIncome || '',
+          totalExpenses: result.totalExpenses || '',
+          loanAmount: result.loanAmount || '',
+          loanPurpose: result.loanPurpose || '',
+          loanTerm: result.loanTerm || '',
+          interestRate: result.interestRate || '',
+          interest: result.interest || '',
+          loanRiskInsurance: result.loanRiskInsurance || '',
+          documentationFee: result.documentationFee || '',
+          fortnightlyInstallment: result.fortnightlyInstallment || '',
+          grossLoan: result.grossLoan || ''
+        }
       });
       
       toast.success('Application form processed successfully');
@@ -271,7 +271,7 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
     }
   };
 
-  const updateFormData = (section: keyof FormData, data: any) => {
+  const updateFormData = (section: keyof FormDataType, data: any) => {
     setFormData(prev => ({
       ...prev,
       [section]: {
@@ -293,9 +293,45 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
     window.history.back();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Application submitted successfully");
+    
+    try {
+      // Submit application data to Supabase
+      const applicationData = {
+        ...formData.personalDetails,
+        ...formData.employmentDetails,
+        ...formData.residentialDetails,
+        ...formData.financialDetails
+      };
+
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) {
+        throw new Error('Authentication required');
+      }
+
+      const { error } = await supabase
+        .from('loan_applications')
+        .insert({
+          borrower_id: sessionData.session.user.id,
+          application_data: applicationData,
+          amount_requested: parseFloat(formData.financialDetails.loanAmount) || 0,
+          status: 'pending'
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success("Application submitted successfully");
+      // Redirect to the application status page
+      setTimeout(() => {
+        window.location.href = '/client/application-status';
+      }, 2000);
+    } catch (error) {
+      console.error('Error submitting application:', error);
+      toast.error("Failed to submit application. Please try again.");
+    }
   };
 
   return (

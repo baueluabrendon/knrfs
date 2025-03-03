@@ -38,10 +38,26 @@ export interface ResidentialDetailsType {
   yearsAtAddress: string;
 }
 
+export interface FinancialDetailsType {
+  monthlyIncome: string;
+  otherIncome: string;
+  totalExpenses: string;
+  loanAmount: string;
+  loanPurpose: string;
+  loanTerm: string;
+  interestRate: string;
+  interest: string;
+  loanRiskInsurance: string;
+  documentationFee: string;
+  fortnightlyInstallment: string;
+  grossLoan: string;
+}
+
 export interface FormDataType {
   personalDetails: PersonalDetailsType;
   employmentDetails: EmploymentDetailsType;
   residentialDetails: ResidentialDetailsType;
+  financialDetails: FinancialDetailsType;
 }
 
 export interface LoanApplicationContextType {
