@@ -60,6 +60,16 @@ export interface FormDataType {
   financialDetails: FinancialDetailsType;
 }
 
+export interface LoanApplicationType {
+  id: number;
+  borrower_id: string;
+  application_data: FormDataType;
+  amount_requested: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface LoanApplicationContextType {
   currentStep: number;
   selectedEmployerType: EmployerType;

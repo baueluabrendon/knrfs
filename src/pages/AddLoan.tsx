@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -61,15 +62,18 @@ const AddLoan = () => {
         documentationFee
       } = calculateLoanValues(values.principal, values.loanTerm);
       
+      // Determine the loan term enum value based on the numeric term
+      const loanTermEnum = `TERM_${values.loanTerm}`;
+      
       // Create the loan record with all required fields
       const { error } = await supabase.from("loans").insert({
         borrower_id: values.borrowerId,
         principal: values.principal,
-        loan_term: values.loanTerm,
+        loan_term: loanTermEnum as any, // Type assertion since we know this is a valid enum value
         fortnightly_installment: fortnightlyInstallment,
         gross_loan: grossLoan,
         interest: interest,
-        interest_rate: interestRate,
+        interest_rate: `RATE_${Math.round(interestRate*100)}` as any, // Convert to enum format
         loan_risk_insurance: loanRiskInsurance,
         documentation_fee: documentationFee,
         // Set default values for required fields that aren't in the form

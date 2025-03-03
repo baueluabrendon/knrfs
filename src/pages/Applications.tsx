@@ -20,21 +20,12 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Loader2, Eye, CheckCircle, XCircle } from "lucide-react";
-
-interface Application {
-  id: number;
-  borrower_id: string;
-  application_data: any;
-  amount_requested: number;
-  status: string;
-  created_at: string;
-  updated_at: string;
-}
+import { LoanApplicationType } from "@/types/loan";
 
 const Applications = () => {
-  const [applications, setApplications] = useState<Application[]>([]);
+  const [applications, setApplications] = useState<LoanApplicationType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
+  const [selectedApplication, setSelectedApplication] = useState<LoanApplicationType | null>(null);
   const [showApplicationDetails, setShowApplicationDetails] = useState(false);
   const [processingAction, setProcessingAction] = useState(false);
 
@@ -51,7 +42,7 @@ const Applications = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setApplications(data || []);
+      setApplications(data as LoanApplicationType[] || []);
     } catch (error) {
       console.error('Error fetching applications:', error);
       toast.error('Failed to load applications');
@@ -60,7 +51,7 @@ const Applications = () => {
     }
   };
 
-  const handleViewApplication = (application: Application) => {
+  const handleViewApplication = (application: LoanApplicationType) => {
     setSelectedApplication(application);
     setShowApplicationDetails(true);
   };
@@ -192,23 +183,23 @@ const Applications = () => {
                 <div className="bg-gray-50 p-4 rounded-md">
                   <h3 className="text-lg font-semibold mb-2">Personal Information</h3>
                   <div className="grid grid-cols-2 gap-2">
-                    <p><span className="font-medium">Name:</span> {selectedApplication.application_data?.firstName} {selectedApplication.application_data?.middleName} {selectedApplication.application_data?.lastName}</p>
-                    <p><span className="font-medium">Date of Birth:</span> {selectedApplication.application_data?.dateOfBirth}</p>
-                    <p><span className="font-medium">Gender:</span> {selectedApplication.application_data?.gender}</p>
-                    <p><span className="font-medium">Email:</span> {selectedApplication.application_data?.email}</p>
-                    <p><span className="font-medium">Phone:</span> {selectedApplication.application_data?.phone}</p>
-                    <p><span className="font-medium">ID:</span> {selectedApplication.application_data?.idType} - {selectedApplication.application_data?.idNumber}</p>
+                    <p><span className="font-medium">Name:</span> {selectedApplication.application_data.personalDetails?.firstName} {selectedApplication.application_data.personalDetails?.middleName} {selectedApplication.application_data.personalDetails?.lastName}</p>
+                    <p><span className="font-medium">Date of Birth:</span> {selectedApplication.application_data.personalDetails?.dateOfBirth}</p>
+                    <p><span className="font-medium">Gender:</span> {selectedApplication.application_data.personalDetails?.gender}</p>
+                    <p><span className="font-medium">Email:</span> {selectedApplication.application_data.personalDetails?.email}</p>
+                    <p><span className="font-medium">Phone:</span> {selectedApplication.application_data.personalDetails?.phone}</p>
+                    <p><span className="font-medium">ID:</span> {selectedApplication.application_data.personalDetails?.idType} - {selectedApplication.application_data.personalDetails?.idNumber}</p>
                   </div>
                 </div>
 
                 <div className="bg-gray-50 p-4 rounded-md">
                   <h3 className="text-lg font-semibold mb-2">Employment Information</h3>
                   <div className="grid grid-cols-2 gap-2">
-                    <p><span className="font-medium">Employer:</span> {selectedApplication.application_data?.employerName}</p>
-                    <p><span className="font-medium">Occupation:</span> {selectedApplication.application_data?.occupation}</p>
-                    <p><span className="font-medium">Employed Since:</span> {selectedApplication.application_data?.employmentDate}</p>
-                    <p><span className="font-medium">Salary:</span> {selectedApplication.application_data?.salary}</p>
-                    <p><span className="font-medium">Pay Day:</span> {selectedApplication.application_data?.payDay}</p>
+                    <p><span className="font-medium">Employer:</span> {selectedApplication.application_data.employmentDetails?.employerName}</p>
+                    <p><span className="font-medium">Occupation:</span> {selectedApplication.application_data.employmentDetails?.occupation}</p>
+                    <p><span className="font-medium">Employed Since:</span> {selectedApplication.application_data.employmentDetails?.employmentDate}</p>
+                    <p><span className="font-medium">Salary:</span> {selectedApplication.application_data.employmentDetails?.salary}</p>
+                    <p><span className="font-medium">Pay Day:</span> {selectedApplication.application_data.employmentDetails?.payDay}</p>
                   </div>
                 </div>
               </div>
@@ -217,24 +208,24 @@ const Applications = () => {
                 <div className="bg-gray-50 p-4 rounded-md">
                   <h3 className="text-lg font-semibold mb-2">Residential Information</h3>
                   <div className="grid grid-cols-2 gap-2">
-                    <p><span className="font-medium">Address:</span> {selectedApplication.application_data?.address}</p>
-                    <p><span className="font-medium">Suburb:</span> {selectedApplication.application_data?.suburb}</p>
-                    <p><span className="font-medium">City:</span> {selectedApplication.application_data?.city}</p>
-                    <p><span className="font-medium">Province:</span> {selectedApplication.application_data?.province}</p>
-                    <p><span className="font-medium">Postal Code:</span> {selectedApplication.application_data?.postalCode}</p>
-                    <p><span className="font-medium">Years at Address:</span> {selectedApplication.application_data?.yearsAtAddress}</p>
+                    <p><span className="font-medium">Address:</span> {selectedApplication.application_data.residentialDetails?.address}</p>
+                    <p><span className="font-medium">Suburb:</span> {selectedApplication.application_data.residentialDetails?.suburb}</p>
+                    <p><span className="font-medium">City:</span> {selectedApplication.application_data.residentialDetails?.city}</p>
+                    <p><span className="font-medium">Province:</span> {selectedApplication.application_data.residentialDetails?.province}</p>
+                    <p><span className="font-medium">Postal Code:</span> {selectedApplication.application_data.residentialDetails?.postalCode}</p>
+                    <p><span className="font-medium">Years at Address:</span> {selectedApplication.application_data.residentialDetails?.yearsAtAddress}</p>
                   </div>
                 </div>
 
                 <div className="bg-gray-50 p-4 rounded-md">
                   <h3 className="text-lg font-semibold mb-2">Loan Information</h3>
                   <div className="grid grid-cols-2 gap-2">
-                    <p><span className="font-medium">Amount:</span> ${selectedApplication.application_data?.loanAmount}</p>
-                    <p><span className="font-medium">Purpose:</span> {selectedApplication.application_data?.loanPurpose}</p>
-                    <p><span className="font-medium">Term:</span> {selectedApplication.application_data?.loanTerm}</p>
-                    <p><span className="font-medium">Interest:</span> ${selectedApplication.application_data?.interest}</p>
-                    <p><span className="font-medium">Bi-weekly Payment:</span> ${selectedApplication.application_data?.fortnightlyInstallment}</p>
-                    <p><span className="font-medium">Gross Loan:</span> ${selectedApplication.application_data?.grossLoan}</p>
+                    <p><span className="font-medium">Amount:</span> ${selectedApplication.application_data.financialDetails?.loanAmount}</p>
+                    <p><span className="font-medium">Purpose:</span> {selectedApplication.application_data.financialDetails?.loanPurpose}</p>
+                    <p><span className="font-medium">Term:</span> {selectedApplication.application_data.financialDetails?.loanTerm}</p>
+                    <p><span className="font-medium">Interest:</span> ${selectedApplication.application_data.financialDetails?.interest}</p>
+                    <p><span className="font-medium">Bi-weekly Payment:</span> ${selectedApplication.application_data.financialDetails?.fortnightlyInstallment}</p>
+                    <p><span className="font-medium">Gross Loan:</span> ${selectedApplication.application_data.financialDetails?.grossLoan}</p>
                   </div>
                 </div>
               </div>

@@ -197,7 +197,8 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
       
       // Call the Supabase Edge Function for OCR processing
       const functionUrl = `${process.env.SUPABASE_URL}/functions/v1/process-application-form`;
-      const token = supabase.auth.getSession().then(({ data }) => data.session?.access_token);
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
       
       if (!token) {
         throw new Error('Authentication required');
@@ -207,7 +208,7 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
         method: 'POST',
         body: formData,
         headers: {
-          Authorization: `Bearer ${await token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       
@@ -298,13 +299,6 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
     
     try {
       // Submit application data to Supabase
-      const applicationData = {
-        ...formData.personalDetails,
-        ...formData.employmentDetails,
-        ...formData.residentialDetails,
-        ...formData.financialDetails
-      };
-
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !sessionData.session) {
         throw new Error('Authentication required');
@@ -314,7 +308,7 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
         .from('loan_applications')
         .insert({
           borrower_id: sessionData.session.user.id,
-          application_data: applicationData,
+          application_data: formData,
           amount_requested: parseFloat(formData.financialDetails.loanAmount) || 0,
           status: 'pending'
         });
