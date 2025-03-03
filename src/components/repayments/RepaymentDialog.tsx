@@ -12,7 +12,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { uploadReceiptToSupabase } from "@/contexts/loan-application/document-uploader";
+import { uploadGroupRepaymentDocument } from "@/contexts/loan-application/document-uploader";
 
 interface RepaymentDialogProps {
   isOpen: boolean;
@@ -29,8 +29,8 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
     if (file && loanId) {
       setIsUploading(true);
       try {
-        const success = await uploadReceiptToSupabase(file, loanId);
-        if (success) {
+        const receiptUrl = await uploadGroupRepaymentDocument(file);
+        if (receiptUrl) {
           toast.success("Receipt uploaded successfully");
           onOpenChange(false);
         } else {

@@ -10,7 +10,7 @@ import { LoanApplicationContextType } from "./types";
 import { defaultFormData, defaultDocuments } from "./default-values";
 import { processApplicationFormOCR } from "./ocr-processor";
 import { submitApplication } from "./submit-application";
-import { uploadDocumentToSupabase, generateApplicationUuid } from "./document-uploader";
+import { uploadDocument } from "./document-uploader";
 
 // Create the context
 const LoanApplicationContext = createContext<LoanApplicationContextType | undefined>(undefined);
@@ -26,7 +26,7 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
 
   // Generate a unique application UUID when the component mounts
   useEffect(() => {
-    setApplicationUuid(generateApplicationUuid());
+    setApplicationUuid(crypto.randomUUID());
   }, []);
 
   const handleEmployerTypeSelect = (type: EmployerType) => {
@@ -45,9 +45,9 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
       }));
       
       // Upload the document to Supabase
-      const success = await uploadDocumentToSupabase(documentKey, file, applicationUuid);
+      const documentUrl = await uploadDocument(file, documentKey);
       
-      if (success) {
+      if (documentUrl) {
         toast.success(`${documents[documentKey].name} uploaded successfully`);
       }
     } catch (error) {
