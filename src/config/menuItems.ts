@@ -64,7 +64,7 @@ export const menuItems = [
     path: "#", // Changed to "#"
     subItems: [
       { icon: Eye, label: "View All Repayments", path: "/admin/repayments" },
-      { icon: Upload, label: "Add Bulk Repayment", path: "/admin/repayments/bulk" },
+      // Removed the "Add Bulk Repayment" option
     ]
   },
   { 
