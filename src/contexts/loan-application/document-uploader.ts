@@ -4,7 +4,7 @@ import { DocumentUploadType } from "@/types/loan";
 import { toast } from "sonner";
 
 /**
- * Uploads a document to Supabase storage and records it in the documents table
+ * Uploads a document to Supabase storage and records it in the appropriate table
  */
 export async function uploadDocumentToSupabase(
   documentKey: string,
@@ -39,19 +39,37 @@ export async function uploadDocumentToSupabase(
       return false;
     }
     
-    // 4. Record the document in the documents table
-    const { error: dbError } = await supabase
-      .from('documents')
-      .insert({
-        application_uuid: applicationUuid,
-        document_type: documentKey,
-        document_path: filePath
-      });
-      
-    if (dbError) {
-      console.error("Error recording document in database:", dbError);
-      toast.error(`Failed to record ${documentKey} in database: ${dbError.message}`);
-      return false;
+    // 4. Record the document in the appropriate table based on document type
+    if (documentKey === "applicationForm") {
+      // Store application form in the applications table
+      const { error: dbError } = await supabase
+        .from('applications')
+        .insert({
+          application_id: applicationUuid,
+          document: filePath,
+          uploaded_at: new Date().toISOString()
+        });
+        
+      if (dbError) {
+        console.error("Error recording application in database:", dbError);
+        toast.error(`Failed to record application: ${dbError.message}`);
+        return false;
+      }
+    } else {
+      // Store supporting documents in the documents table
+      const { error: dbError } = await supabase
+        .from('documents')
+        .insert({
+          application_uuid: applicationUuid,
+          document_type: documentKey,
+          document_path: filePath
+        });
+        
+      if (dbError) {
+        console.error("Error recording document in database:", dbError);
+        toast.error(`Failed to record ${documentKey} in database: ${dbError.message}`);
+        return false;
+      }
     }
     
     console.log(`Successfully uploaded and recorded ${documentKey}`);
