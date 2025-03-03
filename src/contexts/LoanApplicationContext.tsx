@@ -342,21 +342,11 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
     e.preventDefault();
     
     try {
-      // Submit application data to Supabase
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !sessionData.session) {
-        throw new Error('Authentication required');
-      }
-
-      const jsonbData = {
-        ...formData,
-        user_id: sessionData.session.user.id
-      };
-
+      // Submit application data to Supabase without requiring authentication
       const { error } = await supabase
         .from('applications')
         .insert({
-          jsonb_data: jsonbData as any,
+          jsonb_data: formData as any,
           uploaded_at: new Date().toISOString(),
           status: 'pending'
         });
@@ -366,9 +356,9 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
       }
 
       toast.success("Application submitted successfully");
-      // Redirect to the application status page
+      // Redirect to a thank you or confirmation page
       setTimeout(() => {
-        window.location.href = '/client/application-status';
+        window.location.href = '/';
       }, 2000);
     } catch (error) {
       console.error('Error submitting application:', error);

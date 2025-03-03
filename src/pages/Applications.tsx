@@ -39,7 +39,7 @@ const Applications = () => {
       const { data, error } = await supabase
         .from('applications')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('uploaded_at', { ascending: false });
 
       if (error) throw error;
       setApplications(data as unknown as LoanApplicationType[] || []);
