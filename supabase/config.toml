@@ -1,4 +1,1 @@
-
 project_id = "mhndkefbyvxasvayigvx"
-[functions.process-application-form]
-verify_jwt = false
