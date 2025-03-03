@@ -60,6 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               first_name: profile.first_name,
               last_name: profile.last_name,
               created_at: new Date().toISOString(),
+              is_password_changed: profile.is_password_changed,
             };
             
             setUser(userProfile);
@@ -119,6 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               first_name: profile.first_name,
               last_name: profile.last_name,
               created_at: new Date().toISOString(),
+              is_password_changed: profile.is_password_changed,
             };
             
             setUser(userProfile);
@@ -161,6 +163,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           first_name: userData.first_name,
           last_name: userData.last_name,
           created_at: new Date().toISOString(), // Adding a default created_at since it's required
+          is_password_changed: userData.is_password_changed,
         };
         
         // Update user state with the properly formatted user profile

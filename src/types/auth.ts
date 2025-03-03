@@ -1,3 +1,4 @@
+
 export interface UserProfile {
   user_id: string;
   id: string; // Adding this to match the database structure
@@ -6,4 +7,5 @@ export interface UserProfile {
   first_name: string | null;
   last_name: string | null;
   created_at: string;
+  is_password_changed: boolean | null;
 }

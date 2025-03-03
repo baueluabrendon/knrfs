@@ -10,6 +10,7 @@ export interface UserProfile {
   role: string;
   first_name: string | null;
   last_name: string | null;
+  is_password_changed?: boolean | null;
 }
 
 /**
@@ -33,7 +34,8 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
         email: profile.email || '',
         role: profile.role || 'client',
         first_name: profile.first_name || null,
-        last_name: profile.last_name || null
+        last_name: profile.last_name || null,
+        is_password_changed: profile.is_password_changed
       };
     } else {
       console.error("Error fetching user profile:", profileError);
