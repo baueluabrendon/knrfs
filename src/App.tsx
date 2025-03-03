@@ -10,6 +10,7 @@ import { adminRoutes } from "./routes/adminRoutes";
 import { clientRoutes } from "./routes/clientRoutes";
 import LoanApplicationSteps from "@/components/loan/LoanApplicationSteps";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import SetPassword from "./pages/SetPassword";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => {
               {/* Authentication & Verification */}
               <Route path="/" element={<Navigate to={isDevelopment ? "/admin" : "/login"} replace />} />
               <Route path="/login" element={<AuthForm />} />
+              <Route path="/set-password" element={<SetPassword />} />
               <Route path="/apply" element={<LoanApplicationSteps />} />
 
               {/* Client Routes - Protected */}

@@ -620,7 +620,6 @@ export type Database = {
           created_at: string | null
           loan_id: string | null
           payment_date: string | null
-          payment_method: string | null
           receipt: string | null
           repayment_id: string
           status: string | null
@@ -631,7 +630,6 @@ export type Database = {
           created_at?: string | null
           loan_id?: string | null
           payment_date?: string | null
-          payment_method?: string | null
           receipt?: string | null
           repayment_id?: string
           status?: string | null
@@ -642,7 +640,6 @@ export type Database = {
           created_at?: string | null
           loan_id?: string | null
           payment_date?: string | null
-          payment_method?: string | null
           receipt?: string | null
           repayment_id?: string
           status?: string | null
@@ -669,6 +666,7 @@ export type Database = {
           created_at: string | null
           email: string
           first_name: string | null
+          is_password_changed: boolean | null
           last_name: string | null
           role: string
           user_id: string
@@ -677,6 +675,7 @@ export type Database = {
           created_at?: string | null
           email: string
           first_name?: string | null
+          is_password_changed?: boolean | null
           last_name?: string | null
           role: string
           user_id: string
@@ -685,6 +684,7 @@ export type Database = {
           created_at?: string | null
           email?: string
           first_name?: string | null
+          is_password_changed?: boolean | null
           last_name?: string | null
           role?: string
           user_id?: string

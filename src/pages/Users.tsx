@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Table,
@@ -16,8 +17,28 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { UserPlus, Search } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { toast } from "sonner";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/lib/supabase";
+
+// Types for user form
+interface UserFormData {
+  name: string;
+  email: string;
+  role: string;
+  firstName: string;
+  lastName: string;
+}
 
 // Temporary mock data - replace with actual data later
 const mockUsers = [
@@ -39,6 +60,91 @@ const mockUsers = [
 
 const Users = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [isAddingUser, setIsAddingUser] = useState(false);
+  const [formData, setFormData] = useState<UserFormData>({
+    name: "",
+    email: "",
+    role: "",
+    firstName: "",
+    lastName: "",
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setFormData({ ...formData, [id]: value });
+  };
+
+  const handleRoleChange = (value: string) => {
+    setFormData({ ...formData, role: value });
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      email: "",
+      role: "",
+      firstName: "",
+      lastName: "",
+    });
+  };
+
+  const handleAddUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsAddingUser(true);
+
+    try {
+      // Validate form data
+      if (!formData.email || !formData.role || !formData.firstName || !formData.lastName) {
+        toast.error("Please fill in all required fields");
+        return;
+      }
+      
+      const role = formData.role.toLowerCase();
+      
+      if (role === 'client') {
+        // For clients, we create a user without a password and send a verification email
+        const { data, error } = await supabase.auth.admin.inviteUserByEmail(formData.email, {
+          data: {
+            role: role,
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+          },
+          redirectTo: `${window.location.origin}/set-password`,
+        });
+        
+        if (error) throw error;
+        
+        toast.success(`Verification email sent to ${formData.email}`);
+      } else {
+        // For admin users, generate a temporary password
+        const tempPassword = Math.random().toString(36).slice(-8);
+        
+        const { data, error } = await supabase.auth.admin.createUser({
+          email: formData.email,
+          password: tempPassword,
+          email_confirm: true,
+          user_metadata: {
+            role: role,
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+          },
+        });
+        
+        if (error) throw error;
+        
+        toast.success(`User ${formData.email} created with temporary password: ${tempPassword}`);
+      }
+      
+      // Close dialog and reset form
+      resetForm();
+      setIsAddingUser(false);
+    } catch (error: any) {
+      console.error("Error creating user:", error);
+      toast.error(error.message || "Failed to create user");
+    } finally {
+      setIsAddingUser(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -53,31 +159,72 @@ const Users = () => {
             <DialogHeader>
               <DialogTitle>Add New User</DialogTitle>
             </DialogHeader>
-            <form className="space-y-4 mt-4">
-              <div>
-                <label htmlFor="name" className="text-sm font-medium text-gray-700">
-                  Full Name
-                </label>
-                <Input id="name" placeholder="Enter full name" />
+            <form onSubmit={handleAddUser} className="space-y-4 mt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">
+                    First Name *
+                  </Label>
+                  <Input 
+                    id="firstName" 
+                    placeholder="Enter first name" 
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
+                    Last Name *
+                  </Label>
+                  <Input 
+                    id="lastName" 
+                    placeholder="Enter last name" 
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
               </div>
               <div>
-                <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Email
-                </label>
-                <Input id="email" type="email" placeholder="Enter email address" />
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  Email *
+                </Label>
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="Enter email address" 
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
+                />
               </div>
               <div>
-                <label htmlFor="role" className="text-sm font-medium text-gray-700">
-                  Role
-                </label>
-                <Input id="role" placeholder="Enter user role" />
+                <Label htmlFor="role" className="text-sm font-medium text-gray-700">
+                  Role *
+                </Label>
+                <Select onValueChange={handleRoleChange} value={formData.role}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="client">Client</SelectItem>
+                    <SelectItem value="administrator">Administrator</SelectItem>
+                    <SelectItem value="sales_officer">Sales Officer</SelectItem>
+                    <SelectItem value="accounts_officer">Accounts Officer</SelectItem>
+                    <SelectItem value="recoveries_officer">Recoveries Officer</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <button
-                type="submit"
-                className="w-full px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
-              >
-                Create User
-              </button>
+              <DialogFooter>
+                <Button
+                  type="submit"
+                  disabled={isAddingUser}
+                  className="w-full"
+                >
+                  {isAddingUser ? "Creating..." : "Create User"}
+                </Button>
+              </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
