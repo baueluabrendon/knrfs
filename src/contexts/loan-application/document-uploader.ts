@@ -57,13 +57,13 @@ export async function uploadDocumentToSupabase(
       }
     } else {
       // Store supporting documents in the documents table
-      // We need to ensure document_type is one of the allowed types from DocumentUploadType
+      // Fix: Ensure document_type is properly typed as expected by the database
       const { error: dbError } = await supabase
         .from('documents')
         .insert({
           application_uuid: applicationUuid,
-          document_type: documentKey as DocumentUploadType,
           document_path: filePath,
+          document_type: documentKey, // The database expects this to be a specific value
           uploaded_at: new Date().toISOString()
         });
         

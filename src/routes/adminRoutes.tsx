@@ -14,6 +14,7 @@ import Users from "@/pages/Users";
 import AddLoan from "@/pages/AddLoan";
 import BulkLoans from "@/pages/BulkLoans";
 import BulkBorrowers from "@/pages/BulkBorrowers";
+import BulkRepayments from "@/pages/BulkRepayments";
 import Analytics from "@/pages/Analytics";
 import BalanceSheet from "@/pages/BalanceSheet";
 import ProfitAndLoss from "@/pages/ProfitAndLoss";
@@ -31,6 +32,7 @@ export const adminRoutes = (
       <Route path="borrowers/bulk" element={<BulkBorrowers />} />
       <Route path="applications" element={<Applications />} />
       <Route path="repayments" element={<Repayments />} />
+      <Route path="repayments/bulk" element={<BulkRepayments />} />
       <Route path="recoveries/loans-in-arrears" element={<LoansInArrears />} />
       <Route path="recoveries/missed-payments" element={<MissedPayments />} />
       <Route path="recoveries/partial-payments" element={<PartialPayments />} />
