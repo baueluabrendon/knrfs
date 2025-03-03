@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Plus, Upload } from "lucide-react";
 import { toast } from "sonner";
@@ -14,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { uploadReceiptToSupabase } from "@/contexts/loan-application/document-uploader";
 
 interface Repayment {
   id: string;
@@ -61,13 +63,30 @@ const sampleRepayments: Repayment[] = [
 const Repayments = () => {
   const [repayments] = useState<Repayment[]>(sampleRepayments);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [loanId, setLoanId] = useState("");
+  const [amount, setAmount] = useState("");
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      // Here you would typically handle the file upload
-      toast.success("Receipt uploaded successfully");
-      setIsDialogOpen(false);
+    if (file && loanId) {
+      setIsUploading(true);
+      try {
+        const success = await uploadReceiptToSupabase(file, loanId);
+        if (success) {
+          toast.success("Receipt uploaded successfully");
+          setIsDialogOpen(false);
+        } else {
+          toast.error("Failed to upload receipt");
+        }
+      } catch (error) {
+        console.error("Error uploading receipt:", error);
+        toast.error("An unexpected error occurred while uploading receipt");
+      } finally {
+        setIsUploading(false);
+      }
+    } else {
+      toast.error("Please select a file and enter a loan ID");
     }
   };
 
@@ -89,11 +108,22 @@ const Repayments = () => {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="loanId">Loan ID</Label>
-                <Input id="loanId" placeholder="Enter loan ID" />
+                <Input 
+                  id="loanId" 
+                  placeholder="Enter loan ID"
+                  value={loanId}
+                  onChange={(e) => setLoanId(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="amount">Amount</Label>
-                <Input id="amount" type="number" placeholder="Enter amount" />
+                <Input 
+                  id="amount" 
+                  type="number" 
+                  placeholder="Enter amount"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="receipt">Receipt Document</Label>
@@ -102,11 +132,22 @@ const Repayments = () => {
                   type="file"
                   accept=".pdf,.jpg,.jpeg,.png"
                   onChange={handleFileUpload}
+                  disabled={isUploading}
                 />
               </div>
-              <Button className="w-full" onClick={() => setIsDialogOpen(false)}>
-                <Upload className="w-4 h-4 mr-2" />
-                Upload Receipt
+              <Button 
+                className="w-full" 
+                onClick={() => setIsDialogOpen(false)}
+                disabled={isUploading}
+              >
+                {isUploading ? (
+                  <span>Uploading...</span>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload Receipt
+                  </>
+                )}
               </Button>
             </div>
           </DialogContent>

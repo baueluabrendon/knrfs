@@ -477,6 +477,44 @@ export type Database = {
         }
         Relationships: []
       }
+      repayment_document_group: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          document_url: string | null
+          group_name: string
+          id: number
+          period_id: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          document_url?: string | null
+          group_name: string
+          id?: number
+          period_id?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          document_url?: string | null
+          group_name?: string
+          id?: number
+          period_id?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repayment_document_group_period_id_fkey"
+            columns: ["period_id"]
+            isOneToOne: false
+            referencedRelation: "pay_period"
+            referencedColumns: ["period_id"]
+          },
+        ]
+      }
       repayment_schedule: {
         Row: {
           borrower_id: string
