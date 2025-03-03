@@ -9,8 +9,8 @@ export async function processApplicationFormOCR(file: File): Promise<Partial<For
     const formData = new FormData();
     formData.append('file', file);
     
-    // Call the Supabase Edge Function for OCR processing
-    const functionUrl = `${process.env.SUPABASE_URL}/functions/v1/process-application-form`;
+    // Call the Supabase Edge Function for OCR processing using the provided URL
+    const functionUrl = "https://mhndkefbyvxasvayigvx.supabase.co/functions/v1/process-application-form";
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData.session?.access_token;
     
@@ -20,6 +20,7 @@ export async function processApplicationFormOCR(file: File): Promise<Partial<For
       ...(token && { Authorization: `Bearer ${token}` }),
     };
     
+    console.log("Calling OCR processing function:", functionUrl);
     const response = await fetch(functionUrl, {
       method: 'POST',
       body: formData,
@@ -27,10 +28,14 @@ export async function processApplicationFormOCR(file: File): Promise<Partial<For
     });
     
     if (!response.ok) {
-      throw new Error('OCR processing failed');
+      const errorText = await response.text();
+      console.error("OCR processing failed:", errorText);
+      throw new Error(`OCR processing failed: ${response.status} ${errorText || response.statusText}`);
     }
     
     const result = await response.json();
+    console.log("OCR processing result:", result);
+    
     return {
       personalDetails: {
         firstName: result.firstName || '',
