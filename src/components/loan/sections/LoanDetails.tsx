@@ -2,7 +2,7 @@
 import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useLoanApplication } from "@/contexts/LoanApplicationContext";
+import { useLoanApplication } from "@/contexts/loan-application";
 import { FormField, FormItem, FormControl } from "@/components/ui/form";
 
 export const LoanDetails = () => {

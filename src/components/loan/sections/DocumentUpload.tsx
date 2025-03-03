@@ -1,5 +1,5 @@
 
-import { useLoanApplication } from "@/contexts/LoanApplicationContext";
+import { useLoanApplication } from "@/contexts/loan-application";
 import { DocumentList } from "./document-upload/DocumentList";
 import { EmployerTypeSelector } from "./document-upload/EmployerTypeSelector";
 import { DocumentUploadType } from "@/types/loan";

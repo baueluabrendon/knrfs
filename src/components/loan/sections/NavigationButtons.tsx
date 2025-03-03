@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { XCircle } from "lucide-react";
-import { useLoanApplication } from "@/contexts/LoanApplicationContext";
+import { useLoanApplication } from "@/contexts/loan-application";
 
 export const NavigationButtons = () => {
   const { currentStep, handlePrevious, handleNext, handleExit, handleSubmit } = useLoanApplication();

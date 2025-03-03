@@ -8,7 +8,7 @@ import { FinancialInfo } from "./sections/FinancialInfo";
 import { LoanDetails } from "./sections/LoanDetails";
 import { StepIndicator } from "./sections/StepIndicator";
 import { NavigationButtons } from "./sections/NavigationButtons";
-import { useLoanApplication, LoanApplicationProvider } from "@/contexts/LoanApplicationContext";
+import { useLoanApplication, LoanApplicationProvider } from "@/contexts/loan-application";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
