@@ -69,8 +69,12 @@ const AddLoan = () => {
       const maturityDate = new Date();
       maturityDate.setDate(maturityDate.getDate() + (values.loanTerm * 14));
       
+      // Generate a unique loan ID (this will be handled by server-side trigger)
+      const dummyLoanId = `temp_${Date.now()}`; // This will be replaced by the DB trigger
+
       // Create the loan record with all required fields
       const { error } = await supabase.from("loans").insert({
+        loan_id: dummyLoanId, // Required field, will be overwritten by the DB trigger
         borrower_id: values.borrowerId,
         principal: values.principal,
         loan_term: loanTermEnum as any, // Type assertion since we know this is a valid enum value

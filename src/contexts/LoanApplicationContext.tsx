@@ -348,10 +348,15 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
         throw new Error('Authentication required');
       }
 
+      const jsonbData = {
+        ...formData,
+        user_id: sessionData.session.user.id
+      };
+
       const { error } = await supabase
         .from('applications')
         .insert({
-          jsonb_data: formData,
+          jsonb_data: jsonbData as any,
           uploaded_at: new Date().toISOString(),
           status: 'pending'
         });

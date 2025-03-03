@@ -84,7 +84,7 @@ export interface FormDataType {
 
 export interface LoanApplicationType {
   application_id: string;
-  jsonb_data: FormDataType;
+  jsonb_data: Record<string, any>;
   status: string;
   uploaded_at: string;
   updated_at: string;
