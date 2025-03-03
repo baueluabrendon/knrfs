@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { 
   EmployerType, 
@@ -10,6 +10,7 @@ import { LoanApplicationContextType } from "./types";
 import { defaultFormData, defaultDocuments } from "./default-values";
 import { processApplicationFormOCR } from "./ocr-processor";
 import { submitApplication } from "./submit-application";
+import { uploadDocumentToSupabase, generateApplicationUuid } from "./document-uploader";
 
 // Create the context
 const LoanApplicationContext = createContext<LoanApplicationContextType | undefined>(undefined);
@@ -20,18 +21,41 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
   const [isProcessingOCR, setIsProcessingOCR] = useState(false);
   const [formData, setFormData] = useState<FormDataType>({ ...defaultFormData });
   const [documents, setDocuments] = useState<Record<string, DocumentUploadType>>({ ...defaultDocuments });
+  const [applicationUuid, setApplicationUuid] = useState<string>("");
+  const [uploadingDocument, setUploadingDocument] = useState(false);
+
+  // Generate a unique application UUID when the component mounts
+  useEffect(() => {
+    setApplicationUuid(generateApplicationUuid());
+  }, []);
 
   const handleEmployerTypeSelect = (type: EmployerType) => {
     setSelectedEmployerType(type);
     toast.success(`Selected employer type: ${type}`);
   };
 
-  const handleFileUpload = (documentKey: string, file: File) => {
-    setDocuments(prev => ({
-      ...prev,
-      [documentKey]: { ...prev[documentKey], file }
-    }));
-    toast.success(`${documents[documentKey].name} uploaded successfully`);
+  const handleFileUpload = async (documentKey: string, file: File) => {
+    setUploadingDocument(true);
+    
+    try {
+      // Update documents state immediately for UI feedback
+      setDocuments(prev => ({
+        ...prev,
+        [documentKey]: { ...prev[documentKey], file }
+      }));
+      
+      // Upload the document to Supabase
+      const success = await uploadDocumentToSupabase(documentKey, file, applicationUuid);
+      
+      if (success) {
+        toast.success(`${documents[documentKey].name} uploaded successfully`);
+      }
+    } catch (error) {
+      console.error(`Error uploading ${documentKey}:`, error);
+      toast.error(`Failed to upload ${documents[documentKey].name}`);
+    } finally {
+      setUploadingDocument(false);
+    }
   };
 
   const processApplicationForm = async (): Promise<void> => {
@@ -98,7 +122,13 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const success = await submitApplication(formData);
+    // Add the application UUID to the form data for reference
+    const formDataWithApplicationId = {
+      ...formData,
+      applicationUuid
+    };
+    
+    const success = await submitApplication(formDataWithApplicationId);
     
     if (success) {
       // Redirect to a thank you or confirmation page
@@ -116,6 +146,8 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
         documents,
         formData,
         isProcessingOCR,
+        uploadingDocument,
+        applicationUuid,
         setCurrentStep,
         handleEmployerTypeSelect,
         handleFileUpload,

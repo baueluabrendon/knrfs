@@ -15,6 +15,8 @@ export interface LoanApplicationContextType {
   documents: Record<string, DocumentUploadType>;
   formData: FormDataType;
   isProcessingOCR: boolean;
+  uploadingDocument: boolean;
+  applicationUuid: string;
   setCurrentStep: (step: number) => void;
   handleEmployerTypeSelect: (type: EmployerType) => void;
   handleFileUpload: (documentKey: string, file: File) => void;

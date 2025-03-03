@@ -1,4 +1,5 @@
-import { Upload } from "lucide-react";
+
+import { Upload, Loader2, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DocumentUploadType } from "@/types/loan";
@@ -8,6 +9,7 @@ interface DocumentUploadBoxProps {
   document: DocumentUploadType;
   isEnabled: boolean;
   onFileUpload: (documentKey: string, file: File) => void;
+  isUploading: boolean;
 }
 
 export const DocumentUploadBox = ({
@@ -15,6 +17,7 @@ export const DocumentUploadBox = ({
   document,
   isEnabled,
   onFileUpload,
+  isUploading,
 }: DocumentUploadBoxProps) => {
   return (
     <div className="space-y-1">
@@ -27,15 +30,29 @@ export const DocumentUploadBox = ({
           <Input
             type="file"
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            disabled={!isEnabled}
+            disabled={!isEnabled || isUploading}
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) onFileUpload(documentKey, file);
             }}
           />
           <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Upload className="w-4 h-4" />
-            <span>{`Upload ${document.name}`}</span>
+            {document.file ? (
+              <>
+                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                <span className="truncate max-w-[180px]">{document.file.name}</span>
+              </>
+            ) : isUploading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Uploading...</span>
+              </>
+            ) : (
+              <>
+                <Upload className="w-4 h-4" />
+                <span>{`Upload ${document.name}`}</span>
+              </>
+            )}
           </div>
         </div>
       </div>

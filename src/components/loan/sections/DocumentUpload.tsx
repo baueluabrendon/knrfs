@@ -17,6 +17,7 @@ export const DocumentUpload = () => {
     handleFileUpload,
     processApplicationForm,
     isProcessingOCR,
+    uploadingDocument,
   } = useLoanApplication();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,11 +50,16 @@ export const DocumentUpload = () => {
     return (
       <div className="space-y-4">
         <h2 className="text-xl font-semibold text-gray-800">Initial Documents</h2>
+        <p className="text-sm text-gray-600">
+          Please upload the required documents to proceed with your loan application.
+        </p>
+        
         <DocumentList
           documents={documents}
           filter={(key) => ["applicationForm", "termsAndConditions"].includes(key)}
           isDocumentEnabled={isDocumentEnabled}
           handleFileUpload={handleFileUpload}
+          isUploading={uploadingDocument}
         />
         
         {documents.applicationForm.file && documents.termsAndConditions.file && (
@@ -81,15 +87,21 @@ export const DocumentUpload = () => {
     return (
       <div className="space-y-4">
         <h2 className="text-xl font-semibold text-gray-800">Required Documents</h2>
+        <p className="text-sm text-gray-600">
+          Please select your employer type and upload the required documents.
+        </p>
+        
         <EmployerTypeSelector
           selectedEmployerType={selectedEmployerType}
           onEmployerTypeSelect={handleEmployerTypeSelect}
         />
+        
         <DocumentList
           documents={documents}
           filter={(key) => !["applicationForm", "termsAndConditions"].includes(key)}
           isDocumentEnabled={isDocumentEnabled}
           handleFileUpload={handleFileUpload}
+          isUploading={uploadingDocument}
         />
       </div>
     );
