@@ -57,12 +57,12 @@ export async function uploadDocumentToSupabase(
       }
     } else {
       // Store supporting documents in the documents table
-      // We need to ensure document_type is one of the allowed types from DocumentUploadType
+      // Convert documentKey to the expected format for document_type
       const { error: dbError } = await supabase
         .from('documents')
         .insert({
           application_uuid: applicationUuid,
-          document_type: documentKey as DocumentUploadType,
+          document_type: documentKey,
           document_path: filePath,
           uploaded_at: new Date().toISOString()
         });
@@ -130,8 +130,8 @@ export async function uploadReceiptToSupabase(
     if (repaymentId) {
       const { error: dbError } = await supabase
         .from('repayments')
-        .update({ receipt_url: filePath })
-        .eq('id', repaymentId);
+        .update({ receipt: filePath })
+        .eq('repayment_id', repaymentId);
         
       if (dbError) {
         console.error("Error updating repayment record:", dbError);
