@@ -18,6 +18,12 @@ export interface PersonalDetailsType {
   phone: string;
   idType: string;
   idNumber: string;
+  nationality: string;
+  maritalStatus: string;
+  spouseFirstName: string;
+  spouseLastName: string;
+  spouseEmployerName: string;
+  spouseContactDetails: string;
 }
 
 export interface EmploymentDetailsType {
@@ -26,6 +32,12 @@ export interface EmploymentDetailsType {
   occupation: string;
   salary: string;
   payDay: string;
+  fileNumber: string;
+  position: string;
+  postalAddress: string;
+  workPhoneNumber: string;
+  fax: string;
+  paymaster: string;
 }
 
 export interface ResidentialDetailsType {
@@ -36,6 +48,11 @@ export interface ResidentialDetailsType {
   postalCode: string;
   residentialStatus: string;
   yearsAtAddress: string;
+  lot: string;
+  section: string;
+  streetName: string;
+  village: string;
+  district: string;
 }
 
 export interface FinancialDetailsType {
@@ -46,11 +63,16 @@ export interface FinancialDetailsType {
   loanPurpose: string;
   loanTerm: string;
   interestRate: string;
-  interest: string;
   loanRiskInsurance: string;
   documentationFee: string;
   fortnightlyInstallment: string;
   grossLoan: string;
+  bank: string;
+  bankBranch: string;
+  bsbCode: string;
+  accountName: string;
+  accountNumber: string;
+  accountType: string;
 }
 
 export interface FormDataType {
@@ -61,12 +83,10 @@ export interface FormDataType {
 }
 
 export interface LoanApplicationType {
-  id: number;
-  borrower_id: string;
-  application_data: FormDataType;
-  amount_requested: number;
+  application_id: string;
+  jsonb_data: FormDataType;
   status: string;
-  created_at: string;
+  uploaded_at: string;
   updated_at: string;
 }
 

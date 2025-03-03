@@ -65,6 +65,10 @@ const AddLoan = () => {
       // Determine the loan term enum value based on the numeric term
       const loanTermEnum = `TERM_${values.loanTerm}`;
       
+      // Calculate maturity date
+      const maturityDate = new Date();
+      maturityDate.setDate(maturityDate.getDate() + (values.loanTerm * 14));
+      
       // Create the loan record with all required fields
       const { error } = await supabase.from("loans").insert({
         borrower_id: values.borrowerId,
@@ -78,8 +82,8 @@ const AddLoan = () => {
         documentation_fee: documentationFee,
         // Set default values for required fields that aren't in the form
         loan_status: 'active',
-        // Calculate maturity date based on loan term (bi-weekly periods)
-        maturity_date: new Date(Date.now() + (values.loanTerm * 14 * 24 * 60 * 60 * 1000))
+        // Convert maturity date to ISO string for PostgreSQL
+        maturity_date: maturityDate.toISOString().split('T')[0]
       });
 
       if (error) {

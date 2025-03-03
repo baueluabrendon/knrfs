@@ -321,6 +321,7 @@ export type Database = {
           due_date: string | null
           fortnightly_installment: number
           gross_loan: number
+          gross_salary: number | null
           gst_amount: number | null
           gst_rate: number | null
           interest: number
@@ -338,6 +339,7 @@ export type Database = {
             | null
           maturity_date: string | null
           missed_payments_count: number | null
+          net_income: number | null
           partial_payment_penalty_fees_accumulated: number | null
           partial_payments_count: number | null
           principal: number
@@ -359,6 +361,7 @@ export type Database = {
           due_date?: string | null
           fortnightly_installment: number
           gross_loan: number
+          gross_salary?: number | null
           gst_amount?: number | null
           gst_rate?: number | null
           interest: number
@@ -376,6 +379,7 @@ export type Database = {
             | null
           maturity_date?: string | null
           missed_payments_count?: number | null
+          net_income?: number | null
           partial_payment_penalty_fees_accumulated?: number | null
           partial_payments_count?: number | null
           principal: number
@@ -397,6 +401,7 @@ export type Database = {
           due_date?: string | null
           fortnightly_installment?: number
           gross_loan?: number
+          gross_salary?: number | null
           gst_amount?: number | null
           gst_rate?: number | null
           interest?: number
@@ -414,6 +419,7 @@ export type Database = {
             | null
           maturity_date?: string | null
           missed_payments_count?: number | null
+          net_income?: number | null
           partial_payment_penalty_fees_accumulated?: number | null
           partial_payments_count?: number | null
           principal?: number

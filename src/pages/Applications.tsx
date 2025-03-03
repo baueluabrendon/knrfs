@@ -37,12 +37,12 @@ const Applications = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('loan_applications')
+        .from('applications')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setApplications(data as LoanApplicationType[] || []);
+      setApplications(data as unknown as LoanApplicationType[] || []);
     } catch (error) {
       console.error('Error fetching applications:', error);
       toast.error('Failed to load applications');
@@ -62,9 +62,9 @@ const Applications = () => {
     try {
       setProcessingAction(true);
       const { error } = await supabase
-        .from('loan_applications')
+        .from('applications')
         .update({ status: 'approved' })
-        .eq('id', selectedApplication.id);
+        .eq('application_id', selectedApplication.application_id);
 
       if (error) throw error;
       
@@ -85,9 +85,9 @@ const Applications = () => {
     try {
       setProcessingAction(true);
       const { error } = await supabase
-        .from('loan_applications')
+        .from('applications')
         .update({ status: 'declined' })
-        .eq('id', selectedApplication.id);
+        .eq('application_id', selectedApplication.application_id);
 
       if (error) throw error;
       
@@ -113,6 +113,11 @@ const Applications = () => {
       default:
         return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const formatAmount = (data: any) => {
+    if (!data?.jsonb_data?.financialDetails?.loanAmount) return 'N/A';
+    return `$${parseFloat(data.jsonb_data.financialDetails.loanAmount).toLocaleString()}`;
   };
 
   return (
@@ -143,15 +148,15 @@ const Applications = () => {
               </TableHeader>
               <TableBody>
                 {applications.map((application) => (
-                  <TableRow key={application.id}>
-                    <TableCell>{application.id}</TableCell>
-                    <TableCell>${application.amount_requested?.toLocaleString()}</TableCell>
+                  <TableRow key={application.application_id}>
+                    <TableCell>{application.application_id}</TableCell>
+                    <TableCell>{formatAmount(application)}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(application.status)}`}>
                         {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
                       </span>
                     </TableCell>
-                    <TableCell>{new Date(application.created_at).toLocaleDateString()}</TableCell>
+                    <TableCell>{new Date(application.uploaded_at).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <Button 
                         variant="ghost" 
@@ -183,23 +188,23 @@ const Applications = () => {
                 <div className="bg-gray-50 p-4 rounded-md">
                   <h3 className="text-lg font-semibold mb-2">Personal Information</h3>
                   <div className="grid grid-cols-2 gap-2">
-                    <p><span className="font-medium">Name:</span> {selectedApplication.application_data.personalDetails?.firstName} {selectedApplication.application_data.personalDetails?.middleName} {selectedApplication.application_data.personalDetails?.lastName}</p>
-                    <p><span className="font-medium">Date of Birth:</span> {selectedApplication.application_data.personalDetails?.dateOfBirth}</p>
-                    <p><span className="font-medium">Gender:</span> {selectedApplication.application_data.personalDetails?.gender}</p>
-                    <p><span className="font-medium">Email:</span> {selectedApplication.application_data.personalDetails?.email}</p>
-                    <p><span className="font-medium">Phone:</span> {selectedApplication.application_data.personalDetails?.phone}</p>
-                    <p><span className="font-medium">ID:</span> {selectedApplication.application_data.personalDetails?.idType} - {selectedApplication.application_data.personalDetails?.idNumber}</p>
+                    <p><span className="font-medium">Name:</span> {selectedApplication.jsonb_data?.personalDetails?.firstName} {selectedApplication.jsonb_data?.personalDetails?.middleName} {selectedApplication.jsonb_data?.personalDetails?.lastName}</p>
+                    <p><span className="font-medium">Date of Birth:</span> {selectedApplication.jsonb_data?.personalDetails?.dateOfBirth}</p>
+                    <p><span className="font-medium">Gender:</span> {selectedApplication.jsonb_data?.personalDetails?.gender}</p>
+                    <p><span className="font-medium">Email:</span> {selectedApplication.jsonb_data?.personalDetails?.email}</p>
+                    <p><span className="font-medium">Phone:</span> {selectedApplication.jsonb_data?.personalDetails?.phone}</p>
+                    <p><span className="font-medium">ID:</span> {selectedApplication.jsonb_data?.personalDetails?.idType} - {selectedApplication.jsonb_data?.personalDetails?.idNumber}</p>
                   </div>
                 </div>
 
                 <div className="bg-gray-50 p-4 rounded-md">
                   <h3 className="text-lg font-semibold mb-2">Employment Information</h3>
                   <div className="grid grid-cols-2 gap-2">
-                    <p><span className="font-medium">Employer:</span> {selectedApplication.application_data.employmentDetails?.employerName}</p>
-                    <p><span className="font-medium">Occupation:</span> {selectedApplication.application_data.employmentDetails?.occupation}</p>
-                    <p><span className="font-medium">Employed Since:</span> {selectedApplication.application_data.employmentDetails?.employmentDate}</p>
-                    <p><span className="font-medium">Salary:</span> {selectedApplication.application_data.employmentDetails?.salary}</p>
-                    <p><span className="font-medium">Pay Day:</span> {selectedApplication.application_data.employmentDetails?.payDay}</p>
+                    <p><span className="font-medium">Employer:</span> {selectedApplication.jsonb_data?.employmentDetails?.employerName}</p>
+                    <p><span className="font-medium">Occupation:</span> {selectedApplication.jsonb_data?.employmentDetails?.occupation}</p>
+                    <p><span className="font-medium">Employed Since:</span> {selectedApplication.jsonb_data?.employmentDetails?.employmentDate}</p>
+                    <p><span className="font-medium">Salary:</span> {selectedApplication.jsonb_data?.employmentDetails?.salary}</p>
+                    <p><span className="font-medium">Pay Day:</span> {selectedApplication.jsonb_data?.employmentDetails?.payDay}</p>
                   </div>
                 </div>
               </div>
@@ -208,24 +213,23 @@ const Applications = () => {
                 <div className="bg-gray-50 p-4 rounded-md">
                   <h3 className="text-lg font-semibold mb-2">Residential Information</h3>
                   <div className="grid grid-cols-2 gap-2">
-                    <p><span className="font-medium">Address:</span> {selectedApplication.application_data.residentialDetails?.address}</p>
-                    <p><span className="font-medium">Suburb:</span> {selectedApplication.application_data.residentialDetails?.suburb}</p>
-                    <p><span className="font-medium">City:</span> {selectedApplication.application_data.residentialDetails?.city}</p>
-                    <p><span className="font-medium">Province:</span> {selectedApplication.application_data.residentialDetails?.province}</p>
-                    <p><span className="font-medium">Postal Code:</span> {selectedApplication.application_data.residentialDetails?.postalCode}</p>
-                    <p><span className="font-medium">Years at Address:</span> {selectedApplication.application_data.residentialDetails?.yearsAtAddress}</p>
+                    <p><span className="font-medium">Address:</span> {selectedApplication.jsonb_data?.residentialDetails?.address}</p>
+                    <p><span className="font-medium">Suburb:</span> {selectedApplication.jsonb_data?.residentialDetails?.suburb}</p>
+                    <p><span className="font-medium">City:</span> {selectedApplication.jsonb_data?.residentialDetails?.city}</p>
+                    <p><span className="font-medium">Province:</span> {selectedApplication.jsonb_data?.residentialDetails?.province}</p>
+                    <p><span className="font-medium">Postal Code:</span> {selectedApplication.jsonb_data?.residentialDetails?.postalCode}</p>
+                    <p><span className="font-medium">Years at Address:</span> {selectedApplication.jsonb_data?.residentialDetails?.yearsAtAddress}</p>
                   </div>
                 </div>
 
                 <div className="bg-gray-50 p-4 rounded-md">
                   <h3 className="text-lg font-semibold mb-2">Loan Information</h3>
                   <div className="grid grid-cols-2 gap-2">
-                    <p><span className="font-medium">Amount:</span> ${selectedApplication.application_data.financialDetails?.loanAmount}</p>
-                    <p><span className="font-medium">Purpose:</span> {selectedApplication.application_data.financialDetails?.loanPurpose}</p>
-                    <p><span className="font-medium">Term:</span> {selectedApplication.application_data.financialDetails?.loanTerm}</p>
-                    <p><span className="font-medium">Interest:</span> ${selectedApplication.application_data.financialDetails?.interest}</p>
-                    <p><span className="font-medium">Bi-weekly Payment:</span> ${selectedApplication.application_data.financialDetails?.fortnightlyInstallment}</p>
-                    <p><span className="font-medium">Gross Loan:</span> ${selectedApplication.application_data.financialDetails?.grossLoan}</p>
+                    <p><span className="font-medium">Amount:</span> ${selectedApplication.jsonb_data?.financialDetails?.loanAmount}</p>
+                    <p><span className="font-medium">Purpose:</span> {selectedApplication.jsonb_data?.financialDetails?.loanPurpose}</p>
+                    <p><span className="font-medium">Term:</span> {selectedApplication.jsonb_data?.financialDetails?.loanTerm}</p>
+                    <p><span className="font-medium">Bi-weekly Payment:</span> ${selectedApplication.jsonb_data?.financialDetails?.fortnightlyInstallment}</p>
+                    <p><span className="font-medium">Gross Loan:</span> ${selectedApplication.jsonb_data?.financialDetails?.grossLoan}</p>
                   </div>
                 </div>
               </div>

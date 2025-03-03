@@ -86,24 +86,6 @@ export const LoanDetails = () => {
         
         <FormField
           control={form.control}
-          name="financialDetails.interest"
-          render={({ field }) => (
-            <FormItem className="space-y-1.5">
-              <Label className="text-sm font-medium text-gray-700">Interest</Label>
-              <FormControl>
-                <Input 
-                  type="number"
-                  {...field}
-                  defaultValue={formData?.financialDetails.interest || ''} 
-                  className="bg-white border-gray-200 focus:border-primary/50"
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
           name="financialDetails.grossLoan"
           render={({ field }) => (
             <FormItem className="space-y-1.5">

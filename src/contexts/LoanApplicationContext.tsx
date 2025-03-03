@@ -38,6 +38,12 @@ const defaultPersonalDetails: PersonalDetailsType = {
   phone: "",
   idType: "",
   idNumber: "",
+  nationality: "",
+  maritalStatus: "",
+  spouseFirstName: "",
+  spouseLastName: "",
+  spouseEmployerName: "",
+  spouseContactDetails: ""
 };
 
 const defaultEmploymentDetails: EmploymentDetailsType = {
@@ -46,6 +52,12 @@ const defaultEmploymentDetails: EmploymentDetailsType = {
   occupation: "",
   salary: "",
   payDay: "",
+  fileNumber: "",
+  position: "",
+  postalAddress: "",
+  workPhoneNumber: "",
+  fax: "",
+  paymaster: ""
 };
 
 const defaultResidentialDetails: ResidentialDetailsType = {
@@ -56,6 +68,11 @@ const defaultResidentialDetails: ResidentialDetailsType = {
   postalCode: "",
   residentialStatus: "",
   yearsAtAddress: "",
+  lot: "",
+  section: "",
+  streetName: "",
+  village: "",
+  district: ""
 };
 
 const defaultFinancialDetails: FinancialDetailsType = {
@@ -66,11 +83,16 @@ const defaultFinancialDetails: FinancialDetailsType = {
   loanPurpose: "",
   loanTerm: "",
   interestRate: "",
-  interest: "",
   loanRiskInsurance: "",
   documentationFee: "",
   fortnightlyInstallment: "",
-  grossLoan: ""
+  grossLoan: "",
+  bank: "",
+  bankBranch: "",
+  bsbCode: "",
+  accountName: "",
+  accountNumber: "",
+  accountType: ""
 };
 
 const LoanApplicationContext = createContext<LoanApplicationContextType | undefined>(undefined);
@@ -230,6 +252,12 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
           phone: result.phone || '',
           idType: result.idType || '',
           idNumber: result.idNumber || '',
+          nationality: result.nationality || '',
+          maritalStatus: result.maritalStatus || '',
+          spouseFirstName: result.spouseFirstName || '',
+          spouseLastName: result.spouseLastName || '',
+          spouseEmployerName: result.spouseEmployerName || '',
+          spouseContactDetails: result.spouseContactDetails || ''
         },
         employmentDetails: {
           employerName: result.employerName || '',
@@ -237,6 +265,12 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
           occupation: result.occupation || '',
           salary: result.salary || '',
           payDay: result.payDay || '',
+          fileNumber: result.fileNumber || '',
+          position: result.position || '',
+          postalAddress: result.postalAddress || '',
+          workPhoneNumber: result.workPhoneNumber || '',
+          fax: result.fax || '',
+          paymaster: result.paymaster || ''
         },
         residentialDetails: {
           address: result.address || '',
@@ -246,6 +280,11 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
           postalCode: result.postalCode || '',
           residentialStatus: result.residentialStatus || '',
           yearsAtAddress: result.yearsAtAddress || '',
+          lot: result.lot || '',
+          section: result.section || '',
+          streetName: result.streetName || '',
+          village: result.village || '',
+          district: result.district || ''
         },
         financialDetails: {
           monthlyIncome: result.monthlyIncome || '',
@@ -255,11 +294,16 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
           loanPurpose: result.loanPurpose || '',
           loanTerm: result.loanTerm || '',
           interestRate: result.interestRate || '',
-          interest: result.interest || '',
           loanRiskInsurance: result.loanRiskInsurance || '',
           documentationFee: result.documentationFee || '',
           fortnightlyInstallment: result.fortnightlyInstallment || '',
-          grossLoan: result.grossLoan || ''
+          grossLoan: result.grossLoan || '',
+          bank: result.bank || '',
+          bankBranch: result.bankBranch || '',
+          bsbCode: result.bsbCode || '',
+          accountName: result.accountName || '',
+          accountNumber: result.accountNumber || '',
+          accountType: result.accountType || ''
         }
       });
       
@@ -305,11 +349,10 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
       }
 
       const { error } = await supabase
-        .from('loan_applications')
+        .from('applications')
         .insert({
-          borrower_id: sessionData.session.user.id,
-          application_data: formData,
-          amount_requested: parseFloat(formData.financialDetails.loanAmount) || 0,
+          jsonb_data: formData,
+          uploaded_at: new Date().toISOString(),
           status: 'pending'
         });
 
