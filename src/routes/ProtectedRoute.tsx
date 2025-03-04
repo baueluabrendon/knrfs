@@ -15,6 +15,7 @@ export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) 
   
   console.log("ProtectedRoute: Checking authorization");
   console.log("ProtectedRoute: User:", user);
+  console.log("ProtectedRoute: User role:", user?.role);
   console.log("ProtectedRoute: Allowed roles:", allowedRoles);
   console.log("ProtectedRoute: isDevelopment:", isDevelopment);
 
@@ -24,6 +25,8 @@ export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) 
       if (!user) return;
       
       try {
+        console.log("ProtectedRoute: Checking password status for user:", user.user_id);
+        
         const { data: profile, error } = await supabase
           .from('user_profiles')
           .select('is_password_changed')
@@ -34,6 +37,8 @@ export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) 
           console.error("Error checking password status:", error);
           return;
         }
+        
+        console.log("ProtectedRoute: Password status check result:", profile);
         
         if (profile && profile.is_password_changed === false) {
           console.log("ProtectedRoute: User needs to set password");
@@ -70,10 +75,11 @@ export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) 
     console.log("ProtectedRoute: Allowed roles:", allowedRoles);
     // Redirect client to client route, others to admin route
     const redirectPath = user.role === 'client' ? '/client' : '/admin';
+    console.log("ProtectedRoute: Redirecting to:", redirectPath);
     return <Navigate to={redirectPath} replace />;
   }
 
-  console.log("ProtectedRoute: User authorized, proceeding");
+  console.log("ProtectedRoute: User authorized, proceeding with role:", user.role);
   return children ? <>{children}</> : <Outlet />;
 };
 

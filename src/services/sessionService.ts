@@ -9,7 +9,7 @@ export async function checkExistingSession() {
     const { data: { session } } = await supabase.auth.getSession();
     
     if (session) {
-      console.log("SessionService: Found existing session");
+      console.log("SessionService: Found existing session", session.user.id);
       
       const { data: profile, error } = await supabase
         .from('user_profiles')
@@ -19,6 +19,7 @@ export async function checkExistingSession() {
         
       if (profile) {
         console.log("SessionService: Found user profile", profile);
+        console.log("SessionService: User role is", profile.role);
         
         const userProfile: UserProfile = {
           user_id: profile.user_id,
@@ -57,6 +58,8 @@ export async function setupAuthStateChangeListener(
       console.log("SessionService: Auth state changed:", event);
       
       if (event === 'SIGNED_IN' && session?.user) {
+        console.log("SessionService: User signed in with ID:", session.user.id);
+        
         const { data: profile, error } = await supabase
           .from('user_profiles')
           .select('*')
@@ -65,6 +68,7 @@ export async function setupAuthStateChangeListener(
           
         if (profile) {
           console.log("SessionService: Profile after auth change:", profile);
+          console.log("SessionService: User role is", profile.role);
           
           const userProfile: UserProfile = {
             user_id: profile.user_id,

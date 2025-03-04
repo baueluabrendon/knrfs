@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -11,15 +10,19 @@ export function useAuthProvider() {
   const navigate = useNavigate();
   const { user, loading, setUser, setLoading } = useAuthState();
   
+  useEffect(() => {
+    console.log("useAuthProvider: User state changed:", user);
+  }, [user]);
+  
   const handleSignIn = async (email: string, password: string) => {
     try {
       setLoading(true);
-      console.log("AuthContext: Starting sign in process with:", email);
+      console.log("AuthProvider: Starting sign in process with:", email);
       const userData = await signInWithEmailAndPassword(email, password);
       
       if (userData) {
-        console.log("AuthContext: Sign in successful, user data:", userData);
-        console.log("AuthContext: User role:", userData.role);
+        console.log("AuthProvider: Sign in successful, user data:", userData);
+        console.log("AuthProvider: User role:", userData.role);
         
         const userProfile: UserProfile = {
           user_id: userData.user_id,
@@ -33,12 +36,13 @@ export function useAuthProvider() {
         };
         
         setUser(userProfile);
-        console.log("AuthContext: User state updated with formatted profile:", userProfile);
+        console.log("AuthProvider: User state updated with formatted profile:", userProfile);
         
         if (userData.is_password_changed === false) {
-          console.log("AuthContext: User needs to set password");
+          console.log("AuthProvider: User needs to set password");
           navigate('/set-password');
         } else {
+          console.log("AuthProvider: Redirecting based on role:", userProfile.role);
           if (userProfile.role === 'client') {
             navigate('/client');
           } else {
@@ -46,12 +50,12 @@ export function useAuthProvider() {
           }
         }
       } else {
-        console.error("AuthContext: Sign in returned no user data");
+        console.error("AuthProvider: Sign in returned no user data");
       }
       
       return userData as unknown as UserProfile;
     } catch (error: any) {
-      console.error("AuthContext: Login error:", error);
+      console.error("AuthProvider: Login error:", error);
       throw error;
     } finally {
       setLoading(false);
@@ -63,10 +67,10 @@ export function useAuthProvider() {
       setLoading(true);
       await signOut();
       setUser(null);
-      console.log("AuthContext: User signed out, user state cleared");
+      console.log("AuthProvider: User signed out, user state cleared");
       navigate('/login');
     } catch (error: any) {
-      console.error("AuthContext: Logout error:", error);
+      console.error("AuthProvider: Logout error:", error);
       toast.error(error.message || "Failed to sign out");
     } finally {
       setLoading(false);

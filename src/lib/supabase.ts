@@ -1,8 +1,5 @@
 
-import { createClient } from '@supabase/supabase-js';
+// Import the client from the integrations directory to ensure a single instance
+import { supabase } from '@/integrations/supabase/client';
 
-// Use environment variables for Supabase connection
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export { supabase };
