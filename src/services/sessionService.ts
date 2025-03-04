@@ -52,7 +52,7 @@ export async function checkExistingSession() {
 export async function setupAuthStateChangeListener(
   callback: (event: string, session: any, profile: UserProfile | null) => void
 ) {
-  const { data: { subscription } } = supabase.auth.onAuthStateChange(
+  const { data } = await supabase.auth.onAuthStateChange(
     async (event, session) => {
       console.log("SessionService: Auth state changed:", event);
       
@@ -88,5 +88,5 @@ export async function setupAuthStateChangeListener(
     }
   );
   
-  return subscription;
+  return data.subscription;
 }

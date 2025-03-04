@@ -11,6 +11,8 @@ export function useSessionManager(
   const navigate = useNavigate();
   
   useEffect(() => {
+    let subscription: { unsubscribe: () => void } | null = null;
+    
     const initializeSession = async () => {
       try {
         setLoading(true);
@@ -68,10 +70,18 @@ export function useSessionManager(
     
     initializeSession();
     
-    const subscription = setupAuthStateChangeListener(handleAuthStateChange);
+    // Set up auth state change listener and store the subscription
+    const setupSubscription = async () => {
+      subscription = await setupAuthStateChangeListener(handleAuthStateChange);
+    };
     
+    setupSubscription();
+    
+    // Clean up subscription on unmount
     return () => {
-      subscription.unsubscribe();
+      if (subscription) {
+        subscription.unsubscribe();
+      }
     };
   }, [navigate, setUser, setLoading]);
 }
