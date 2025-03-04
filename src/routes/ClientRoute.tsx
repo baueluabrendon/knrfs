@@ -8,13 +8,6 @@ interface ClientRouteProps {
 
 export const ClientRoute = ({ children }: ClientRouteProps) => {
   const { user, loading } = useAuth();
-  const isDevelopment = import.meta.env.VITE_DEV_MODE === "true";
-
-  // Allow access in development mode
-  if (isDevelopment) {
-    console.log("Development mode: bypassing client authentication");
-    return <>{children}</>;
-  }
 
   if (loading) {
     return <div>Loading...</div>;

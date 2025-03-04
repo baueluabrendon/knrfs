@@ -11,27 +11,50 @@ export function useAuthProvider() {
   const navigate = useNavigate();
   const { user, loading, setUser, setLoading } = useAuthState();
   
-  // Auto-login for development
+  // Check for existing session on component mount
   useEffect(() => {
-    const isDevelopment = import.meta.env.VITE_DEV_MODE === "true";
-    
-    if (isDevelopment && !user && !loading) {
-      console.log("useAuthProvider: Development mode - setting mock user");
-      // Set a mock admin user for development
-      const mockUser: UserProfile = {
-        user_id: "dev-user-id",
-        id: "dev-user-id",
-        email: "admin@example.com",
-        role: "administrator",
-        first_name: "Admin",
-        last_name: "User",
-        created_at: new Date().toISOString(),
-        is_password_changed: true,
-      };
-      
-      setUser(mockUser);
+    async function checkCurrentSession() {
+      try {
+        setLoading(true);
+        console.log("useAuthProvider: Checking current session");
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          console.log("useAuthProvider: Found existing session for user:", session.user.id);
+          const profile = await fetchUserProfile(session.user.id);
+          
+          if (profile) {
+            const userProfile: UserProfile = {
+              user_id: profile.user_id,
+              id: profile.user_id,
+              email: profile.email,
+              role: profile.role as UserProfile['role'],
+              first_name: profile.first_name,
+              last_name: profile.last_name,
+              created_at: new Date().toISOString(),
+              is_password_changed: profile.is_password_changed,
+            };
+            
+            setUser(userProfile);
+          } else {
+            console.log("useAuthProvider: No profile found for user session");
+            setUser(null);
+          }
+        } else {
+          console.log("useAuthProvider: No active session found");
+          setUser(null);
+        }
+      } catch (error) {
+        console.error("useAuthProvider: Error checking session:", error);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
     }
-  }, [user, loading, setUser]);
+    
+    checkCurrentSession();
+  }, [setUser, setLoading]);
   
   const handleSignIn = async (email: string, password: string) => {
     try {
@@ -57,48 +80,10 @@ export function useAuthProvider() {
         return userProfile;
       } else {
         console.error("AuthProvider: Sign in returned no user data");
-        // Create a mock user for testing if authentication fails due to database issues
-        const isDevelopment = import.meta.env.VITE_DEV_MODE === "true";
-        if (isDevelopment) {
-          console.log("AuthProvider: Development mode - creating mock admin after login failure");
-          const mockUser: UserProfile = {
-            user_id: "mock-" + Date.now(),
-            id: "mock-" + Date.now(),
-            email: email,
-            role: "administrator",
-            first_name: "Admin",
-            last_name: "User",
-            created_at: new Date().toISOString(),
-            is_password_changed: true,
-          };
-          
-          setUser(mockUser);
-          return mockUser;
-        }
         return null;
       }
     } catch (error: any) {
       console.error("AuthProvider: Login error:", error);
-      
-      // Create a mock user for testing if authentication fails
-      const isDevelopment = import.meta.env.VITE_DEV_MODE === "true";
-      if (isDevelopment) {
-        console.log("AuthProvider: Development mode - creating mock admin after error");
-        const mockUser: UserProfile = {
-          user_id: "mock-" + Date.now(),
-          id: "mock-" + Date.now(),
-          email: email,
-          role: "administrator",
-          first_name: "Admin",
-          last_name: "User",
-          created_at: new Date().toISOString(),
-          is_password_changed: true,
-        };
-        
-        setUser(mockUser);
-        return mockUser;
-      }
-      
       throw error;
     } finally {
       setLoading(false);

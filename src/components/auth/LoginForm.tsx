@@ -22,7 +22,6 @@ export const LoginForm = () => {
   const [isVerificationDialogOpen, setIsVerificationDialogOpen] = useState(false);
   const [isForgotPasswordDialogOpen, setIsForgotPasswordDialogOpen] = useState(false);
   const { signIn } = useAuth();
-  const isDevelopment = import.meta.env.VITE_DEV_MODE === "true";
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -41,7 +40,7 @@ export const LoginForm = () => {
       toast.success("Successfully logged in!");
       
       // Auth redirects are handled by AuthForm.tsx 
-      // No need to navigate here (removed the redundant navigate calls)
+      // No need to navigate here
       
     } catch (error: any) {
       console.error("LoginForm: Sign in error:", error);
@@ -63,9 +62,6 @@ export const LoginForm = () => {
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Login to Your Account</h2>
         <p className="text-gray-600 mt-1">Enter your credentials below</p>
-        {isDevelopment && (
-          <p className="text-green-600 mt-1">Development Mode: Auto-login available</p>
-        )}
       </div>
 
       <form onSubmit={handleSignIn} className="space-y-6">
@@ -80,7 +76,6 @@ export const LoginForm = () => {
             placeholder="Enter your email"
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
             required
-            defaultValue={isDevelopment ? "admin@example.com" : ""}
           />
         </div>
 
@@ -95,7 +90,6 @@ export const LoginForm = () => {
             placeholder="Enter your password"
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
             required
-            defaultValue={isDevelopment ? "password123" : ""}
           />
         </div>
 

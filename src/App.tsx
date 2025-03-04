@@ -12,12 +12,10 @@ import LoanApplicationSteps from "@/components/loan/LoanApplicationSteps";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import SetPassword from "./pages/SetPassword";
 
+// Create a new QueryClient instance
 const queryClient = new QueryClient();
 
 const App = () => {
-  const isDevelopment = import.meta.env.VITE_DEV_MODE === "true";
-  console.log("App: Development mode:", isDevelopment);
-
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>

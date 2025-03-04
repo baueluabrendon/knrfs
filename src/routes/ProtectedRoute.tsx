@@ -11,13 +11,11 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
-  const isDevelopment = import.meta.env.VITE_DEV_MODE === "true";
   
   console.log("ProtectedRoute: Checking authorization");
   console.log("ProtectedRoute: User:", user);
   console.log("ProtectedRoute: User role:", user?.role);
   console.log("ProtectedRoute: Allowed roles:", allowedRoles);
-  console.log("ProtectedRoute: isDevelopment:", isDevelopment);
 
   // Check if the user needs to set a password
   useEffect(() => {
@@ -53,12 +51,6 @@ export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) 
       checkPasswordStatus();
     }
   }, [user]);
-
-  // Allow access in development mode
-  if (isDevelopment) {
-    console.log("ProtectedRoute: Development mode - bypassing authentication");
-    return children ? <>{children}</> : <Outlet />;
-  }
 
   if (loading) {
     console.log("ProtectedRoute: Still loading user data");
