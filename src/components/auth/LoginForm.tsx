@@ -10,8 +10,6 @@ import {
   DialogHeader,
   DialogTitle, 
   DialogTrigger,
-  DialogFooter,
-  DialogClose
 } from "@/components/ui/dialog";
 import { VerificationEmailForm } from "./VerificationEmailForm";
 import { ForgotPasswordForm } from "./ForgotPasswordForm";
@@ -45,9 +43,12 @@ export const LoginForm = () => {
     } catch (error: any) {
       console.error("LoginForm: Sign in error:", error);
       
-      if (error.code === "invalid_credentials") {
+      if (error.message === "Invalid login credentials") {
         setError("Invalid email or password");
         toast.error("Invalid email or password");
+      } else if (error.message === "User profile not found") {
+        setError("User profile not found. Please contact support.");
+        toast.error("User profile not found");
       } else {
         setError(error.message || "Failed to sign in");
         toast.error(error.message || "Failed to sign in");

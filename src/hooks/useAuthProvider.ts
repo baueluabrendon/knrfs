@@ -2,9 +2,8 @@
 import { useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { signInWithEmailAndPassword, signOut, fetchUserProfile } from "@/services/authService";
-import { useAuthState } from "@/hooks/useAuthState";
 import { UserProfile } from "@/types/auth";
+import { useAuthState } from "@/hooks/useAuthState";
 import { supabase } from "@/lib/supabase";
 
 export function useAuthProvider() {
@@ -22,9 +21,23 @@ export function useAuthProvider() {
         
         if (session?.user) {
           console.log("useAuthProvider: Found existing session for user:", session.user.id);
-          const profile = await fetchUserProfile(session.user.id);
+          
+          // Fetch user profile directly from user_profiles table
+          const { data: profile, error } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .single();
+          
+          if (error) {
+            console.error("Error fetching user profile:", error);
+            setUser(null);
+            return;
+          }
           
           if (profile) {
+            console.log("useAuthProvider: Profile found:", profile);
+            
             const userProfile: UserProfile = {
               user_id: profile.user_id,
               id: profile.user_id,
@@ -32,7 +45,7 @@ export function useAuthProvider() {
               role: profile.role as UserProfile['role'],
               first_name: profile.first_name,
               last_name: profile.last_name,
-              created_at: new Date().toISOString(),
+              created_at: session.created_at || new Date().toISOString(),
               is_password_changed: profile.is_password_changed,
             };
             
@@ -60,28 +73,54 @@ export function useAuthProvider() {
     try {
       setLoading(true);
       console.log("AuthProvider: Starting sign in process with:", email);
-      const userData = await signInWithEmailAndPassword(email, password);
       
-      if (userData) {
-        console.log("AuthProvider: Sign in successful, user data:", userData);
-        
-        const userProfile: UserProfile = {
-          user_id: userData.user_id,
-          id: userData.user_id,
-          email: userData.email,
-          role: userData.role as UserProfile['role'],
-          first_name: userData.first_name,
-          last_name: userData.last_name,
-          created_at: new Date().toISOString(),
-          is_password_changed: userData.is_password_changed,
-        };
-        
-        setUser(userProfile);
-        return userProfile;
-      } else {
-        console.error("AuthProvider: Sign in returned no user data");
-        return null;
+      // Sign in with Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        console.error("Supabase auth error:", error);
+        throw error;
       }
+
+      if (!data.user) {
+        throw new Error("No user returned from authentication");
+      }
+      
+      console.log("Supabase auth successful:", data);
+      
+      // Fetch user profile directly from user_profiles table
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', data.user.id)
+        .single();
+      
+      if (profileError) {
+        console.error("Error fetching user profile after login:", profileError);
+        throw new Error("Failed to retrieve user profile");
+      }
+      
+      if (!profile) {
+        throw new Error("User profile not found");
+      }
+      
+      // Create user profile object
+      const userProfile: UserProfile = {
+        user_id: profile.user_id,
+        id: profile.user_id,
+        email: profile.email,
+        role: profile.role as UserProfile['role'],
+        first_name: profile.first_name,
+        last_name: profile.last_name,
+        created_at: data.session?.created_at || new Date().toISOString(),
+        is_password_changed: profile.is_password_changed,
+      };
+      
+      setUser(userProfile);
+      return userProfile;
     } catch (error: any) {
       console.error("AuthProvider: Login error:", error);
       throw error;
@@ -93,7 +132,7 @@ export function useAuthProvider() {
   const handleSignOut = async () => {
     try {
       setLoading(true);
-      await signOut();
+      await supabase.auth.signOut();
       setUser(null);
       console.log("AuthProvider: User signed out, user state cleared");
       navigate('/login');
