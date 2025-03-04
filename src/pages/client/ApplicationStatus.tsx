@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
 
-// Define a more specific type for applications to avoid deep type instantiation
+// Define a specific type for applications
 type Application = {
   application_id: string;
   uploaded_at: string;
@@ -24,19 +24,25 @@ type Application = {
 const ApplicationStatus = () => {
   const { user } = useAuth();
 
-  // Explicitly type the queryFn return type to avoid deep instantiation
+  // Explicitly type the query function to avoid deep instantiation
   const { data: applications, isLoading } = useQuery({
     queryKey: ['client-applications', user?.user_id],
-    queryFn: async (): Promise<Application[]> => {
-      if (!user?.user_id) return [];
+    queryFn: async () => {
+      if (!user?.user_id) return [] as Application[];
+      
+      console.log("Fetching applications for user:", user.user_id);
       
       const { data, error } = await supabase
         .from('applications')
         .select('application_id, uploaded_at, status, updated_at')
         .eq('borrower_id', user.user_id);
       
-      if (error) throw error;
-      return data || [];
+      if (error) {
+        console.error("Error fetching applications:", error);
+        throw error;
+      }
+      
+      return (data || []) as Application[];
     },
   });
 

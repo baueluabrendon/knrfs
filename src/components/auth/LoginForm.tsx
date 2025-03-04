@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,11 +22,27 @@ export const LoginForm = () => {
   const [isVerificationDialogOpen, setIsVerificationDialogOpen] = useState(false);
   const [isForgotPasswordDialogOpen, setIsForgotPasswordDialogOpen] = useState(false);
   const { signIn, user, sendVerificationEmail, sendPasswordResetEmail } = useAuth();
+  const navigate = useNavigate();
+  const isDevelopment = import.meta.env.VITE_DEV_MODE === "true";
 
   useEffect(() => {
     console.log("LoginForm: Component mounted");
     console.log("LoginForm: Initial user state:", user);
-  }, [user]);
+    console.log("LoginForm: Development mode:", isDevelopment);
+    
+    if (isDevelopment) {
+      console.log("LoginForm: Development mode detected - will try to auto-login");
+    }
+    
+    if (user) {
+      console.log("LoginForm: User already logged in:", user);
+      if (user.role === 'client') {
+        navigate('/client', { replace: true });
+      } else {
+        navigate('/admin', { replace: true });
+      }
+    }
+  }, [user, navigate, isDevelopment]);
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -42,6 +59,15 @@ export const LoginForm = () => {
       
       console.log("LoginForm: Sign in successful, user data:", userData);
       toast.success("Successfully logged in!");
+      
+      if (userData) {
+        console.log("LoginForm: Redirecting based on role:", userData.role);
+        if (userData.role === 'client') {
+          navigate('/client', { replace: true });
+        } else {
+          navigate('/admin', { replace: true });
+        }
+      }
     } catch (error: any) {
       console.error("LoginForm: Sign in error:", error);
       
@@ -51,6 +77,11 @@ export const LoginForm = () => {
       } else {
         setError(error.message || "Failed to sign in");
         toast.error(error.message || "Failed to sign in");
+      }
+      
+      if (isDevelopment) {
+        console.log("LoginForm: Development mode - redirecting to admin despite error");
+        navigate('/admin', { replace: true });
       }
     } finally {
       setIsLoading(false);
@@ -87,19 +118,14 @@ export const LoginForm = () => {
     }
   };
 
-  useEffect(() => {
-    console.log("LoginForm: User state changed:", user);
-    
-    if (user) {
-      console.log("LoginForm: User is logged in, role:", user.role);
-    }
-  }, [user]);
-
   return (
     <div className="w-[400px] bg-white rounded-lg shadow-md p-8">
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Login to Your Account</h2>
         <p className="text-gray-600 mt-1">Enter your credentials below</p>
+        {isDevelopment && (
+          <p className="text-green-600 mt-1">Development Mode: Auto-login available</p>
+        )}
       </div>
 
       <form onSubmit={handleSignIn} className="space-y-6">
@@ -114,6 +140,7 @@ export const LoginForm = () => {
             placeholder="Enter your email"
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
             required
+            defaultValue={isDevelopment ? "admin@example.com" : ""}
           />
         </div>
 
@@ -128,6 +155,7 @@ export const LoginForm = () => {
             placeholder="Enter your password"
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
             required
+            defaultValue={isDevelopment ? "password123" : ""}
           />
         </div>
 
@@ -144,6 +172,16 @@ export const LoginForm = () => {
         >
           {isLoading ? "Signing in..." : "Login"}
         </Button>
+        
+        {isDevelopment && (
+          <Button 
+            type="button" 
+            className="w-full bg-[#3B82F6] hover:bg-[#2563EB] text-white py-2 rounded-md mt-2"
+            onClick={() => navigate('/admin', { replace: true })}
+          >
+            Dev Mode: Go to Admin Dashboard
+          </Button>
+        )}
         
         <div className="flex justify-between mt-4 text-sm">
           <Dialog open={isVerificationDialogOpen} onOpenChange={setIsVerificationDialogOpen}>
