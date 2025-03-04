@@ -28,13 +28,15 @@ const ClientRepayments = () => {
   const { data: repayments, isLoading } = useQuery({
     queryKey: ['client-repayments'],
     queryFn: async () => {
+      if (!user?.user_id) return [] as Repayment[];
+      
       const { data, error } = await supabase
         .from('repayments')
         .select('*')
-        .eq('borrower_id', user?.user_id);
+        .eq('borrower_id', user.user_id);
       
       if (error) throw error;
-      return data as Repayment[];
+      return (data || []) as Repayment[];
     },
   });
 

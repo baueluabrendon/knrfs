@@ -27,13 +27,15 @@ const ApplicationStatus = () => {
   const { data: applications, isLoading } = useQuery({
     queryKey: ['client-applications'],
     queryFn: async () => {
+      if (!user?.user_id) return [] as Application[];
+      
       const { data, error } = await supabase
         .from('applications')
         .select('*')
-        .eq('borrower_id', user?.user_id);
+        .eq('borrower_id', user.user_id);
       
       if (error) throw error;
-      return data as Application[];
+      return (data || []) as Application[];
     },
   });
 
