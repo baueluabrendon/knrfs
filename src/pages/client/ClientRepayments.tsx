@@ -31,13 +31,14 @@ const ClientRepayments = () => {
     queryFn: async (): Promise<Repayment[]> => {
       if (!user?.user_id) return [];
       
+      // Using a more direct approach with explicit typing
       const { data, error } = await supabase
         .from('repayments')
-        .select('*')
+        .select('repayment_id, loan_id, amount, payment_date, status')
         .eq('borrower_id', user.user_id);
       
       if (error) throw error;
-      return (data || []) as Repayment[];
+      return data || [];
     },
   });
 

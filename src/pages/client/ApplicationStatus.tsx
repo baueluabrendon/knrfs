@@ -30,13 +30,14 @@ const ApplicationStatus = () => {
     queryFn: async (): Promise<Application[]> => {
       if (!user?.user_id) return [];
       
+      // Using a more direct approach with explicit typing
       const { data, error } = await supabase
         .from('applications')
-        .select('*')
+        .select('application_id, uploaded_at, status, updated_at')
         .eq('borrower_id', user.user_id);
       
       if (error) throw error;
-      return (data || []) as Application[];
+      return data || [];
     },
   });
 
