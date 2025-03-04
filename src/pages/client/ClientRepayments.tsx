@@ -1,7 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -16,11 +16,10 @@ import { Loader2 } from "lucide-react";
 // Define a specific type for repayments
 type Repayment = {
   repayment_id: string;
-  due_date: string;
-  amount_due: number;
-  amount_paid: number | null;
+  amount: number;           // This replaces amount_due
+  payment_date: string | null;  // This will be used as due_date
   status: string;
-  payment_date: string | null;
+  created_at: string | null;
 }
 
 const ClientRepayments = () => {
@@ -45,14 +44,13 @@ const ClientRepayments = () => {
           throw error;
         }
         
-        // Map the data to our expected format, handling potentially missing fields
+        // Map the data to our expected format based on actual database schema
         return (data || []).map(item => ({
           repayment_id: item.repayment_id || `temp-${Date.now()}`,
-          due_date: item.due_date || new Date().toISOString(),
-          amount_due: Number(item.amount_due || 0),
-          amount_paid: item.amount_paid ? Number(item.amount_paid) : null,
+          amount: Number(item.amount || 0),
+          payment_date: item.payment_date,
           status: item.status || 'pending',
-          payment_date: item.payment_date || null
+          created_at: item.created_at
         })) as Repayment[];
       } catch (error) {
         console.error("Failed to fetch repayments:", error);
@@ -80,8 +78,7 @@ const ClientRepayments = () => {
             <TableRow>
               <TableHead>Repayment ID</TableHead>
               <TableHead>Due Date</TableHead>
-              <TableHead>Amount Due</TableHead>
-              <TableHead>Amount Paid</TableHead>
+              <TableHead>Amount</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Payment Date</TableHead>
             </TableRow>
@@ -91,16 +88,15 @@ const ClientRepayments = () => {
               repayments.map((repayment) => (
                 <TableRow key={repayment.repayment_id}>
                   <TableCell>{repayment.repayment_id}</TableCell>
-                  <TableCell>{new Date(repayment.due_date).toLocaleDateString()}</TableCell>
-                  <TableCell>${repayment.amount_due.toFixed(2)}</TableCell>
-                  <TableCell>{repayment.amount_paid ? `$${repayment.amount_paid.toFixed(2)}` : '-'}</TableCell>
-                  <TableCell>{repayment.status}</TableCell>
                   <TableCell>{repayment.payment_date ? new Date(repayment.payment_date).toLocaleDateString() : '-'}</TableCell>
+                  <TableCell>${repayment.amount.toFixed(2)}</TableCell>
+                  <TableCell>{repayment.status}</TableCell>
+                  <TableCell>{repayment.created_at ? new Date(repayment.created_at).toLocaleDateString() : '-'}</TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                   No repayments found
                 </TableCell>
               </TableRow>
