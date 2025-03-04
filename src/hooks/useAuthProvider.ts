@@ -45,7 +45,7 @@ export function useAuthProvider() {
               role: profile.role as UserProfile['role'],
               first_name: profile.first_name,
               last_name: profile.last_name,
-              created_at: session.created_at || new Date().toISOString(),
+              created_at: new Date().toISOString(), // Use current timestamp instead of session.created_at
               is_password_changed: profile.is_password_changed,
             };
             
@@ -115,7 +115,7 @@ export function useAuthProvider() {
         role: profile.role as UserProfile['role'],
         first_name: profile.first_name,
         last_name: profile.last_name,
-        created_at: data.session?.created_at || new Date().toISOString(),
+        created_at: new Date().toISOString(), // Use current timestamp instead of data.session?.created_at
         is_password_changed: profile.is_password_changed,
       };
       

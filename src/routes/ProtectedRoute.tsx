@@ -1,13 +1,10 @@
-
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { ReactNode, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
 interface ProtectedRouteProps {
-  allow
-
-edRoles?: string[];
+  allowedRoles?: string[];
   children?: ReactNode;
 }
 
