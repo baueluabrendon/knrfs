@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -21,28 +21,9 @@ export const LoginForm = () => {
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [isVerificationDialogOpen, setIsVerificationDialogOpen] = useState(false);
   const [isForgotPasswordDialogOpen, setIsForgotPasswordDialogOpen] = useState(false);
-  const { signIn, user, sendVerificationEmail, sendPasswordResetEmail } = useAuth();
+  const { signIn, sendVerificationEmail, sendPasswordResetEmail } = useAuth();
   const navigate = useNavigate();
   const isDevelopment = import.meta.env.VITE_DEV_MODE === "true";
-
-  useEffect(() => {
-    console.log("LoginForm: Component mounted");
-    console.log("LoginForm: Initial user state:", user);
-    console.log("LoginForm: Development mode:", isDevelopment);
-    
-    if (isDevelopment) {
-      console.log("LoginForm: Development mode detected - will try to auto-login");
-    }
-    
-    if (user) {
-      console.log("LoginForm: User already logged in:", user);
-      if (user.role === 'client') {
-        navigate('/client', { replace: true });
-      } else {
-        navigate('/admin', { replace: true });
-      }
-    }
-  }, [user, navigate, isDevelopment]);
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -99,7 +80,9 @@ export const LoginForm = () => {
     try {
       await sendVerificationEmail(verificationEmail);
       setIsVerificationDialogOpen(false);
+      toast.success("Verification email sent successfully");
     } catch (error) {
+      toast.error("Failed to send verification email");
     }
   };
   
@@ -114,7 +97,9 @@ export const LoginForm = () => {
     try {
       await sendPasswordResetEmail(forgotPasswordEmail);
       setIsForgotPasswordDialogOpen(false);
+      toast.success("Password reset email sent successfully");
     } catch (error) {
+      toast.error("Failed to send password reset email");
     }
   };
 

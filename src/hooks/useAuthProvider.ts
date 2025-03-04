@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { signInWithEmailAndPassword, signOut, fetchUserProfile } from "@/services/authService";
@@ -9,10 +9,6 @@ import { supabase } from "@/lib/supabase";
 export function useAuthProvider() {
   const navigate = useNavigate();
   const { user, loading, setUser, setLoading } = useAuthState();
-  
-  useEffect(() => {
-    console.log("useAuthProvider: User state changed:", user);
-  }, [user]);
   
   // Auto-login for development
   useEffect(() => {
@@ -33,10 +29,8 @@ export function useAuthProvider() {
       };
       
       setUser(mockUser);
-      console.log("useAuthProvider: Redirecting to admin dashboard in dev mode");
-      navigate('/admin');
     }
-  }, [user, loading, setUser, navigate]);
+  }, [user, loading, setUser]);
   
   const handleSignIn = async (email: string, password: string) => {
     try {
@@ -46,7 +40,6 @@ export function useAuthProvider() {
       
       if (userData) {
         console.log("AuthProvider: Sign in successful, user data:", userData);
-        console.log("AuthProvider: User role:", userData.role);
         
         const userProfile: UserProfile = {
           user_id: userData.user_id,
@@ -60,19 +53,10 @@ export function useAuthProvider() {
         };
         
         setUser(userProfile);
-        console.log("AuthProvider: User state updated with formatted profile:", userProfile);
         
         if (userData.is_password_changed === false) {
           console.log("AuthProvider: User needs to set password");
           navigate('/set-password');
-        } else {
-          console.log("AuthProvider: Redirecting based on role:", userProfile.role);
-          // Force redirection based on role
-          if (userProfile.role === 'client') {
-            navigate('/client', { replace: true });
-          } else {
-            navigate('/admin', { replace: true });
-          }
         }
         
         return userProfile;
@@ -94,8 +78,6 @@ export function useAuthProvider() {
           };
           
           setUser(mockUser);
-          console.log("AuthProvider: Mock user created:", mockUser);
-          navigate('/admin', { replace: true });
           return mockUser;
         }
         return null;
@@ -119,8 +101,6 @@ export function useAuthProvider() {
         };
         
         setUser(mockUser);
-        console.log("AuthProvider: Mock user created:", mockUser);
-        navigate('/admin', { replace: true });
         return mockUser;
       }
       
