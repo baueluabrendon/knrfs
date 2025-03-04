@@ -67,6 +67,7 @@ export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) 
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     console.log("ProtectedRoute: User role not allowed:", user.role);
+    console.log("ProtectedRoute: Allowed roles:", allowedRoles);
     // Redirect client to client route, others to admin route
     const redirectPath = user.role === 'client' ? '/client' : '/admin';
     return <Navigate to={redirectPath} replace />;

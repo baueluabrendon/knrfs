@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log("AuthProvider: Found existing session");
           
           // Get user profile
-          const { data: profile } = await supabase
+          const { data: profile, error } = await supabase
             .from('user_profiles')
             .select('*')
             .eq('user_id', session.user.id)
@@ -45,9 +45,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log("AuthProvider: Found user profile", profile);
             
             // Check if user needs to set password
-            if (!profile.is_password_changed) {
+            if (profile.is_password_changed === false) {
               console.log("AuthProvider: User needs to set password");
               navigate('/set-password');
+              setLoading(false);
               return;
             }
             
@@ -64,6 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             };
             
             setUser(userProfile);
+            console.log("AuthProvider: User state updated with profile:", userProfile);
             
             // Redirect based on user role
             if (userProfile.role === 'client') {
@@ -74,14 +76,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               navigate('/admin');
             }
           } else {
-            console.log("AuthProvider: No user profile found");
+            console.log("AuthProvider: No user profile found", error);
+            setLoading(false);
           }
         } else {
           console.log("AuthProvider: No session found");
+          setLoading(false);
         }
       } catch (error) {
         console.error("AuthProvider: Session check error:", error);
-      } finally {
         setLoading(false);
       }
     };
@@ -97,15 +100,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (!session?.user) return;
           
           // Get user profile
-          const { data: profile } = await supabase
+          const { data: profile, error } = await supabase
             .from('user_profiles')
             .select('*')
             .eq('user_id', session.user.id)
             .single();
             
           if (profile) {
+            console.log("AuthProvider: Profile after auth change:", profile);
+            
             // Check if user needs to set password
-            if (!profile.is_password_changed) {
+            if (profile.is_password_changed === false) {
               console.log("AuthProvider: User needs to set password");
               navigate('/set-password');
               return;
@@ -124,6 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             };
             
             setUser(userProfile);
+            console.log("AuthProvider: User state updated on auth change:", userProfile);
             
             // Redirect based on user role
             if (userProfile.role === 'client') {
@@ -131,6 +137,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             } else {
               navigate('/admin');
             }
+          } else {
+            console.log("AuthProvider: No profile found after auth change", error);
           }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
