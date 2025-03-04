@@ -27,7 +27,7 @@ const ApplicationStatus = () => {
   // Explicitly type the queryFn return type to avoid deep instantiation
   const { data: applications, isLoading } = useQuery({
     queryKey: ['client-applications'],
-    queryFn: async (): Promise<Application[]> => {
+    queryFn: async () => {
       if (!user?.user_id) return [];
       
       // Using a more direct approach with explicit typing

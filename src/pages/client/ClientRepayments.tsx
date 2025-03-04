@@ -28,7 +28,7 @@ const ClientRepayments = () => {
   // Explicitly type the queryFn return type to avoid deep instantiation
   const { data: repayments, isLoading } = useQuery({
     queryKey: ['client-repayments'],
-    queryFn: async (): Promise<Repayment[]> => {
+    queryFn: async () => {
       if (!user?.user_id) return [];
       
       // Using a more direct approach with explicit typing
