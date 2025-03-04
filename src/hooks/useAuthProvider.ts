@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -13,6 +14,28 @@ export function useAuthProvider() {
   useEffect(() => {
     console.log("useAuthProvider: User state changed:", user);
   }, [user]);
+  
+  // Auto-login for development
+  useEffect(() => {
+    const isDevelopment = import.meta.env.VITE_DEV_MODE === "true";
+    
+    if (isDevelopment && !user && !loading) {
+      console.log("useAuthProvider: Development mode - setting mock user");
+      // Set a mock admin user for development
+      const mockUser: UserProfile = {
+        user_id: "dev-user-id",
+        id: "dev-user-id",
+        email: "admin@example.com",
+        role: "administrator",
+        first_name: "Admin",
+        last_name: "User",
+        created_at: new Date().toISOString(),
+        is_password_changed: true,
+      };
+      
+      setUser(mockUser);
+    }
+  }, [user, loading, setUser]);
   
   const handleSignIn = async (email: string, password: string) => {
     try {

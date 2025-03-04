@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,6 @@ export const LoginForm = () => {
   const [isForgotPasswordDialogOpen, setIsForgotPasswordDialogOpen] = useState(false);
   const { signIn, user, sendVerificationEmail, sendPasswordResetEmail } = useAuth();
 
-  // Debug log for initial render
   useEffect(() => {
     console.log("LoginForm: Component mounted");
     console.log("LoginForm: Initial user state:", user);
@@ -40,15 +38,13 @@ export const LoginForm = () => {
 
     try {
       console.log("LoginForm: Starting sign in process with:", email);
-      await signIn(email, password);
+      const userData = await signIn(email, password);
       
-      // Navigation is now handled directly in AuthContext
-      console.log("LoginForm: Sign in successful, navigation handled by AuthContext");
+      console.log("LoginForm: Sign in successful, user data:", userData);
       toast.success("Successfully logged in!");
     } catch (error: any) {
       console.error("LoginForm: Sign in error:", error);
       
-      // Display a more user-friendly error message
       if (error.code === "invalid_credentials") {
         setError("Invalid email or password");
         toast.error("Invalid email or password");
@@ -73,7 +69,6 @@ export const LoginForm = () => {
       await sendVerificationEmail(verificationEmail);
       setIsVerificationDialogOpen(false);
     } catch (error) {
-      // Error is handled in the AuthContext
     }
   };
   
@@ -89,11 +84,9 @@ export const LoginForm = () => {
       await sendPasswordResetEmail(forgotPasswordEmail);
       setIsForgotPasswordDialogOpen(false);
     } catch (error) {
-      // Error is handled in the AuthContext
     }
   };
 
-  // Add debug log for when user state changes
   useEffect(() => {
     console.log("LoginForm: User state changed:", user);
     

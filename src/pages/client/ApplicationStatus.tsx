@@ -26,11 +26,10 @@ const ApplicationStatus = () => {
 
   // Explicitly type the queryFn return type to avoid deep instantiation
   const { data: applications, isLoading } = useQuery({
-    queryKey: ['client-applications'],
+    queryKey: ['client-applications', user?.user_id],
     queryFn: async () => {
       if (!user?.user_id) return [];
       
-      // Using a more direct approach with explicit typing
       const { data, error } = await supabase
         .from('applications')
         .select('application_id, uploaded_at, status, updated_at')

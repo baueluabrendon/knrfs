@@ -16,6 +16,7 @@ const queryClient = new QueryClient();
 
 const App = () => {
   const isDevelopment = import.meta.env.VITE_DEV_MODE === "true";
+  console.log("App: Development mode:", isDevelopment);
 
   return (
     <QueryClientProvider client={queryClient}>
