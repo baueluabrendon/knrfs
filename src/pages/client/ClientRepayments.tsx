@@ -1,7 +1,5 @@
 
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/lib/supabase";
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -11,7 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2 } from "lucide-react";
 
 // Define a simplified type for repayments
 interface Repayment {
@@ -22,50 +19,37 @@ interface Repayment {
   created_at: string | null;
 }
 
+// Mock data for repayments
+const mockRepayments: Repayment[] = [
+  {
+    repayment_id: "REP001",
+    amount: 250.00,
+    payment_date: "2023-10-15T00:00:00Z",
+    status: "paid",
+    created_at: "2023-09-15T10:30:00Z"
+  },
+  {
+    repayment_id: "REP002",
+    amount: 250.00,
+    payment_date: "2023-11-15T00:00:00Z",
+    status: "pending",
+    created_at: null
+  },
+  {
+    repayment_id: "REP003",
+    amount: 250.00,
+    payment_date: "2023-12-15T00:00:00Z",
+    status: "overdue",
+    created_at: null
+  }
+];
+
 const ClientRepayments = () => {
   const { user } = useAuth();
-
-  const { data: repayments, isLoading } = useQuery({
-    queryKey: ['client-repayments', user?.user_id],
-    queryFn: async () => {
-      if (!user?.user_id) return [] as Repayment[];
-      
-      console.log("Fetching repayments for user:", user.user_id);
-      
-      try {
-        const { data, error } = await supabase
-          .from('repayments')
-          .select('*')
-          .eq('borrower_id', user.user_id);
-        
-        if (error) {
-          console.error("Error fetching repayments:", error);
-          throw error;
-        }
-        
-        // Map the data to our expected format based on actual database schema
-        return (data || []).map(item => ({
-          repayment_id: item.repayment_id || `temp-${Date.now()}`,
-          amount: Number(item.amount || 0),
-          payment_date: item.payment_date,
-          status: item.status || 'pending',
-          created_at: item.created_at
-        })) as Repayment[];
-      } catch (error) {
-        console.error("Failed to fetch repayments:", error);
-        return [] as Repayment[];
-      }
-    },
-    enabled: !!user?.user_id, // Only run query if we have a user ID
-  });
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
+  
+  // Use mock data instead of fetching from Supabase
+  const repayments = mockRepayments;
+  const isLoading = false;
 
   return (
     <div className="container mx-auto p-6 space-y-6">

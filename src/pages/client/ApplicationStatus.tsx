@@ -1,6 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/lib/supabase";
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -10,7 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2 } from "lucide-react";
 
 // Define a simple type for applications
 interface Application {
@@ -20,43 +18,34 @@ interface Application {
   updated_at: string | null;
 }
 
+// Mock data for applications
+const mockApplications: Application[] = [
+  {
+    application_id: "APP001",
+    uploaded_at: "2023-09-15T10:30:00Z",
+    status: "pending",
+    updated_at: null
+  },
+  {
+    application_id: "APP002",
+    uploaded_at: "2023-10-05T14:45:00Z",
+    status: "approved",
+    updated_at: "2023-10-10T09:20:00Z"
+  },
+  {
+    application_id: "APP003",
+    uploaded_at: "2023-11-20T11:15:00Z",
+    status: "rejected",
+    updated_at: "2023-11-25T16:30:00Z"
+  }
+];
+
 const ApplicationStatus = () => {
   const { user } = useAuth();
-
-  const { data: applications, isLoading } = useQuery({
-    queryKey: ['client-applications', user?.user_id],
-    queryFn: async () => {
-      if (!user?.user_id) return [] as Application[];
-      
-      console.log("Fetching applications for user:", user.user_id);
-      
-      try {
-        const { data, error } = await supabase
-          .from('applications')
-          .select('application_id, uploaded_at, status, updated_at')
-          .eq('borrower_id', user.user_id);
-        
-        if (error) {
-          console.error("Error fetching applications:", error);
-          throw error;
-        }
-        
-        return (data || []) as Application[];
-      } catch (error) {
-        console.error("Failed to fetch applications:", error);
-        return [] as Application[];
-      }
-    },
-    enabled: !!user?.user_id, // Only run query if we have a user ID
-  });
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
+  
+  // Use mock data instead of fetching from Supabase
+  const applications = mockApplications;
+  const isLoading = false;
 
   return (
     <div className="container mx-auto p-6 space-y-6">
