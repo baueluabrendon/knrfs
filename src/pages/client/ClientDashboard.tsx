@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
@@ -50,7 +51,7 @@ const ClientDashboard = () => {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">
-              ${loans?.reduce((acc, loan) => acc + (loan.total_payments || 0), 0).toLocaleString() || '0.00'}
+              ${loans?.reduce((acc, loan) => acc + (loan.total_repayment || 0), 0).toLocaleString() || '0.00'}
             </p>
           </CardContent>
         </Card>
@@ -61,7 +62,7 @@ const ClientDashboard = () => {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">
-              {loans?.find(loan => loan.next_payment_date)?.next_payment_date || '-'}
+              {loans?.find(loan => loan.due_date)?.due_date || '-'}
             </p>
           </CardContent>
         </Card>
@@ -81,7 +82,7 @@ const ClientDashboard = () => {
                     <p className="text-sm text-gray-500">Status: {loan.loan_status}</p>
                   </div>
                   <p className="text-sm text-gray-500">
-                    ${loan.loan_amount?.toLocaleString()}
+                    ${loan.principal?.toLocaleString()}
                   </p>
                 </div>
               ))}

@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
@@ -19,7 +20,7 @@ const ClientRepayments = () => {
     queryKey: ['client-repayments'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('loan_repayments')
+        .from('repayments')
         .select('*')
         .eq('borrower_id', user?.user_id);
       
@@ -54,8 +55,8 @@ const ClientRepayments = () => {
           <TableBody>
             {repayments && repayments.length > 0 ? (
               repayments.map((repayment) => (
-                <TableRow key={repayment.id}>
-                  <TableCell>{repayment.id}</TableCell>
+                <TableRow key={repayment.repayment_id}>
+                  <TableCell>{repayment.repayment_id}</TableCell>
                   <TableCell>{repayment.loan_id}</TableCell>
                   <TableCell>${repayment.amount?.toLocaleString()}</TableCell>
                   <TableCell>{repayment.payment_date}</TableCell>

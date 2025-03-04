@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
@@ -16,10 +17,10 @@ const ApplicationStatus = () => {
   const { user } = useAuth();
 
   const { data: applications, isLoading } = useQuery({
-    queryKey: ['loan-applications'],
+    queryKey: ['client-applications'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('loan_applications')
+        .from('applications')
         .select('*')
         .eq('borrower_id', user?.user_id);
       
@@ -46,7 +47,6 @@ const ApplicationStatus = () => {
             <TableRow>
               <TableHead>Application ID</TableHead>
               <TableHead>Submission Date</TableHead>
-              <TableHead>Amount Requested</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Last Updated</TableHead>
             </TableRow>
@@ -54,17 +54,16 @@ const ApplicationStatus = () => {
           <TableBody>
             {applications && applications.length > 0 ? (
               applications.map((application) => (
-                <TableRow key={application.id}>
-                  <TableCell>{application.id}</TableCell>
-                  <TableCell>{application.created_at}</TableCell>
-                  <TableCell>${application.amount_requested?.toLocaleString()}</TableCell>
+                <TableRow key={application.application_id}>
+                  <TableCell>{application.application_id}</TableCell>
+                  <TableCell>{application.uploaded_at}</TableCell>
                   <TableCell>{application.status}</TableCell>
                   <TableCell>{application.updated_at}</TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                   No applications found
                 </TableCell>
               </TableRow>

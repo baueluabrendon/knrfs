@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
@@ -57,11 +58,11 @@ const ClientLoans = () => {
               loans.map((loan) => (
                 <TableRow key={loan.loan_id}>
                   <TableCell>{loan.loan_id}</TableCell>
-                  <TableCell>${loan.loan_amount?.toLocaleString()}</TableCell>
-                  <TableCell>{loan.loan_start_date}</TableCell>
-                  <TableCell>{loan.loan_end_date}</TableCell>
+                  <TableCell>${loan.principal?.toLocaleString()}</TableCell>
+                  <TableCell>{loan.disbursement_date}</TableCell>
+                  <TableCell>{loan.maturity_date}</TableCell>
                   <TableCell>{loan.loan_status}</TableCell>
-                  <TableCell>{loan.next_payment_date || '-'}</TableCell>
+                  <TableCell>{loan.due_date || '-'}</TableCell>
                 </TableRow>
               ))
             ) : (
