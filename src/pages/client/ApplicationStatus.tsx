@@ -24,10 +24,11 @@ type Application = {
 const ApplicationStatus = () => {
   const { user } = useAuth();
 
+  // Explicitly type the queryFn return type to avoid deep instantiation
   const { data: applications, isLoading } = useQuery({
     queryKey: ['client-applications'],
-    queryFn: async () => {
-      if (!user?.user_id) return [] as Application[];
+    queryFn: async (): Promise<Application[]> => {
+      if (!user?.user_id) return [];
       
       const { data, error } = await supabase
         .from('applications')
