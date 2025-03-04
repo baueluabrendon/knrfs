@@ -13,11 +13,12 @@ const AuthForm = () => {
   useEffect(() => {
     console.log("AuthForm: Component mounted");
     
-    // Only handle redirects when loading is complete and we have user data
+    // Only handle redirects when loading is complete
     if (!loading) {
       if (user) {
         console.log("AuthForm: User already logged in, redirecting...", user);
         
+        // Redirect based on user role
         if (user.role === 'client') {
           navigate('/client', { replace: true });
         } else {
@@ -30,6 +31,11 @@ const AuthForm = () => {
       }
     }
   }, [user, navigate, loading, isDevelopment]);
+
+  // Don't render the form at all if we're redirecting
+  if (loading || (user !== null) || isDevelopment) {
+    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen flex flex-col">

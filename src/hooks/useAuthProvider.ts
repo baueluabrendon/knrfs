@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -53,12 +54,6 @@ export function useAuthProvider() {
         };
         
         setUser(userProfile);
-        
-        if (userData.is_password_changed === false) {
-          console.log("AuthProvider: User needs to set password");
-          navigate('/set-password');
-        }
-        
         return userProfile;
       } else {
         console.error("AuthProvider: Sign in returned no user data");

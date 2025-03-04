@@ -8,7 +8,7 @@ interface ClientRouteProps {
 
 export const ClientRoute = ({ children }: ClientRouteProps) => {
   const { user, loading } = useAuth();
-  const isDevelopment = process.env.NODE_ENV === 'development';
+  const isDevelopment = import.meta.env.VITE_DEV_MODE === "true";
 
   // Allow access in development mode
   if (isDevelopment) {

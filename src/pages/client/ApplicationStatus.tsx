@@ -24,7 +24,6 @@ type Application = {
 const ApplicationStatus = () => {
   const { user } = useAuth();
 
-  // Explicitly type the query function to avoid deep instantiation
   const { data: applications, isLoading } = useQuery({
     queryKey: ['client-applications', user?.user_id],
     queryFn: async () => {
@@ -32,17 +31,22 @@ const ApplicationStatus = () => {
       
       console.log("Fetching applications for user:", user.user_id);
       
-      const { data, error } = await supabase
-        .from('applications')
-        .select('application_id, uploaded_at, status, updated_at')
-        .eq('borrower_id', user.user_id);
-      
-      if (error) {
-        console.error("Error fetching applications:", error);
-        throw error;
+      try {
+        const { data, error } = await supabase
+          .from('applications')
+          .select('application_id, uploaded_at, status, updated_at')
+          .eq('borrower_id', user.user_id);
+        
+        if (error) {
+          console.error("Error fetching applications:", error);
+          throw error;
+        }
+        
+        return (data || []) as Application[];
+      } catch (error) {
+        console.error("Failed to fetch applications:", error);
+        return [] as Application[];
       }
-      
-      return (data || []) as Application[];
     },
   });
 

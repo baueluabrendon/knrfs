@@ -1,5 +1,5 @@
+
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,16 +13,15 @@ import {
   DialogFooter,
   DialogClose
 } from "@/components/ui/dialog";
+import { VerificationEmailForm } from "./VerificationEmailForm";
+import { ForgotPasswordForm } from "./ForgotPasswordForm";
 
 export const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [verificationEmail, setVerificationEmail] = useState("");
-  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [isVerificationDialogOpen, setIsVerificationDialogOpen] = useState(false);
   const [isForgotPasswordDialogOpen, setIsForgotPasswordDialogOpen] = useState(false);
-  const { signIn, sendVerificationEmail, sendPasswordResetEmail } = useAuth();
-  const navigate = useNavigate();
+  const { signIn } = useAuth();
   const isDevelopment = import.meta.env.VITE_DEV_MODE === "true";
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -36,19 +35,14 @@ export const LoginForm = () => {
 
     try {
       console.log("LoginForm: Starting sign in process with:", email);
-      const userData = await signIn(email, password);
+      await signIn(email, password);
       
-      console.log("LoginForm: Sign in successful, user data:", userData);
+      console.log("LoginForm: Sign in successful");
       toast.success("Successfully logged in!");
       
-      if (userData) {
-        console.log("LoginForm: Redirecting based on role:", userData.role);
-        if (userData.role === 'client') {
-          navigate('/client', { replace: true });
-        } else {
-          navigate('/admin', { replace: true });
-        }
-      }
+      // Auth redirects are handled by AuthForm.tsx 
+      // No need to navigate here (removed the redundant navigate calls)
+      
     } catch (error: any) {
       console.error("LoginForm: Sign in error:", error);
       
@@ -59,50 +53,11 @@ export const LoginForm = () => {
         setError(error.message || "Failed to sign in");
         toast.error(error.message || "Failed to sign in");
       }
-      
-      if (isDevelopment) {
-        console.log("LoginForm: Development mode - redirecting to admin despite error");
-        navigate('/admin', { replace: true });
-      }
     } finally {
       setIsLoading(false);
     }
   };
   
-  const handleVerificationRequest = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!verificationEmail) {
-      toast.error("Please enter an email address");
-      return;
-    }
-    
-    try {
-      await sendVerificationEmail(verificationEmail);
-      setIsVerificationDialogOpen(false);
-      toast.success("Verification email sent successfully");
-    } catch (error) {
-      toast.error("Failed to send verification email");
-    }
-  };
-  
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!forgotPasswordEmail) {
-      toast.error("Please enter an email address");
-      return;
-    }
-    
-    try {
-      await sendPasswordResetEmail(forgotPasswordEmail);
-      setIsForgotPasswordDialogOpen(false);
-      toast.success("Password reset email sent successfully");
-    } catch (error) {
-      toast.error("Failed to send password reset email");
-    }
-  };
-
   return (
     <div className="w-[400px] bg-white rounded-lg shadow-md p-8">
       <div className="text-center mb-6">
@@ -158,16 +113,6 @@ export const LoginForm = () => {
           {isLoading ? "Signing in..." : "Login"}
         </Button>
         
-        {isDevelopment && (
-          <Button 
-            type="button" 
-            className="w-full bg-[#3B82F6] hover:bg-[#2563EB] text-white py-2 rounded-md mt-2"
-            onClick={() => navigate('/admin', { replace: true })}
-          >
-            Dev Mode: Go to Admin Dashboard
-          </Button>
-        )}
-        
         <div className="flex justify-between mt-4 text-sm">
           <Dialog open={isVerificationDialogOpen} onOpenChange={setIsVerificationDialogOpen}>
             <DialogTrigger asChild>
@@ -179,27 +124,7 @@ export const LoginForm = () => {
               <DialogHeader>
                 <DialogTitle>Request Verification Email</DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleVerificationRequest} className="space-y-4 mt-4">
-                <div className="space-y-2">
-                  <label htmlFor="verification-email" className="text-sm font-medium text-gray-700">
-                    Email Address
-                  </label>
-                  <Input 
-                    id="verification-email" 
-                    type="email" 
-                    value={verificationEmail}
-                    onChange={(e) => setVerificationEmail(e.target.value)}
-                    placeholder="Enter your email address" 
-                    required 
-                  />
-                </div>
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button type="button" variant="outline">Cancel</Button>
-                  </DialogClose>
-                  <Button type="submit">Send Verification Email</Button>
-                </DialogFooter>
-              </form>
+              <VerificationEmailForm onSuccess={() => setIsVerificationDialogOpen(false)} />
             </DialogContent>
           </Dialog>
           
@@ -213,27 +138,7 @@ export const LoginForm = () => {
               <DialogHeader>
                 <DialogTitle>Reset Your Password</DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleForgotPassword} className="space-y-4 mt-4">
-                <div className="space-y-2">
-                  <label htmlFor="forgot-password-email" className="text-sm font-medium text-gray-700">
-                    Email Address
-                  </label>
-                  <Input 
-                    id="forgot-password-email" 
-                    type="email" 
-                    value={forgotPasswordEmail}
-                    onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                    placeholder="Enter your email address" 
-                    required 
-                  />
-                </div>
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button type="button" variant="outline">Cancel</Button>
-                  </DialogClose>
-                  <Button type="submit">Send Reset Email</Button>
-                </DialogFooter>
-              </form>
+              <ForgotPasswordForm onSuccess={() => setIsForgotPasswordDialogOpen(false)} />
             </DialogContent>
           </Dialog>
         </div>

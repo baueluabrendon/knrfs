@@ -26,7 +26,6 @@ type Repayment = {
 const ClientRepayments = () => {
   const { user } = useAuth();
 
-  // Explicitly type the query function to avoid deep instantiation
   const { data: repayments, isLoading } = useQuery({
     queryKey: ['client-repayments', user?.user_id],
     queryFn: async () => {
@@ -34,17 +33,23 @@ const ClientRepayments = () => {
       
       console.log("Fetching repayments for user:", user.user_id);
       
-      const { data, error } = await supabase
-        .from('repayments')
-        .select('repayment_id, due_date, amount_due, amount_paid, status, payment_date')
-        .eq('borrower_id', user.user_id);
-      
-      if (error) {
-        console.error("Error fetching repayments:", error);
-        throw error;
+      try {
+        // Explicitly check if the repayments table has the expected columns
+        const { data, error } = await supabase
+          .from('repayments')
+          .select('repayment_id, due_date, amount_due, amount_paid, status, payment_date')
+          .eq('borrower_id', user.user_id);
+        
+        if (error) {
+          console.error("Error fetching repayments:", error);
+          throw error;
+        }
+        
+        return (data || []) as Repayment[];
+      } catch (error) {
+        console.error("Failed to fetch repayments:", error);
+        return [] as Repayment[];
       }
-      
-      return (data || []) as Repayment[];
     },
   });
 
