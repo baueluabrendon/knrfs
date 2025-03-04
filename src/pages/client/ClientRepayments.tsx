@@ -28,7 +28,7 @@ const ClientRepayments = () => {
   // Explicitly type the queryFn return type to avoid deep instantiation
   const { data: repayments, isLoading } = useQuery({
     queryKey: ['client-repayments', user?.user_id],
-    queryFn: async () => {
+    queryFn: async (): Promise<Repayment[]> => {
       if (!user?.user_id) return [];
       
       const { data, error } = await supabase

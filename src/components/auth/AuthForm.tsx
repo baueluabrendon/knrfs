@@ -6,12 +6,13 @@ import { AuthHeader } from "./AuthHeader";
 import { LoginForm } from "./LoginForm";
 
 const AuthForm = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     console.log("AuthForm: Component mounted");
     console.log("AuthForm: Current user:", user);
+    console.log("AuthForm: Loading state:", loading);
     
     // Redirect if already logged in
     if (user) {
@@ -25,7 +26,7 @@ const AuthForm = () => {
         navigate('/admin', { replace: true });
       }
     }
-  }, [user, navigate]);
+  }, [user, navigate, loading]);
 
   return (
     <div className="min-h-screen flex flex-col">

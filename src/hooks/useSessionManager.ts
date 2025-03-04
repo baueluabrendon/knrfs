@@ -16,61 +16,65 @@ export function useSessionManager(
     const initializeSession = async () => {
       try {
         setLoading(true);
+        console.log("SessionManager: Checking for existing session");
         const sessionData = await checkExistingSession();
         
         if (sessionData) {
           const { userProfile, needsPasswordChange } = sessionData;
+          console.log("SessionManager: Found existing session, profile:", userProfile);
           
           if (needsPasswordChange) {
             console.log("SessionManager: User needs to set password");
             navigate('/set-password');
-            setLoading(false);
-            return;
-          }
-          
-          setUser(userProfile);
-          console.log("SessionManager: User state updated with profile:", userProfile);
-          
-          if (userProfile.role === 'client') {
-            console.log("SessionManager: Redirecting to /client");
-            navigate('/client');
           } else {
-            console.log("SessionManager: Redirecting to /admin");
-            navigate('/admin');
+            setUser(userProfile);
+            console.log("SessionManager: Setting user profile and redirecting based on role:", userProfile.role);
+            
+            if (userProfile.role === 'client') {
+              navigate('/client');
+            } else {
+              navigate('/admin');
+            }
           }
+        } else {
+          console.log("SessionManager: No existing session found");
+          setUser(null);
         }
       } catch (error) {
         console.error("SessionManager: Initialization error:", error);
+        setUser(null);
       } finally {
         setLoading(false);
       }
     };
     
-    const handleAuthStateChange = (event: string, session: any, profile: UserProfile | null) => {
+    const handleAuthStateChange = async (event: string, session: any, profile: UserProfile | null) => {
+      console.log("SessionManager: Auth state changed:", event, "Profile:", profile);
+      
       if (event === 'SIGNED_IN' && profile) {
-        console.log("SessionManager: User state updated on auth change:", profile);
         setUser(profile);
         
         if (profile.is_password_changed === false) {
           console.log("SessionManager: User needs to set password");
           navigate('/set-password');
-          return;
-        }
-        
-        if (profile.role === 'client') {
-          navigate('/client');
         } else {
-          navigate('/admin');
+          console.log("SessionManager: User signed in, redirecting based on role:", profile.role);
+          if (profile.role === 'client') {
+            navigate('/client');
+          } else {
+            navigate('/admin');
+          }
         }
       } else if (event === 'SIGNED_OUT') {
+        console.log("SessionManager: User signed out");
         setUser(null);
         navigate('/login');
       }
     };
     
+    // Initialize session and set up auth state listener
     initializeSession();
     
-    // Set up auth state change listener and store the subscription
     const setupSubscription = async () => {
       subscription = await setupAuthStateChangeListener(handleAuthStateChange);
     };

@@ -72,11 +72,12 @@ export function useAuthProvider() {
             navigate('/admin');
           }
         }
+        
+        return userProfile;
       } else {
         console.error("AuthProvider: Sign in returned no user data");
+        return null;
       }
-      
-      return userData as unknown as UserProfile;
     } catch (error: any) {
       console.error("AuthProvider: Login error:", error);
       throw error;
