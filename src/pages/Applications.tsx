@@ -27,7 +27,9 @@ const Applications = () => {
 
       if (error) throw error;
       
-      const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-approved-application`;
+      // Ensure HTTPS is used for the function URL
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const functionUrl = `${supabaseUrl}/functions/v1/process-approved-application`;
       
       const response = await fetch(functionUrl, {
         method: 'POST',

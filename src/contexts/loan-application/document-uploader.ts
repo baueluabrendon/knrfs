@@ -25,11 +25,14 @@ export const uploadDocument = async (
       return null;
     }
 
+    // Get HTTPS public URL
     const { data } = supabase.storage
       .from('application_documents')
       .getPublicUrl(filePath);
 
-    return data.publicUrl;
+    // Ensure URL is HTTPS
+    const publicUrl = data.publicUrl.replace('http://', 'https://');
+    return publicUrl;
   } catch (error) {
     console.error('Error in uploadDocument:', error);
     return null;
@@ -58,11 +61,14 @@ export const uploadGroupRepaymentDocument = async (
       return null;
     }
 
+    // Get HTTPS public URL
     const { data } = supabase.storage
       .from('repayment_documents')
       .getPublicUrl(filePath);
 
-    return data.publicUrl;
+    // Ensure URL is HTTPS
+    const publicUrl = data.publicUrl.replace('http://', 'https://');
+    return publicUrl;
   } catch (error) {
     console.error('Error in uploadGroupRepaymentDocument:', error);
     return null;

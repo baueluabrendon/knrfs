@@ -19,7 +19,7 @@ type Repayment = {
   due_date: string;
   amount_due: number;
   amount_paid: number | null;
-  status: string | null;
+  status: string;
   payment_date: string | null;
 }
 
@@ -34,10 +34,10 @@ const ClientRepayments = () => {
       console.log("Fetching repayments for user:", user.user_id);
       
       try {
-        // Explicitly check if the repayments table has the expected columns
+        // Handle potential schema differences with explicit mapping
         const { data, error } = await supabase
           .from('repayments')
-          .select('repayment_id, due_date, amount_due, amount_paid, status, payment_date')
+          .select('*')
           .eq('borrower_id', user.user_id);
         
         if (error) {
@@ -45,12 +45,21 @@ const ClientRepayments = () => {
           throw error;
         }
         
-        return (data || []) as Repayment[];
+        // Map the data to our expected format, handling potentially missing fields
+        return (data || []).map(item => ({
+          repayment_id: item.repayment_id || `temp-${Date.now()}`,
+          due_date: item.due_date || new Date().toISOString(),
+          amount_due: Number(item.amount_due || 0),
+          amount_paid: item.amount_paid ? Number(item.amount_paid) : null,
+          status: item.status || 'pending',
+          payment_date: item.payment_date || null
+        })) as Repayment[];
       } catch (error) {
         console.error("Failed to fetch repayments:", error);
         return [] as Repayment[];
       }
     },
+    enabled: !!user?.user_id, // Only run query if we have a user ID
   });
 
   if (isLoading) {
@@ -82,11 +91,11 @@ const ClientRepayments = () => {
               repayments.map((repayment) => (
                 <TableRow key={repayment.repayment_id}>
                   <TableCell>{repayment.repayment_id}</TableCell>
-                  <TableCell>{repayment.due_date}</TableCell>
+                  <TableCell>{new Date(repayment.due_date).toLocaleDateString()}</TableCell>
                   <TableCell>${repayment.amount_due.toFixed(2)}</TableCell>
                   <TableCell>{repayment.amount_paid ? `$${repayment.amount_paid.toFixed(2)}` : '-'}</TableCell>
                   <TableCell>{repayment.status}</TableCell>
-                  <TableCell>{repayment.payment_date || '-'}</TableCell>
+                  <TableCell>{repayment.payment_date ? new Date(repayment.payment_date).toLocaleDateString() : '-'}</TableCell>
                 </TableRow>
               ))
             ) : (

@@ -9,7 +9,7 @@ export async function processApplicationFormOCR(file: File): Promise<Partial<For
     const formData = new FormData();
     formData.append('file', file);
     
-    // Call the Supabase Edge Function for OCR processing using the provided URL
+    // Call the Supabase Edge Function for OCR processing using the provided URL with HTTPS
     const functionUrl = "https://mhndkefbyvxasvayigvx.supabase.co/functions/v1/process-application-form";
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData.session?.access_token;

@@ -17,7 +17,7 @@ import { Loader2 } from "lucide-react";
 type Application = {
   application_id: string;
   uploaded_at: string;
-  status: string | null;
+  status: string;
   updated_at: string | null;
 }
 
@@ -42,12 +42,19 @@ const ApplicationStatus = () => {
           throw error;
         }
         
-        return (data || []) as Application[];
+        // Ensure we have the correct data structure
+        return (data || []).map(app => ({
+          application_id: app.application_id,
+          uploaded_at: app.uploaded_at,
+          status: app.status || 'pending',
+          updated_at: app.updated_at
+        })) as Application[];
       } catch (error) {
         console.error("Failed to fetch applications:", error);
         return [] as Application[];
       }
     },
+    enabled: !!user?.user_id, // Only run query if we have a user ID
   });
 
   if (isLoading) {
@@ -77,9 +84,9 @@ const ApplicationStatus = () => {
               applications.map((application) => (
                 <TableRow key={application.application_id}>
                   <TableCell>{application.application_id}</TableCell>
-                  <TableCell>{application.uploaded_at}</TableCell>
+                  <TableCell>{new Date(application.uploaded_at).toLocaleDateString()}</TableCell>
                   <TableCell>{application.status}</TableCell>
-                  <TableCell>{application.updated_at}</TableCell>
+                  <TableCell>{application.updated_at ? new Date(application.updated_at).toLocaleDateString() : '-'}</TableCell>
                 </TableRow>
               ))
             ) : (
