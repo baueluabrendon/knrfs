@@ -13,6 +13,15 @@ import {
 } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
 
+// Define a more specific type for repayments to avoid deep type instantiation
+type Repayment = {
+  repayment_id: string;
+  loan_id: string | null;
+  amount: number;
+  payment_date: string | null;
+  status: string | null;
+}
+
 const ClientRepayments = () => {
   const { user } = useAuth();
 
@@ -25,7 +34,7 @@ const ClientRepayments = () => {
         .eq('borrower_id', user?.user_id);
       
       if (error) throw error;
-      return data;
+      return data as Repayment[];
     },
   });
 

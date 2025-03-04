@@ -13,6 +13,14 @@ import {
 } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
 
+// Define a more specific type for applications to avoid deep type instantiation
+type Application = {
+  application_id: string;
+  uploaded_at: string;
+  status: string | null;
+  updated_at: string | null;
+}
+
 const ApplicationStatus = () => {
   const { user } = useAuth();
 
@@ -25,7 +33,7 @@ const ApplicationStatus = () => {
         .eq('borrower_id', user?.user_id);
       
       if (error) throw error;
-      return data;
+      return data as Application[];
     },
   });
 
