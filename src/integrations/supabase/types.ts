@@ -65,63 +65,33 @@ export type Database = {
           arrear_amount: number | null
           arrear_date: string | null
           arrear_id: number
-          borrower_id: string
           created_at: string | null
           loan_id: string
-          period_id: number
-          schedule_id: number
           updated_at: string | null
         }
         Insert: {
           arrear_amount?: number | null
           arrear_date?: string | null
           arrear_id?: number
-          borrower_id: string
           created_at?: string | null
           loan_id: string
-          period_id: number
-          schedule_id: number
           updated_at?: string | null
         }
         Update: {
           arrear_amount?: number | null
           arrear_date?: string | null
           arrear_id?: number
-          borrower_id?: string
           created_at?: string | null
           loan_id?: string
-          period_id?: number
-          schedule_id?: number
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "arrear_borrower_id_fkey"
-            columns: ["borrower_id"]
-            isOneToOne: false
-            referencedRelation: "borrowers"
-            referencedColumns: ["borrower_id"]
-          },
           {
             foreignKeyName: "arrear_loan_id_fkey"
             columns: ["loan_id"]
             isOneToOne: false
             referencedRelation: "loans"
             referencedColumns: ["loan_id"]
-          },
-          {
-            foreignKeyName: "arrear_period_id_fkey"
-            columns: ["period_id"]
-            isOneToOne: false
-            referencedRelation: "pay_period"
-            referencedColumns: ["period_id"]
-          },
-          {
-            foreignKeyName: "arrear_schedule_id_fkey"
-            columns: ["schedule_id"]
-            isOneToOne: false
-            referencedRelation: "repayment_schedule"
-            referencedColumns: ["schedule_id"]
           },
         ]
       }
@@ -517,7 +487,6 @@ export type Database = {
       }
       repayment_schedule: {
         Row: {
-          borrower_id: string
           created_at: string | null
           default_fee: number
           documentation_fee: number
@@ -531,7 +500,6 @@ export type Database = {
           period_id: number
           principal: number
           repayment: number
-          repayment_id: string
           schedule_id: number
           status:
             | Database["public"]["Enums"]["repayment_schedule_status_enum"]
@@ -539,7 +507,6 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          borrower_id: string
           created_at?: string | null
           default_fee: number
           documentation_fee: number
@@ -553,7 +520,6 @@ export type Database = {
           period_id: number
           principal: number
           repayment: number
-          repayment_id: string
           schedule_id?: number
           status?:
             | Database["public"]["Enums"]["repayment_schedule_status_enum"]
@@ -561,7 +527,6 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          borrower_id?: string
           created_at?: string | null
           default_fee?: number
           documentation_fee?: number
@@ -575,7 +540,6 @@ export type Database = {
           period_id?: number
           principal?: number
           repayment?: number
-          repayment_id?: string
           schedule_id?: number
           status?:
             | Database["public"]["Enums"]["repayment_schedule_status_enum"]
@@ -583,13 +547,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "repayment_schedule_borrower_id_fkey"
-            columns: ["borrower_id"]
-            isOneToOne: false
-            referencedRelation: "borrowers"
-            referencedColumns: ["borrower_id"]
-          },
           {
             foreignKeyName: "repayment_schedule_loan_id_fkey"
             columns: ["loan_id"]
@@ -604,19 +561,11 @@ export type Database = {
             referencedRelation: "pay_period"
             referencedColumns: ["period_id"]
           },
-          {
-            foreignKeyName: "repayment_schedule_repayment_id_fkey"
-            columns: ["repayment_id"]
-            isOneToOne: false
-            referencedRelation: "repayments"
-            referencedColumns: ["repayment_id"]
-          },
         ]
       }
       repayments: {
         Row: {
           amount: number
-          borrower_id: string | null
           created_at: string | null
           loan_id: string | null
           payment_date: string | null
@@ -626,7 +575,6 @@ export type Database = {
         }
         Insert: {
           amount: number
-          borrower_id?: string | null
           created_at?: string | null
           loan_id?: string | null
           payment_date?: string | null
@@ -636,7 +584,6 @@ export type Database = {
         }
         Update: {
           amount?: number
-          borrower_id?: string | null
           created_at?: string | null
           loan_id?: string | null
           payment_date?: string | null
@@ -645,13 +592,6 @@ export type Database = {
           status?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "loan_repayments_borrower_id_fkey"
-            columns: ["borrower_id"]
-            isOneToOne: false
-            referencedRelation: "borrowers"
-            referencedColumns: ["borrower_id"]
-          },
           {
             foreignKeyName: "loan_repayments_loan_id_fkey"
             columns: ["loan_id"]
@@ -700,6 +640,10 @@ export type Database = {
         Args: {
           p_account_type: Database["public"]["Enums"]["accounts_enum"]
         }
+        Returns: string
+      }
+      get_auth_user_role: {
+        Args: Record<PropertyKey, never>
         Returns: string
       }
     }

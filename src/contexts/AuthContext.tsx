@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -22,7 +21,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const { user, loading, setUser, setLoading } = useAuthState();
   
-  // Check on initial load if we have a session
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -34,7 +32,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session) {
           console.log("AuthProvider: Found existing session");
           
-          // Get user profile
           const { data: profile, error } = await supabase
             .from('user_profiles')
             .select('*')
@@ -44,7 +41,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (profile) {
             console.log("AuthProvider: Found user profile", profile);
             
-            // Check if user needs to set password
             if (profile.is_password_changed === false) {
               console.log("AuthProvider: User needs to set password");
               navigate('/set-password');
@@ -52,7 +48,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               return;
             }
             
-            // Transform to UserProfile
             const userProfile: UserProfile = {
               user_id: profile.user_id,
               id: profile.user_id,
@@ -67,7 +62,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(userProfile);
             console.log("AuthProvider: User state updated with profile:", userProfile);
             
-            // Redirect based on user role
             if (userProfile.role === 'client') {
               console.log("AuthProvider: Redirecting to /client");
               navigate('/client');
@@ -91,7 +85,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     checkSession();
     
-    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log("AuthProvider: Auth state changed:", event);
@@ -99,7 +92,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (event === 'SIGNED_IN') {
           if (!session?.user) return;
           
-          // Get user profile
           const { data: profile, error } = await supabase
             .from('user_profiles')
             .select('*')
@@ -109,14 +101,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (profile) {
             console.log("AuthProvider: Profile after auth change:", profile);
             
-            // Check if user needs to set password
             if (profile.is_password_changed === false) {
               console.log("AuthProvider: User needs to set password");
               navigate('/set-password');
               return;
             }
             
-            // Transform to UserProfile
             const userProfile: UserProfile = {
               user_id: profile.user_id,
               id: profile.user_id,
@@ -131,7 +121,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(userProfile);
             console.log("AuthProvider: User state updated on auth change:", userProfile);
             
-            // Redirect based on user role
             if (userProfile.role === 'client') {
               navigate('/client');
             } else {
@@ -162,33 +151,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log("AuthContext: Sign in successful, user data:", userData);
         console.log("AuthContext: User role:", userData.role);
         
-        // Transform the userData to match the UserProfile type from types/auth.ts
         const userProfile: UserProfile = {
           user_id: userData.user_id,
-          id: userData.user_id, // Using user_id as id since it's required
+          id: userData.user_id,
           email: userData.email,
-          role: userData.role as UserProfile['role'], // Cast to ensure type safety
+          role: userData.role as UserProfile['role'],
           first_name: userData.first_name,
           last_name: userData.last_name,
-          created_at: new Date().toISOString(), // Adding a default created_at since it's required
+          created_at: new Date().toISOString(),
           is_password_changed: userData.is_password_changed,
         };
         
-        // Update user state with the properly formatted user profile
         setUser(userProfile);
         console.log("AuthContext: User state updated with formatted profile:", userProfile);
         
-        // Check if password needs to be changed
         if (userData.is_password_changed === false) {
           console.log("AuthContext: User needs to set password");
           navigate('/set-password');
         } else {
-          // Redirect based on user role
           if (userProfile.role === 'client') {
-            console.log("AuthContext: Redirecting to /client");
             navigate('/client');
           } else {
-            console.log("AuthContext: Redirecting to /admin");
             navigate('/admin');
           }
         }
@@ -196,7 +179,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error("AuthContext: Sign in returned no user data");
       }
       
-      return userData as unknown as UserProfile; // Cast to satisfy the return type
+      return userData as unknown as UserProfile;
     } catch (error: any) {
       console.error("AuthContext: Login error:", error);
       throw error;
@@ -209,7 +192,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       await signOut();
-      // Clear the user state
       setUser(null);
       console.log("AuthContext: User signed out, user state cleared");
       navigate('/login');
