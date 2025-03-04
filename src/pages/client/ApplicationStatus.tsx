@@ -1,7 +1,6 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -13,8 +12,8 @@ import {
 } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
 
-// Define a specific type for applications
-type Application = {
+// Define a simple type for applications
+interface Application {
   application_id: string;
   uploaded_at: string;
   status: string;
@@ -42,13 +41,7 @@ const ApplicationStatus = () => {
           throw error;
         }
         
-        // Ensure we have the correct data structure
-        return (data || []).map(app => ({
-          application_id: app.application_id,
-          uploaded_at: app.uploaded_at,
-          status: app.status || 'pending',
-          updated_at: app.updated_at
-        })) as Application[];
+        return (data || []) as Application[];
       } catch (error) {
         console.error("Failed to fetch applications:", error);
         return [] as Application[];

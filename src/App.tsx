@@ -27,7 +27,7 @@ const App = () => {
             <Sonner />
             <Routes>
               {/* Authentication & Verification */}
-              <Route path="/" element={<Navigate to={isDevelopment ? "/admin" : "/login"} replace />} />
+              <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="/login" element={<AuthForm />} />
               <Route path="/set-password" element={<SetPassword />} />
               <Route path="/apply" element={<LoanApplicationSteps />} />

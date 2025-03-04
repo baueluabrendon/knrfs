@@ -1,7 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -13,11 +13,11 @@ import {
 } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
 
-// Define a specific type for repayments
-type Repayment = {
+// Define a simplified type for repayments
+interface Repayment {
   repayment_id: string;
-  amount: number;           // This replaces amount_due
-  payment_date: string | null;  // This will be used as due_date
+  amount: number;
+  payment_date: string | null;
   status: string;
   created_at: string | null;
 }
@@ -33,7 +33,6 @@ const ClientRepayments = () => {
       console.log("Fetching repayments for user:", user.user_id);
       
       try {
-        // Handle potential schema differences with explicit mapping
         const { data, error } = await supabase
           .from('repayments')
           .select('*')
