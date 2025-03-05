@@ -29,7 +29,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 // Types for user form
@@ -64,6 +64,7 @@ const Users = () => {
     firstName: "",
     lastName: "",
   });
+  const [open, setOpen] = useState(false);
 
   // Fetch users on component mount
   useEffect(() => {
@@ -118,6 +119,7 @@ const Users = () => {
       firstName: "",
       lastName: "",
     });
+    setOpen(false);
   };
 
   // Check if current user can add a specific role
@@ -192,12 +194,28 @@ const Users = () => {
         
         if (error) throw error;
         
+        // Create user profile manually if trigger doesn't work
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .insert({
+            user_id: data.user.id,
+            email: formData.email,
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            role: role,
+            is_password_changed: false
+          });
+          
+        if (profileError) {
+          console.error("Error creating user profile:", profileError);
+          // Continue anyway as the trigger might have created the profile
+        }
+        
         toast.success(`User ${formData.email} created with temporary password: ${tempPassword}`);
       }
       
       // Close dialog and reset form
       resetForm();
-      setIsAddingUser(false);
       
       // Refresh the user list
       fetchUsers();
@@ -225,10 +243,12 @@ const Users = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold text-gray-800">User Management</h1>
-        <Dialog>
-          <DialogTrigger className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90">
-            <UserPlus className="w-4 h-4 mr-2" />
-            Add User
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button className="inline-flex items-center bg-primary text-white rounded-md hover:bg-primary/90">
+              <UserPlus className="w-4 h-4 mr-2" />
+              Add User
+            </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
