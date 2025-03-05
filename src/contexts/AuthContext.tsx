@@ -99,6 +99,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setAuthState({ user: userProfile, loading: false, error: null });
       
+      if (!profile.is_password_changed) {
+        console.log("First login detected, redirect to password change after sign in");
+        // We'll navigate to set-password in LoginForm component
+      }
+      
       return userProfile;
     } catch (error: any) {
       console.error("AuthProvider: Sign in error", error);
@@ -147,7 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: `${window.location.origin}/set-password` },
+        options: { emailRedirectTo: `${window.location.origin}/login` },
       });
 
       if (error) throw error;

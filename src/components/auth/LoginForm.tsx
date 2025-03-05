@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -36,13 +35,18 @@ export const LoginForm = () => {
 
     try {
       console.log("LoginForm: Starting sign in process with:", email);
-      await signIn(email, password);
+      const userProfile = await signIn(email, password);
       
       console.log("LoginForm: Sign in successful");
       toast.success("Successfully logged in!");
       
-      // Navigation is now handled by the AuthForm component or ProtectedRoute
-      // Login form no longer needs to handle redirection
+      // Check if this is a first-time login (password not changed)
+      if (userProfile && userProfile.is_password_changed === false) {
+        console.log("LoginForm: First login detected, redirecting to set-password");
+        navigate('/set-password', { replace: true });
+      }
+      // Otherwise navigation is handled by the AuthForm component or ProtectedRoute
+      
     } catch (error: any) {
       console.error("LoginForm: Sign in error:", error);
       

@@ -19,7 +19,7 @@ const SetPassword = () => {
   const location = useLocation();
   const { user, loading, updateUserProfile } = useAuth();
 
-  // Redirect if user already has password set
+  // Redirect if user already has password set AND is not being explicitly sent here after first login
   useEffect(() => {
     if (!loading && user?.is_password_changed) {
       console.log("SetPassword: User already has password set, redirecting");

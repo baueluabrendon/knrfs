@@ -155,7 +155,7 @@ const Users = () => {
         const { data, error } = await supabase.auth.signInWithOtp({
           email: formData.email,
           options: {
-            emailRedirectTo: `${window.location.origin}/set-password`,
+            emailRedirectTo: `${window.location.origin}/login`,
             data: {
               role: role,
               first_name: formData.firstName,
