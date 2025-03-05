@@ -61,6 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ...profile,
           id: profile.user_id,
           created_at: new Date().toISOString(),
+          role: profile.role as UserProfile["role"], // Explicitly cast role to fix type error
         },
         loading: false,
         error: null,
@@ -95,6 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...profile,
         id: profile.user_id,
         created_at: new Date().toISOString(),
+        role: profile.role as UserProfile["role"], // Explicitly cast role to fix type error
       };
 
       setAuthState({ user: userProfile, loading: false, error: null });
