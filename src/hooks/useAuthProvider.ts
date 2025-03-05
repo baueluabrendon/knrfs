@@ -17,7 +17,14 @@ export function useAuthProvider() {
         setLoading(true);
         console.log("useAuthProvider: Checking current session");
         
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("Session retrieval error:", sessionError);
+          setUser(null);
+          setLoading(false);
+          return;
+        }
         
         if (session?.user) {
           console.log("useAuthProvider: Found existing session for user:", session.user.id);
@@ -32,6 +39,7 @@ export function useAuthProvider() {
             
             if (error) {
               console.error("Error fetching user profile:", error);
+              console.log("RLS Policy might be preventing profile access. Check that the user has access to their own profile.");
               setUser(null);
               return;
             }
@@ -52,7 +60,7 @@ export function useAuthProvider() {
               
               setUser(userProfile);
             } else {
-              console.log("useAuthProvider: No profile found for user session");
+              console.log("useAuthProvider: No profile found for user session. User might exist in auth but not in user_profiles table.");
               setUser(null);
             }
           } catch (profileError) {
@@ -91,6 +99,7 @@ export function useAuthProvider() {
       }
 
       if (!data.user) {
+        console.error("No user returned from authentication");
         throw new Error("No user returned from authentication");
       }
       
@@ -108,12 +117,14 @@ export function useAuthProvider() {
           
         if (profileError) {
           console.error("Error fetching user profile after login:", profileError);
-          throw new Error("Failed to retrieve user profile");
+          console.log("RLS Policy issue: Check if the user can select their own profile or if admins have correct access.");
+          throw new Error("Failed to retrieve user profile. This might be due to a permission issue.");
         }
         
         if (!profile) {
           console.error("No profile found for authenticated user");
-          throw new Error("User profile not found");
+          console.log("User exists in auth but not in user_profiles table. Check if the trigger to create profiles is working.");
+          throw new Error("User profile not found. Please contact support.");
         }
         
         // Create user profile object
