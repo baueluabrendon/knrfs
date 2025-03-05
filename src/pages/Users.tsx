@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Dialog,
@@ -32,7 +31,6 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
-// Types for user form
 interface UserFormData {
   email: string;
   role: string;
@@ -40,7 +38,6 @@ interface UserFormData {
   lastName: string;
 }
 
-// Types for displayed user data
 interface UserData {
   id: string;
   user_id: string;
@@ -66,7 +63,6 @@ const Users = () => {
   });
   const [open, setOpen] = useState(false);
 
-  // Fetch users on component mount
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -82,7 +78,6 @@ const Users = () => {
         throw error;
       }
       
-      // Transform to UserData format
       const transformedData = data.map((profile: any) => ({
         id: profile.user_id,
         user_id: profile.user_id,
@@ -122,16 +117,13 @@ const Users = () => {
     setOpen(false);
   };
 
-  // Check if current user can add a specific role
   const canAddRole = (role: string) => {
     if (!currentUser) return false;
     
-    // Admins and super users can add any role
     if (['administrator', 'super user'].includes(currentUser.role)) {
       return true;
     }
     
-    // Sales officers can only add clients
     if (currentUser.role === 'sales officer') {
       return role === 'client';
     }
@@ -144,14 +136,12 @@ const Users = () => {
     setIsAddingUser(true);
 
     try {
-      // Validate form data
       if (!formData.email || !formData.role || !formData.firstName || !formData.lastName) {
         toast.error("Please fill in all required fields");
         setIsAddingUser(false);
         return;
       }
       
-      // Check if user has permission to add this role
       if (!canAddRole(formData.role)) {
         toast.error("You don't have permission to add users with this role");
         setIsAddingUser(false);
@@ -161,11 +151,10 @@ const Users = () => {
       const role = formData.role;
       
       if (role === 'client') {
-        // For clients, we send a verification email
         const { data, error } = await supabase.auth.signInWithOtp({
           email: formData.email,
           options: {
-            emailRedirectTo: `${window.location.origin}/set-password`,
+            emailRedirectTo: `${window.location.origin}/login`,
             data: {
               role: role,
               first_name: formData.firstName,
@@ -178,7 +167,6 @@ const Users = () => {
         
         toast.success(`Verification email sent to ${formData.email}`);
       } else {
-        // For admin users, generate a temporary password
         const tempPassword = Math.random().toString(36).slice(-8);
         
         const { data, error } = await supabase.auth.admin.createUser({
@@ -194,7 +182,6 @@ const Users = () => {
         
         if (error) throw error;
         
-        // Create user profile manually if trigger doesn't work
         const { error: profileError } = await supabase
           .from('user_profiles')
           .insert({
@@ -208,16 +195,13 @@ const Users = () => {
           
         if (profileError) {
           console.error("Error creating user profile:", profileError);
-          // Continue anyway as the trigger might have created the profile
         }
         
         toast.success(`User ${formData.email} created with temporary password: ${tempPassword}`);
       }
       
-      // Close dialog and reset form
       resetForm();
       
-      // Refresh the user list
       fetchUsers();
     } catch (error: any) {
       console.error("Error creating user:", error);
@@ -227,7 +211,6 @@ const Users = () => {
     }
   };
 
-  // Filter users based on search term
   const filteredUsers = users.filter(user => {
     const fullName = `${user.first_name || ''} ${user.last_name || ''}`.toLowerCase();
     const searchLower = searchTerm.toLowerCase();
@@ -327,7 +310,6 @@ const Users = () => {
         </Dialog>
       </div>
 
-      {/* Search Bar */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
         <Input
@@ -338,7 +320,6 @@ const Users = () => {
         />
       </div>
 
-      {/* Users Table */}
       <Card className="rounded-md border">
         <Table>
           <TableHeader>
