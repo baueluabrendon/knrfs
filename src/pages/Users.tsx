@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import {
   Dialog,
@@ -154,7 +155,7 @@ const Users = () => {
         const { data, error } = await supabase.auth.signInWithOtp({
           email: formData.email,
           options: {
-            emailRedirectTo: `${window.location.origin}/login`,
+            emailRedirectTo: `${window.location.origin}/set-password`,
             data: {
               role: role,
               first_name: formData.firstName,
