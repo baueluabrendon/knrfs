@@ -12,63 +12,70 @@ export function useAuthProvider() {
   
   // Check for existing session on component mount
   useEffect(() => {
-    async function checkCurrentSession() {
+    const checkCurrentSession = async () => {
       try {
         setLoading(true);
         console.log("useAuthProvider: Checking current session");
         
+        // Step 1: Get auth session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
           console.error("Session retrieval error:", sessionError);
           setUser(null);
-          setLoading(false);
           return;
         }
         
-        if (session?.user) {
-          console.log("useAuthProvider: Found existing session for user:", session.user.id);
+        if (!session?.user) {
+          console.log("useAuthProvider: No active session found");
+          setUser(null);
+          return;
+        }
+
+        console.log("useAuthProvider: Found existing session for user:", session.user.id);
+        
+        // Step 2: Direct fetch of user profile with a simpler query
+        try {
+          // Simplified query to prevent RLS recursion - using service role if needed
+          const { data: profile, error } = await supabase
+            .from('user_profiles')
+            .select('user_id, email, role, first_name, last_name, is_password_changed')
+            .eq('user_id', session.user.id)
+            .single();
           
-          try {
-            // Fetch user profile directly from user_profiles table
-            const { data: profile, error } = await supabase
-              .from('user_profiles')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .single();
+          if (error) {
+            console.error("Error fetching user profile:", error);
+            console.log("RLS Policy issue: This is likely due to infinite recursion in the policy. Query details:", {
+              user_id: session.user.id,
+              error_code: error.code,
+              error_details: error.details,
+              error_message: error.message
+            });
+            setUser(null);
+            return;
+          }
+          
+          if (profile) {
+            console.log("useAuthProvider: Successfully retrieved profile:", profile);
             
-            if (error) {
-              console.error("Error fetching user profile:", error);
-              console.log("RLS Policy might be preventing profile access. Check that the user has access to their own profile.");
-              setUser(null);
-              return;
-            }
+            const userProfile: UserProfile = {
+              user_id: profile.user_id,
+              id: profile.user_id,
+              email: profile.email,
+              role: profile.role as UserProfile['role'],
+              first_name: profile.first_name,
+              last_name: profile.last_name,
+              created_at: new Date().toISOString(),
+              is_password_changed: profile.is_password_changed,
+            };
             
-            if (profile) {
-              console.log("useAuthProvider: Profile found:", profile);
-              
-              const userProfile: UserProfile = {
-                user_id: profile.user_id,
-                id: profile.user_id,
-                email: profile.email,
-                role: profile.role as UserProfile['role'],
-                first_name: profile.first_name,
-                last_name: profile.last_name,
-                created_at: new Date().toISOString(),
-                is_password_changed: profile.is_password_changed,
-              };
-              
-              setUser(userProfile);
-            } else {
-              console.log("useAuthProvider: No profile found for user session. User might exist in auth but not in user_profiles table.");
-              setUser(null);
-            }
-          } catch (profileError) {
-            console.error("Profile fetch error:", profileError);
+            setUser(userProfile);
+          } else {
+            console.log("useAuthProvider: No profile found for user session. User might exist in auth but not in user_profiles table.");
             setUser(null);
           }
-        } else {
-          console.log("useAuthProvider: No active session found");
+        } catch (profileError) {
+          console.error("Profile fetch error:", profileError);
           setUser(null);
         }
       } catch (error) {
@@ -77,7 +84,7 @@ export function useAuthProvider() {
       } finally {
         setLoading(false);
       }
-    }
+    };
     
     checkCurrentSession();
   }, [setUser, setLoading]);
@@ -87,7 +94,7 @@ export function useAuthProvider() {
       setLoading(true);
       console.log("AuthProvider: Starting sign in process with:", email);
       
-      // Sign in with Supabase Auth
+      // Step 1: Sign in with Supabase Auth
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -105,19 +112,24 @@ export function useAuthProvider() {
       
       console.log("Supabase auth successful:", data);
       
+      // Step 2: Fetch user profile with simplified approach
       try {
-        // Fetch user profile directly from user_profiles table
+        // Simplified query to prevent RLS recursion
         const { data: profile, error: profileError } = await supabase
           .from('user_profiles')
-          .select('*')
+          .select('user_id, email, role, first_name, last_name, is_password_changed')
           .eq('user_id', data.user.id)
-          .maybeSingle(); // Use maybeSingle instead of single to handle case where profile doesn't exist
+          .single();
         
         console.log("Profile query response:", { profile, error: profileError });
           
         if (profileError) {
           console.error("Error fetching user profile after login:", profileError);
-          console.log("RLS Policy issue: Check if the user can select their own profile or if admins have correct access.");
+          console.log("RLS Policy issue: Check if the user can select their own profile or if admins have correct access. Details:", {
+            error_code: profileError.code,
+            error_details: profileError.details,
+            error_message: profileError.message
+          });
           throw new Error("Failed to retrieve user profile. This might be due to a permission issue.");
         }
         

@@ -1,7 +1,9 @@
+
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
   allowedRoles?: string[];
@@ -10,6 +12,8 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
+  const [isChecking, setIsChecking] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   
   console.log("ProtectedRoute: Checking authorization");
   console.log("ProtectedRoute: User:", user);
@@ -19,58 +23,59 @@ export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) 
   // Check if the user needs to set a password
   useEffect(() => {
     const checkPasswordStatus = async () => {
-      if (!user) return;
+      if (!user || isChecking || isRedirecting) return;
       
       try {
+        setIsChecking(true);
         console.log("ProtectedRoute: Checking password status for user:", user.user_id);
         
-        const { data: profile, error } = await supabase
-          .from('user_profiles')
-          .select('is_password_changed')
-          .eq('user_id', user.user_id)
-          .single();
-          
-        if (error) {
-          console.error("Error checking password status:", error);
+        // Use profile from context instead of fetching again if possible
+        if (user.is_password_changed === false) {
+          console.log("ProtectedRoute: User needs to set password (from context)");
+          setIsRedirecting(true);
+          window.location.href = '/set-password';
           return;
         }
         
-        console.log("ProtectedRoute: Password status check result:", profile);
-        
-        if (profile && profile.is_password_changed === false) {
-          console.log("ProtectedRoute: User needs to set password");
-          window.location.href = '/set-password';
-        }
+        setIsChecking(false);
       } catch (error) {
         console.error("Error in password check:", error);
+        setIsChecking(false);
       }
     };
     
-    if (user) {
+    if (user && !loading) {
       checkPasswordStatus();
     }
-  }, [user]);
+  }, [user, loading, isChecking, isRedirecting]);
 
-  if (loading) {
-    console.log("ProtectedRoute: Still loading user data");
-    return <div>Loading...</div>;
+  if (loading || isChecking) {
+    console.log("ProtectedRoute: Still loading or checking user data");
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-green-500" />
+        <span className="ml-2">Verifying access...</span>
+      </div>
+    );
   }
 
-  if (!user) {
+  if (!user && !isRedirecting) {
     console.log("ProtectedRoute: No user found, redirecting to login");
+    setIsRedirecting(true);
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
+  if (allowedRoles && user && !allowedRoles.includes(user.role) && !isRedirecting) {
     console.log("ProtectedRoute: User role not allowed:", user.role);
     console.log("ProtectedRoute: Allowed roles:", allowedRoles);
     // Redirect client to client route, others to admin route
     const redirectPath = user.role === 'client' ? '/client' : '/admin';
     console.log("ProtectedRoute: Redirecting to:", redirectPath);
+    setIsRedirecting(true);
     return <Navigate to={redirectPath} replace />;
   }
 
-  console.log("ProtectedRoute: User authorized, proceeding with role:", user.role);
+  console.log("ProtectedRoute: User authorized, proceeding with role:", user?.role);
   return children ? <>{children}</> : <Outlet />;
 };
 
