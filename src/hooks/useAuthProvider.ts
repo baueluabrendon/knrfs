@@ -119,7 +119,10 @@ export function useAuthProvider() {
         is_password_changed: profile.is_password_changed,
       };
       
+      console.log("AuthProvider: Setting user state with profile:", userProfile);
       setUser(userProfile);
+      
+      console.log("AuthProvider: Login successful, returning user profile");
       return userProfile;
     } catch (error: any) {
       console.error("AuthProvider: Login error:", error);

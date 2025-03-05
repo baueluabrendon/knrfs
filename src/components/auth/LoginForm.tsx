@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom"; // Add navigate hook
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -19,7 +20,8 @@ export const LoginForm = () => {
   const [error, setError] = useState<string | null>(null);
   const [isVerificationDialogOpen, setIsVerificationDialogOpen] = useState(false);
   const [isForgotPasswordDialogOpen, setIsForgotPasswordDialogOpen] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, user } = useAuth(); // Get user to check if logged in
+  const navigate = useNavigate(); // Add navigate hook
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -32,13 +34,21 @@ export const LoginForm = () => {
 
     try {
       console.log("LoginForm: Starting sign in process with:", email);
-      await signIn(email, password);
+      const userProfile = await signIn(email, password);
       
-      console.log("LoginForm: Sign in successful");
+      console.log("LoginForm: Sign in successful, user profile:", userProfile);
       toast.success("Successfully logged in!");
       
-      // Auth redirects are handled by AuthForm.tsx 
-      // No need to navigate here
+      // Add explicit navigation here as a fallback
+      if (userProfile) {
+        console.log("LoginForm: Redirecting based on role:", userProfile.role);
+        
+        if (userProfile.role === 'client') {
+          navigate('/client', { replace: true });
+        } else {
+          navigate('/admin', { replace: true });
+        }
+      }
       
     } catch (error: any) {
       console.error("LoginForm: Sign in error:", error);

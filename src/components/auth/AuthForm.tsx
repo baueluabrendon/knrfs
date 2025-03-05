@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,6 +11,8 @@ const AuthForm = () => {
 
   useEffect(() => {
     console.log("AuthForm: Component mounted");
+    console.log("AuthForm: Current loading state:", loading);
+    console.log("AuthForm: Current user state:", user);
     
     // Only handle redirects when loading is complete and user is authenticated
     if (!loading && user) {
@@ -17,8 +20,10 @@ const AuthForm = () => {
       
       // Redirect based on user role
       if (user.role === 'client') {
+        console.log("AuthForm: Redirecting to client dashboard");
         navigate('/client', { replace: true });
       } else {
+        console.log("AuthForm: Redirecting to admin dashboard");
         navigate('/admin', { replace: true });
       }
     }
