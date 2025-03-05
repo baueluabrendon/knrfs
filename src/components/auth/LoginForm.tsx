@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +18,8 @@ import { ForgotPasswordForm } from "./ForgotPasswordForm";
 export const LoginForm = () => {
   const [isVerificationDialogOpen, setIsVerificationDialogOpen] = useState(false);
   const [isForgotPasswordDialogOpen, setIsForgotPasswordDialogOpen] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Only extract the signIn method, not the user state
   const { signIn } = useAuth(); 
@@ -24,6 +27,8 @@ export const LoginForm = () => {
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setFormError(null);
+    setIsSubmitting(true);
 
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
@@ -31,9 +36,9 @@ export const LoginForm = () => {
 
     try {
       console.log("LoginForm: Starting sign in process with:", email);
-      const userProfile = await signIn(email, password);
+      await signIn(email, password);
       
-      console.log("LoginForm: Sign in successful, user profile:", userProfile);
+      console.log("LoginForm: Sign in successful");
       toast.success("Successfully logged in!");
       
       // Navigation is now handled by the AuthForm component or ProtectedRoute
@@ -42,12 +47,14 @@ export const LoginForm = () => {
       console.error("LoginForm: Sign in error:", error);
       
       if (error.message === "Invalid login credentials") {
-        toast.error("Invalid email or password");
+        setFormError("Invalid email or password");
       } else if (error.message === "User profile not found") {
-        toast.error("User profile not found");
+        setFormError("User profile not found");
       } else {
-        toast.error(error.message || "Failed to sign in");
+        setFormError(error.message || "Failed to sign in");
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
   
@@ -87,18 +94,18 @@ export const LoginForm = () => {
           />
         </div>
 
-        {error && (
+        {formError && (
           <div className="text-sm text-red-600">
-            {error}
+            {formError}
           </div>
         )}
 
         <Button 
           type="submit" 
           className="w-full bg-[#22C55E] hover:bg-[#1EA34D] text-white py-2 rounded-md"
-          disabled={loading}
+          disabled={isSubmitting}
         >
-          {loading ? "Signing in..." : "Login"}
+          {isSubmitting ? "Signing in..." : "Login"}
         </Button>
         
         <div className="flex justify-between mt-4 text-sm">
