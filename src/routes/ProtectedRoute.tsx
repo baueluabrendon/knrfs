@@ -2,7 +2,6 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { ReactNode, useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
@@ -14,6 +13,7 @@ export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) 
   const { user, loading } = useAuth();
   const [isChecking, setIsChecking] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [shouldRedirect, setShouldRedirect] = useState<{to: string, replace: boolean} | null>(null);
   
   console.log("ProtectedRoute: Checking authorization");
   console.log("ProtectedRoute: User:", user);
@@ -27,13 +27,12 @@ export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) 
       
       try {
         setIsChecking(true);
-        console.log("ProtectedRoute: Checking password status for user:", user.user_id);
         
-        // Use profile from context instead of fetching again if possible
+        // Use profile from context
         if (user.is_password_changed === false) {
-          console.log("ProtectedRoute: User needs to set password (from context)");
+          console.log("ProtectedRoute: User needs to set password");
           setIsRedirecting(true);
-          window.location.href = '/set-password';
+          setShouldRedirect({ to: '/set-password', replace: true });
           return;
         }
         
@@ -49,8 +48,29 @@ export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) 
     }
   }, [user, loading, isChecking, isRedirecting]);
 
+  // Check if user is authenticated and has proper role
+  useEffect(() => {
+    if (loading || isChecking || isRedirecting) return;
+
+    if (!user) {
+      console.log("ProtectedRoute: No user found, redirecting to login");
+      setIsRedirecting(true);
+      setShouldRedirect({ to: '/login', replace: true });
+      return;
+    }
+
+    if (allowedRoles && user && !allowedRoles.includes(user.role)) {
+      console.log("ProtectedRoute: User role not allowed:", user.role);
+      // Redirect client to client route, others to admin route
+      const redirectPath = user.role === 'client' ? '/client' : '/admin';
+      console.log("ProtectedRoute: Redirecting to:", redirectPath);
+      setIsRedirecting(true);
+      setShouldRedirect({ to: redirectPath, replace: true });
+      return;
+    }
+  }, [user, loading, allowedRoles, isChecking, isRedirecting]);
+
   if (loading || isChecking) {
-    console.log("ProtectedRoute: Still loading or checking user data");
     return (
       <div className="flex justify-center items-center h-screen">
         <Loader2 className="w-8 h-8 animate-spin text-green-500" />
@@ -59,23 +79,10 @@ export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) 
     );
   }
 
-  if (!user && !isRedirecting) {
-    console.log("ProtectedRoute: No user found, redirecting to login");
-    setIsRedirecting(true);
-    return <Navigate to="/login" replace />;
+  if (shouldRedirect) {
+    return <Navigate to={shouldRedirect.to} replace={shouldRedirect.replace} />;
   }
 
-  if (allowedRoles && user && !allowedRoles.includes(user.role) && !isRedirecting) {
-    console.log("ProtectedRoute: User role not allowed:", user.role);
-    console.log("ProtectedRoute: Allowed roles:", allowedRoles);
-    // Redirect client to client route, others to admin route
-    const redirectPath = user.role === 'client' ? '/client' : '/admin';
-    console.log("ProtectedRoute: Redirecting to:", redirectPath);
-    setIsRedirecting(true);
-    return <Navigate to={redirectPath} replace />;
-  }
-
-  console.log("ProtectedRoute: User authorized, proceeding with role:", user?.role);
   return children ? <>{children}</> : <Outlet />;
 };
 
