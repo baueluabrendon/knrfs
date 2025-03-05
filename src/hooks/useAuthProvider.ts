@@ -22,36 +22,41 @@ export function useAuthProvider() {
         if (session?.user) {
           console.log("useAuthProvider: Found existing session for user:", session.user.id);
           
-          // Fetch user profile directly from user_profiles table
-          const { data: profile, error } = await supabase
-            .from('user_profiles')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .single();
-          
-          if (error) {
-            console.error("Error fetching user profile:", error);
-            setUser(null);
-            return;
-          }
-          
-          if (profile) {
-            console.log("useAuthProvider: Profile found:", profile);
+          try {
+            // Fetch user profile directly from user_profiles table
+            const { data: profile, error } = await supabase
+              .from('user_profiles')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .single();
             
-            const userProfile: UserProfile = {
-              user_id: profile.user_id,
-              id: profile.user_id,
-              email: profile.email,
-              role: profile.role as UserProfile['role'],
-              first_name: profile.first_name,
-              last_name: profile.last_name,
-              created_at: new Date().toISOString(), // Use current timestamp instead of session.created_at
-              is_password_changed: profile.is_password_changed,
-            };
+            if (error) {
+              console.error("Error fetching user profile:", error);
+              setUser(null);
+              return;
+            }
             
-            setUser(userProfile);
-          } else {
-            console.log("useAuthProvider: No profile found for user session");
+            if (profile) {
+              console.log("useAuthProvider: Profile found:", profile);
+              
+              const userProfile: UserProfile = {
+                user_id: profile.user_id,
+                id: profile.user_id,
+                email: profile.email,
+                role: profile.role as UserProfile['role'],
+                first_name: profile.first_name,
+                last_name: profile.last_name,
+                created_at: new Date().toISOString(),
+                is_password_changed: profile.is_password_changed,
+              };
+              
+              setUser(userProfile);
+            } else {
+              console.log("useAuthProvider: No profile found for user session");
+              setUser(null);
+            }
+          } catch (profileError) {
+            console.error("Profile fetch error:", profileError);
             setUser(null);
           }
         } else {
@@ -91,39 +96,47 @@ export function useAuthProvider() {
       
       console.log("Supabase auth successful:", data);
       
-      // Fetch user profile directly from user_profiles table
-      const { data: profile, error: profileError } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', data.user.id)
-        .single();
-      
-      if (profileError) {
-        console.error("Error fetching user profile after login:", profileError);
-        throw new Error("Failed to retrieve user profile");
+      try {
+        // Fetch user profile directly from user_profiles table
+        const { data: profile, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('user_id', data.user.id)
+          .maybeSingle(); // Use maybeSingle instead of single to handle case where profile doesn't exist
+        
+        console.log("Profile query response:", { profile, error: profileError });
+          
+        if (profileError) {
+          console.error("Error fetching user profile after login:", profileError);
+          throw new Error("Failed to retrieve user profile");
+        }
+        
+        if (!profile) {
+          console.error("No profile found for authenticated user");
+          throw new Error("User profile not found");
+        }
+        
+        // Create user profile object
+        const userProfile: UserProfile = {
+          user_id: profile.user_id,
+          id: profile.user_id,
+          email: profile.email,
+          role: profile.role as UserProfile['role'],
+          first_name: profile.first_name,
+          last_name: profile.last_name,
+          created_at: new Date().toISOString(),
+          is_password_changed: profile.is_password_changed,
+        };
+        
+        console.log("AuthProvider: Setting user state with profile:", userProfile);
+        setUser(userProfile);
+        
+        console.log("AuthProvider: Login successful, returning user profile");
+        return userProfile;
+      } catch (profileError: any) {
+        console.error("Profile retrieval error:", profileError);
+        throw profileError;
       }
-      
-      if (!profile) {
-        throw new Error("User profile not found");
-      }
-      
-      // Create user profile object
-      const userProfile: UserProfile = {
-        user_id: profile.user_id,
-        id: profile.user_id,
-        email: profile.email,
-        role: profile.role as UserProfile['role'],
-        first_name: profile.first_name,
-        last_name: profile.last_name,
-        created_at: new Date().toISOString(), // Use current timestamp instead of data.session?.created_at
-        is_password_changed: profile.is_password_changed,
-      };
-      
-      console.log("AuthProvider: Setting user state with profile:", userProfile);
-      setUser(userProfile);
-      
-      console.log("AuthProvider: Login successful, returning user profile");
-      return userProfile;
     } catch (error: any) {
       console.error("AuthProvider: Login error:", error);
       throw error;
