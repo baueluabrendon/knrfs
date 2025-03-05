@@ -1,51 +1,248 @@
 
+import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
-import Index from "@/pages/Index";
-import Loans from "@/pages/Loans";
-import Borrowers from "@/pages/Borrowers";
-import Applications from "@/pages/Applications";
-import Repayments from "@/pages/Repayments";
-import LoansInArrears from "@/pages/LoansInArrears";
-import MissedPayments from "@/pages/MissedPayments";
-import PartialPayments from "@/pages/PartialPayments";
-import Recoveries from "@/pages/Recoveries";
-import Users from "@/pages/Users";
-import AddLoan from "@/pages/AddLoan";
-import BulkLoans from "@/pages/BulkLoans";
-import BulkBorrowers from "@/pages/BulkBorrowers";
-import BulkRepayments from "@/pages/BulkRepayments";
-import Analytics from "@/pages/Analytics";
-import BalanceSheet from "@/pages/BalanceSheet";
-import ProfitAndLoss from "@/pages/ProfitAndLoss";
-import Cashflow from "@/pages/Cashflow";
-import ChartOfAccounts from "@/pages/ChartOfAccounts";
+import { Loader2 } from "lucide-react";
+import { ProtectedRoute } from "./ProtectedRoute";
 
-export const adminRoutes = (
-  <Routes>
-    <Route element={<DashboardLayout />}>
-      <Route index element={<Index />} />  
-      <Route path="loans/view" element={<Loans />} />
-      <Route path="loans/add" element={<AddLoan />} />
-      <Route path="loans/bulk" element={<BulkLoans />} />
-      <Route path="borrowers" element={<Borrowers />} />
-      <Route path="borrowers/bulk" element={<BulkBorrowers />} />
-      <Route path="applications" element={<Applications />} />
-      <Route path="repayments" element={<Repayments />} />
-      <Route path="repayments/bulk" element={<BulkRepayments />} />
-      <Route path="recoveries/loans-in-arrears" element={<LoansInArrears />} />
-      <Route path="recoveries/missed-payments" element={<MissedPayments />} />
-      <Route path="recoveries/partial-payments" element={<PartialPayments />} />
-      <Route path="recoveries" element={<Recoveries />} />
-      <Route path="users" element={<Users />} />
-      <Route path="analytics" element={<Analytics />} />
-      <Route path="accounting/balance-sheet" element={<BalanceSheet />} />
-      <Route path="accounting/profit-loss" element={<ProfitAndLoss />} />
-      <Route path="accounting/cashflow" element={<Cashflow />} />
-      <Route path="accounting/chart-of-accounts" element={<ChartOfAccounts />} />
+// Lazy load pages for better performance
+const Index = lazy(() => import("@/pages/Index"));
+const Loans = lazy(() => import("@/pages/Loans"));
+const Borrowers = lazy(() => import("@/pages/Borrowers"));
+const Applications = lazy(() => import("@/pages/Applications"));
+const Repayments = lazy(() => import("@/pages/Repayments"));
+const LoansInArrears = lazy(() => import("@/pages/LoansInArrears"));
+const MissedPayments = lazy(() => import("@/pages/MissedPayments"));
+const PartialPayments = lazy(() => import("@/pages/PartialPayments"));
+const Recoveries = lazy(() => import("@/pages/Recoveries"));
+const Users = lazy(() => import("@/pages/Users"));
+const AddLoan = lazy(() => import("@/pages/AddLoan"));
+const BulkLoans = lazy(() => import("@/pages/BulkLoans"));
+const BulkBorrowers = lazy(() => import("@/pages/BulkBorrowers"));
+const BulkRepayments = lazy(() => import("@/pages/BulkRepayments"));
+const Analytics = lazy(() => import("@/pages/Analytics"));
+const BalanceSheet = lazy(() => import("@/pages/BalanceSheet"));
+const ProfitAndLoss = lazy(() => import("@/pages/ProfitAndLoss"));
+const Cashflow = lazy(() => import("@/pages/Cashflow"));
+const ChartOfAccounts = lazy(() => import("@/pages/ChartOfAccounts"));
 
-      {/* Catch-all for unknown admin routes, redirect to index */}
-      <Route path="*" element={<Index />} />
-    </Route>
-  </Routes>
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="flex justify-center items-center h-[calc(100vh-80px)]">
+    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+    <span className="ml-2">Loading page...</span>
+  </div>
 );
+
+const AdminRoutes = () => {
+  return (
+    <Routes>
+      <Route 
+        element={
+          <ProtectedRoute 
+            allowedRoles={[
+              "administrator",
+              "super_user",
+              "sales_officer",
+              "accounts_officer",
+              "recoveries_officer",
+            ]}
+          />
+        }
+      >
+        <Route element={<DashboardLayout />}>
+          <Route 
+            index 
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <Index />
+              </Suspense>
+            } 
+          />
+          
+          {/* Loans Management */}
+          <Route path="loans">
+            <Route 
+              path="view" 
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <Loans />
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="add" 
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <AddLoan />
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="bulk" 
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <BulkLoans />
+                </Suspense>
+              } 
+            />
+          </Route>
+          
+          {/* Borrowers Management */}
+          <Route path="borrowers">
+            <Route 
+              index 
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <Borrowers />
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="bulk" 
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <BulkBorrowers />
+                </Suspense>
+              } 
+            />
+          </Route>
+          
+          {/* Applications */}
+          <Route 
+            path="applications" 
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <Applications />
+              </Suspense>
+            } 
+          />
+          
+          {/* Repayments */}
+          <Route path="repayments">
+            <Route 
+              index 
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <Repayments />
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="bulk" 
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <BulkRepayments />
+                </Suspense>
+              } 
+            />
+          </Route>
+          
+          {/* Recoveries */}
+          <Route path="recoveries">
+            <Route 
+              index 
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <Recoveries />
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="loans-in-arrears" 
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <LoansInArrears />
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="missed-payments" 
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <MissedPayments />
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="partial-payments" 
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <PartialPayments />
+                </Suspense>
+              } 
+            />
+          </Route>
+          
+          {/* Users */}
+          <Route 
+            path="users" 
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <Users />
+              </Suspense>
+            } 
+          />
+          
+          {/* Analytics */}
+          <Route 
+            path="analytics" 
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <Analytics />
+              </Suspense>
+            } 
+          />
+          
+          {/* Accounting */}
+          <Route path="accounting">
+            <Route 
+              path="balance-sheet" 
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <BalanceSheet />
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="profit-loss" 
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <ProfitAndLoss />
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="cashflow" 
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <Cashflow />
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="chart-of-accounts" 
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <ChartOfAccounts />
+                </Suspense>
+              } 
+            />
+          </Route>
+          
+          {/* Catch-all: Redirect to dashboard index */}
+          <Route 
+            path="*" 
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <Index />
+              </Suspense>
+            } 
+          />
+        </Route>
+      </Route>
+    </Routes>
+  );
+};
+
+export default AdminRoutes;
