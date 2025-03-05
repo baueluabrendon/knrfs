@@ -8,6 +8,7 @@ import { AuthHeader } from "@/components/auth/AuthHeader";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
+import { UserProfile } from "@/types/auth";
 
 const SetPassword = () => {
   const [password, setPassword] = useState("");
@@ -93,17 +94,18 @@ const SetPassword = () => {
       console.log("Fetched updated profile:", profileData);
       
       // 5. Update the auth context with the latest user data
+      // Explicitly cast the role to ensure type compatibility
+      const roleValue = profileData.role as UserProfile["role"];
+      
       updateUserProfile({
-        ...profileData,
-        id: profileData.user_id,
         is_password_changed: true,
-        created_at: new Date().toISOString(),
+        role: roleValue
       });
       
       toast.success("Password set successfully!");
       
       // 6. Redirect to the appropriate page based on role
-      const redirectPath = profileData.role === 'client' ? '/client' : '/admin';
+      const redirectPath = roleValue === 'client' ? '/client' : '/admin';
       console.log("Redirecting to:", redirectPath);
       navigate(redirectPath, { replace: true });
     } catch (error: any) {
