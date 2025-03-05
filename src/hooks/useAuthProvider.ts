@@ -1,20 +1,26 @@
 
-import { useEffect } from 'react';
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { UserProfile } from "@/types/auth";
-import { useAuthState } from "@/hooks/useAuthState";
 import { supabase } from "@/lib/supabase";
 
+interface AuthState {
+  user: UserProfile | null;
+  loading: boolean;
+  error: string | null;
+}
+
 export function useAuthProvider() {
-  const navigate = useNavigate();
-  const { user, loading, setUser, setLoading } = useAuthState();
-  
+  const [authState, setAuthState] = useState<AuthState>({
+    user: null,
+    loading: true,
+    error: null
+  });
+
   // Check for existing session on component mount
   useEffect(() => {
     const checkCurrentSession = async () => {
       try {
-        setLoading(true);
         console.log("useAuthProvider: Checking current session");
         
         // Get auth session
@@ -22,13 +28,13 @@ export function useAuthProvider() {
         
         if (sessionError) {
           console.error("Session retrieval error:", sessionError);
-          setUser(null);
+          setAuthState(prev => ({ ...prev, user: null, loading: false }));
           return;
         }
         
         if (!session?.user) {
           console.log("useAuthProvider: No active session found");
-          setUser(null);
+          setAuthState(prev => ({ ...prev, user: null, loading: false }));
           return;
         }
 
@@ -44,7 +50,7 @@ export function useAuthProvider() {
           
           if (profileError) {
             console.error("Error fetching user profile:", profileError);
-            setUser(null);
+            setAuthState(prev => ({ ...prev, user: null, loading: false }));
             return;
           }
           
@@ -62,29 +68,27 @@ export function useAuthProvider() {
               is_password_changed: profile.is_password_changed,
             };
             
-            setUser(userProfile);
+            setAuthState(prev => ({ ...prev, user: userProfile, loading: false }));
           } else {
             console.log("useAuthProvider: No profile found for user session");
-            setUser(null);
+            setAuthState(prev => ({ ...prev, user: null, loading: false }));
           }
         } catch (profileError) {
           console.error("Profile fetch error:", profileError);
-          setUser(null);
+          setAuthState(prev => ({ ...prev, user: null, loading: false }));
         }
       } catch (error) {
         console.error("useAuthProvider: Error checking session:", error);
-        setUser(null);
-      } finally {
-        setLoading(false);
+        setAuthState(prev => ({ ...prev, user: null, loading: false }));
       }
     };
     
     checkCurrentSession();
-  }, [setUser, setLoading]);
+  }, []);
   
   const handleSignIn = async (email: string, password: string) => {
     try {
-      setLoading(true);
+      setAuthState(prev => ({ ...prev, loading: true, error: null }));
       console.log("AuthProvider: Starting sign in process with:", email);
       
       // Sign in with Supabase Auth
@@ -95,12 +99,15 @@ export function useAuthProvider() {
       
       if (error) {
         console.error("Supabase auth error:", error);
+        setAuthState(prev => ({ ...prev, loading: false, error: error.message }));
         throw error;
       }
 
       if (!data.user) {
-        console.error("No user returned from authentication");
-        throw new Error("No user returned from authentication");
+        const errorMsg = "No user returned from authentication";
+        console.error(errorMsg);
+        setAuthState(prev => ({ ...prev, loading: false, error: errorMsg }));
+        throw new Error(errorMsg);
       }
       
       console.log("Supabase auth successful:", data);
@@ -116,12 +123,15 @@ export function useAuthProvider() {
         
       if (profileError) {
         console.error("Error fetching user profile after login:", profileError);
+        setAuthState(prev => ({ ...prev, loading: false, error: "Failed to retrieve user profile. This might be due to a permission issue." }));
         throw new Error("Failed to retrieve user profile. This might be due to a permission issue.");
       }
       
       if (!profile) {
-        console.error("No profile found for authenticated user");
-        throw new Error("User profile not found. Please contact support.");
+        const errorMsg = "User profile not found. Please contact support.";
+        console.error(errorMsg);
+        setAuthState(prev => ({ ...prev, loading: false, error: errorMsg }));
+        throw new Error(errorMsg);
       }
       
       // Create user profile object
@@ -137,36 +147,32 @@ export function useAuthProvider() {
       };
       
       console.log("AuthProvider: Setting user state with profile:", userProfile);
-      setUser(userProfile);
+      setAuthState(prev => ({ ...prev, user: userProfile, loading: false, error: null }));
       
       console.log("AuthProvider: Login successful, returning user profile");
       return userProfile;
     } catch (error: any) {
       console.error("AuthProvider: Login error:", error);
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleSignOut = async () => {
     try {
-      setLoading(true);
+      setAuthState(prev => ({ ...prev, loading: true }));
       await supabase.auth.signOut();
-      setUser(null);
+      setAuthState({ user: null, loading: false, error: null });
       console.log("AuthProvider: User signed out, user state cleared");
-      navigate('/login');
     } catch (error: any) {
       console.error("AuthProvider: Logout error:", error);
+      setAuthState(prev => ({ ...prev, loading: false, error: error.message }));
       toast.error(error.message || "Failed to sign out");
-    } finally {
-      setLoading(false);
     }
   };
   
   const sendPasswordResetEmail = async (email: string) => {
     try {
-      setLoading(true);
+      setAuthState(prev => ({ ...prev, loading: true }));
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/set-password`,
       });
@@ -174,18 +180,18 @@ export function useAuthProvider() {
       if (error) throw error;
       
       toast.success("Password reset email sent. Please check your inbox.");
+      setAuthState(prev => ({ ...prev, loading: false }));
     } catch (error: any) {
       console.error("Password reset error:", error);
+      setAuthState(prev => ({ ...prev, loading: false, error: error.message }));
       toast.error(error.message || "Failed to send password reset email");
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
   
   const sendVerificationEmail = async (email: string) => {
     try {
-      setLoading(true);
+      setAuthState(prev => ({ ...prev, loading: true }));
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -196,18 +202,17 @@ export function useAuthProvider() {
       if (error) throw error;
       
       toast.success("Verification email sent. Please check your inbox.");
+      setAuthState(prev => ({ ...prev, loading: false }));
     } catch (error: any) {
       console.error("Verification email error:", error);
+      setAuthState(prev => ({ ...prev, loading: false, error: error.message }));
       toast.error(error.message || "Failed to send verification email");
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
   return {
-    user,
-    loading,
+    authState,
     signIn: handleSignIn,
     signOut: handleSignOut,
     sendPasswordResetEmail,

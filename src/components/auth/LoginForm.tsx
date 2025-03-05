@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom"; // Add navigate hook
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -16,17 +16,13 @@ import { VerificationEmailForm } from "./VerificationEmailForm";
 import { ForgotPasswordForm } from "./ForgotPasswordForm";
 
 export const LoginForm = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isVerificationDialogOpen, setIsVerificationDialogOpen] = useState(false);
   const [isForgotPasswordDialogOpen, setIsForgotPasswordDialogOpen] = useState(false);
-  const { signIn, user } = useAuth(); // Get user to check if logged in
-  const navigate = useNavigate(); // Add navigate hook
+  const { signIn, loading, error } = useAuth(); 
+  const navigate = useNavigate();
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError(null);
 
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
@@ -54,17 +50,12 @@ export const LoginForm = () => {
       console.error("LoginForm: Sign in error:", error);
       
       if (error.message === "Invalid login credentials") {
-        setError("Invalid email or password");
         toast.error("Invalid email or password");
       } else if (error.message === "User profile not found") {
-        setError("User profile not found. Please contact support.");
         toast.error("User profile not found");
       } else {
-        setError(error.message || "Failed to sign in");
         toast.error(error.message || "Failed to sign in");
       }
-    } finally {
-      setIsLoading(false);
     }
   };
   
@@ -113,9 +104,9 @@ export const LoginForm = () => {
         <Button 
           type="submit" 
           className="w-full bg-[#22C55E] hover:bg-[#1EA34D] text-white py-2 rounded-md"
-          disabled={isLoading}
+          disabled={loading}
         >
-          {isLoading ? "Signing in..." : "Login"}
+          {loading ? "Signing in..." : "Login"}
         </Button>
         
         <div className="flex justify-between mt-4 text-sm">
