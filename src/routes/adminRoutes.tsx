@@ -246,3 +246,6 @@ const AdminRoutes = () => {
 };
 
 export default AdminRoutes;
+
+// Named export for App.tsx
+export const adminRoutes = <AdminRoutes />;
