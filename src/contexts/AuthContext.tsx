@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { UserProfile } from "@/types/auth";
@@ -16,6 +15,7 @@ interface AuthContextType extends AuthState {
   signOut: () => Promise<void>;
   sendPasswordResetEmail: (email: string) => Promise<void>;
   sendVerificationEmail: (email: string) => Promise<void>;
+  updateUserProfile: (userData: Partial<UserProfile>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,13 +23,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
-    loading: true, // Start with loading to check session
+    loading: true,
     error: null,
   });
 
   const navigate = useNavigate();
 
-  // ✅ Load user session on mount
   useEffect(() => {
     const checkSession = async () => {
       setAuthState((prev) => ({ ...prev, loading: true }));
@@ -61,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ...profile,
           id: profile.user_id,
           created_at: new Date().toISOString(),
-          role: profile.role as UserProfile["role"], // Explicitly cast role to fix type error
+          role: profile.role as UserProfile["role"],
         },
         loading: false,
         error: null,
@@ -71,7 +70,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkSession();
   }, []);
 
-  // ✅ Sign In
   const signIn = async (email: string, password: string): Promise<UserProfile | null> => {
     setAuthState((prev) => ({ ...prev, loading: true, error: null }));
 
@@ -96,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...profile,
         id: profile.user_id,
         created_at: new Date().toISOString(),
-        role: profile.role as UserProfile["role"], // Explicitly cast role to fix type error
+        role: profile.role as UserProfile["role"],
       };
 
       setAuthState({ user: userProfile, loading: false, error: null });
@@ -109,7 +107,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // ✅ Sign Out
   const signOut = async () => {
     setAuthState((prev) => ({ ...prev, loading: true }));
 
@@ -125,7 +122,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // ✅ Send Password Reset Email
   const sendPasswordResetEmail = async (email: string) => {
     setAuthState((prev) => ({ ...prev, loading: true }));
 
@@ -145,7 +141,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // ✅ Send Verification Email
   const sendVerificationEmail = async (email: string) => {
     setAuthState((prev) => ({ ...prev, loading: true }));
 
@@ -166,6 +161,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateUserProfile = (userData: Partial<UserProfile>) => {
+    setAuthState(prev => ({
+      ...prev,
+      user: prev.user ? { ...prev.user, ...userData } : null
+    }));
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -176,6 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signOut,
         sendPasswordResetEmail,
         sendVerificationEmail,
+        updateUserProfile
       }}
     >
       {children}
@@ -183,7 +186,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// ✅ Custom Hook to Use Auth
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AuthHeader } from "@/components/auth/AuthHeader";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
+import { Loader2 } from "lucide-react";
 
 const SetPassword = () => {
   const [password, setPassword] = useState("");
@@ -14,19 +16,16 @@ const SetPassword = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, loading, updateUserProfile } = useAuth();
 
-  // Get access token from URL
+  // Redirect if user already has password set
   useEffect(() => {
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const accessToken = hashParams.get("access_token");
-    
-    // If we have an access token, we're in the verification flow
-    if (accessToken) {
-      console.log("SetPassword: Access token found, user is verifying email");
-    } else {
-      console.log("SetPassword: No access token found");
+    if (!loading && user?.is_password_changed) {
+      console.log("SetPassword: User already has password set, redirecting");
+      const redirectPath = user.role === "client" ? "/client" : "/admin";
+      navigate(redirectPath, { replace: true });
     }
-  }, []);
+  }, [user, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,42 +47,65 @@ const SetPassword = () => {
     setIsLoading(true);
     
     try {
-      // Update the user's password
+      // 1. Update the user's password
       const { error: passwordError } = await supabase.auth.updateUser({
         password: password,
       });
       
       if (passwordError) throw passwordError;
 
-      // Update the user's profile to mark password as changed
+      console.log("Password updated successfully");
+
+      // 2. Get current user to ensure we have the latest session
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      
+      if (!currentUser) {
+        throw new Error("User session not found after password update");
+      }
+
+      console.log("Current user found:", currentUser.id);
+      
+      // 3. Update the user's profile to mark password as changed
       const { error: profileError } = await supabase
         .from('user_profiles')
         .update({ is_password_changed: true })
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
+        .eq('user_id', currentUser.id);
       
       if (profileError) {
         console.error("Failed to update profile:", profileError);
+        throw profileError;
       }
+
+      console.log("Profile updated: is_password_changed set to true");
+      
+      // 4. Fetch the updated profile data
+      const { data: profileData, error: fetchError } = await supabase
+        .from('user_profiles')
+        .select('role, is_password_changed, user_id, email, first_name, last_name')
+        .eq('user_id', currentUser.id)
+        .single();
+        
+      if (fetchError || !profileData) {
+        console.error("Failed to fetch updated profile:", fetchError);
+        throw fetchError || new Error("Profile data not found");
+      }
+
+      console.log("Fetched updated profile:", profileData);
+      
+      // 5. Update the auth context with the latest user data
+      updateUserProfile({
+        ...profileData,
+        id: profileData.user_id,
+        is_password_changed: true,
+        created_at: new Date().toISOString(),
+      });
       
       toast.success("Password set successfully!");
       
-      // Redirect to the appropriate page based on role
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profileData } = await supabase
-          .from('user_profiles')
-          .select('role')
-          .eq('user_id', user.id)
-          .single();
-          
-        if (profileData?.role === 'client') {
-          navigate('/client');
-        } else {
-          navigate('/admin');
-        }
-      } else {
-        navigate('/login');
-      }
+      // 6. Redirect to the appropriate page based on role
+      const redirectPath = profileData.role === 'client' ? '/client' : '/admin';
+      console.log("Redirecting to:", redirectPath);
+      navigate(redirectPath, { replace: true });
     } catch (error: any) {
       console.error("Password update error:", error);
       setError(error.message || "Failed to set password");
@@ -92,6 +114,15 @@ const SetPassword = () => {
       setIsLoading(false);
     }
   };
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-green-500" />
+        <span className="ml-2">Loading...</span>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen flex flex-col">
