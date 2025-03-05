@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -18,7 +17,9 @@ import { ForgotPasswordForm } from "./ForgotPasswordForm";
 export const LoginForm = () => {
   const [isVerificationDialogOpen, setIsVerificationDialogOpen] = useState(false);
   const [isForgotPasswordDialogOpen, setIsForgotPasswordDialogOpen] = useState(false);
-  const { signIn, loading, error } = useAuth(); 
+  
+  // Only extract the signIn method, not the user state
+  const { signIn } = useAuth(); 
   const navigate = useNavigate();
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -35,17 +36,8 @@ export const LoginForm = () => {
       console.log("LoginForm: Sign in successful, user profile:", userProfile);
       toast.success("Successfully logged in!");
       
-      // Add explicit navigation here as a fallback
-      if (userProfile) {
-        console.log("LoginForm: Redirecting based on role:", userProfile.role);
-        
-        if (userProfile.role === 'client') {
-          navigate('/client', { replace: true });
-        } else {
-          navigate('/admin', { replace: true });
-        }
-      }
-      
+      // Navigation is now handled by the AuthForm component or ProtectedRoute
+      // Login form no longer needs to handle redirection
     } catch (error: any) {
       console.error("LoginForm: Sign in error:", error);
       
