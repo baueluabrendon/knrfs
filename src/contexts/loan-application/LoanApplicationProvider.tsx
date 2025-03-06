@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { 
@@ -13,7 +12,6 @@ import { submitApplication } from "./submit-application";
 import { uploadDocument, uploadApplicationDocument, mapDocumentKeyToEnum } from "./document-uploader";
 import { supabase } from "@/integrations/supabase/client";
 
-// Create the context
 const LoanApplicationContext = createContext<LoanApplicationContextType | undefined>(undefined);
 
 export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -26,7 +24,6 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
   const [uploadingDocument, setUploadingDocument] = useState(false);
 
   useEffect(() => {
-    // Generate the UUID once for this application
     setApplicationUuid(crypto.randomUUID());
   }, []);
 
@@ -39,17 +36,15 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
     setUploadingDocument(true);
 
     try {
-      // Store the file locally (in state) for later reference
       setDocuments(prev => ({
         ...prev,
         [documentKey]: { ...prev[documentKey], file }
       }));
 
-      if (documentKey === 'applicationForm' || documentKey === 'termsAndConditions') {
-        // Upload file using the helper that returns the file URL
+      if (documentKey === 'applicationForm') {
         const documentUrl = await uploadApplicationDocument(
           file, 
-          documentKey as 'applicationForm' | 'termsAndConditions',
+          'applicationForm',
           applicationUuid
         );
 
@@ -57,7 +52,6 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
           throw new Error(`Failed to upload ${documentKey}`);
         }
 
-        // Check if an application record with this applicationUuid already exists
         const { data: existingApp, error: fetchError } = await supabase
           .from('applications')
           .select('application_id')
@@ -69,30 +63,23 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
           throw fetchError;
         }
 
-        // Build the payload depending on the document type
-        const updatePayload = documentKey === 'applicationForm'
-          ? { application_document_url: documentUrl }
-          : { terms_and_conditions_url: documentUrl };
+        const insertPayload = {
+          application_document_url: documentUrl,
+          application_id: applicationUuid,
+          uploaded_at: new Date().toISOString(),
+          status: 'pending' as const
+        };
 
         if (existingApp) {
-          // If record exists, update the relevant field
           const { error: updateError } = await supabase
             .from('applications')
-            .update(updatePayload)
+            .update(insertPayload)
             .eq('application_id', applicationUuid);
           if (updateError) {
             console.error('Error updating application record:', updateError);
             throw updateError;
           }
         } else {
-          // If no record exists, insert a new one with the given field set
-          const insertPayload = {
-            application_id: applicationUuid,
-            uploaded_at: new Date().toISOString(),
-            status: 'pending',
-            ...updatePayload
-          };
-
           const { error: insertError } = await supabase
             .from('applications')
             .insert(insertPayload);
@@ -104,7 +91,6 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
 
         toast.success(`${documents[documentKey].name} uploaded successfully`);
       } else {
-        // For other document uploads
         const documentUrl = await uploadDocument(file, documentKey);
         const documentTypeEnum = mapDocumentKeyToEnum(documentKey);
 

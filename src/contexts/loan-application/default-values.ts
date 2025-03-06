@@ -1,4 +1,3 @@
-
 import { 
   PersonalDetailsType, 
   EmploymentDetailsType, 
@@ -90,6 +89,7 @@ export const defaultDocuments: Record<string, DocumentUploadType> = {
     required: true,
     employerTypes: ['public', 'statutory', 'company']
   },
+  // Move terms and conditions to stage 2
   termsAndConditions: { 
     name: "Terms and Conditions", 
     file: null, 

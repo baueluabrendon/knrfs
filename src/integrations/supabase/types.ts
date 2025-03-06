@@ -40,8 +40,6 @@ export type Database = {
           created_at: string | null
           jsonb_data: Json | null
           status: Database["public"]["Enums"]["application_status_enum"] | null
-          terms_and_conditions_url: string | null
-          uploaded_at: string
         }
         Insert: {
           application_document_url?: string | null
@@ -49,8 +47,6 @@ export type Database = {
           created_at?: string | null
           jsonb_data?: Json | null
           status?: Database["public"]["Enums"]["application_status_enum"] | null
-          terms_and_conditions_url?: string | null
-          uploaded_at?: string
         }
         Update: {
           application_document_url?: string | null
@@ -58,8 +54,6 @@ export type Database = {
           created_at?: string | null
           jsonb_data?: Json | null
           status?: Database["public"]["Enums"]["application_status_enum"] | null
-          terms_and_conditions_url?: string | null
-          uploaded_at?: string
         }
         Relationships: []
       }
@@ -682,23 +676,6 @@ export type Database = {
         | "TERM_26"
         | "TERM_28"
         | "TERM_30"
-      document_category:
-        | "identification"
-        | "income"
-        | "employment"
-        | "payroll"
-        | "bank"
-        | "primary"
-        | "other"
-      document_type:
-        | "national id"
-        | "passport"
-        | "drivers license"
-        | "payslip"
-        | "employment letter"
-        | "bank statement"
-        | "data entry form"
-        | "loan application form"
       document_type_enum:
         | "Terms and Conditions"
         | "Pay Slip 1"

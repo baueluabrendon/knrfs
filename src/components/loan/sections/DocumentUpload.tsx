@@ -51,18 +51,18 @@ export const DocumentUpload = () => {
       <div className="space-y-4">
         <h2 className="text-xl font-semibold text-gray-800">Initial Documents</h2>
         <p className="text-sm text-gray-600">
-          Please upload the required documents to proceed with your loan application.
+          Please upload your application form to proceed with your loan application.
         </p>
         
         <DocumentList
           documents={documents}
-          filter={(key) => ["applicationForm", "termsAndConditions"].includes(key)}
+          filter={(key) => ["applicationForm"].includes(key)}
           isDocumentEnabled={isDocumentEnabled}
           handleFileUpload={handleFileUpload}
           isUploading={uploadingDocument}
         />
         
-        {documents.applicationForm.file && documents.termsAndConditions.file && (
+        {documents.applicationForm.file && (
           <div className="mt-6">
             <Button 
               onClick={handleProcessDocument} 
