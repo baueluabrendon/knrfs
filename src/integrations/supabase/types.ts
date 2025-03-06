@@ -40,6 +40,7 @@ export type Database = {
           created_at: string | null
           jsonb_data: Json | null
           status: Database["public"]["Enums"]["application_status_enum"] | null
+          uploaded_at: string | null
         }
         Insert: {
           application_document_url?: string | null
@@ -47,6 +48,7 @@ export type Database = {
           created_at?: string | null
           jsonb_data?: Json | null
           status?: Database["public"]["Enums"]["application_status_enum"] | null
+          uploaded_at?: string | null
         }
         Update: {
           application_document_url?: string | null
@@ -54,6 +56,7 @@ export type Database = {
           created_at?: string | null
           jsonb_data?: Json | null
           status?: Database["public"]["Enums"]["application_status_enum"] | null
+          uploaded_at?: string | null
         }
         Relationships: []
       }

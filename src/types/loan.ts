@@ -2,6 +2,7 @@
 export type EmployerType = 'public' | 'statutory' | 'company' | null;
 
 export interface DocumentUploadType {
+  key: string; // Add the key property to fix the type error
   name: string;
   file: File | null;
   required: boolean;
