@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { 
@@ -9,7 +10,7 @@ import { LoanApplicationContextType } from "./types";
 import { defaultFormData, defaultDocuments } from "./default-values";
 import { processApplicationFormOCR } from "./ocr-processor";
 import { submitApplication } from "./submit-application";
-import { uploadDocument, uploadApplicationDocument } from "./document-uploader";
+import { uploadDocument, uploadApplicationDocument, mapDocumentKeyToEnum } from "./document-uploader";
 import { supabase } from "@/integrations/supabase/client";
 
 // Create the context
@@ -31,25 +32,6 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
   const handleEmployerTypeSelect = (type: EmployerType) => {
     setSelectedEmployerType(type);
     toast.success(`Selected employer type: ${type}`);
-  };
-
-  const mapDocumentKeyToEnum = (documentKey: string) => {
-    const documentTypeMap: Record<string, string> = {
-      'termsAndConditions': 'Terms and Conditions',
-      'paySlip1': 'Pay Slip 1',
-      'paySlip2': 'Pay Slip 2',
-      'paySlip3': 'Pay Slip 3',
-      'bankStatement': '3 Months Bank Statement',
-      'idDocument': 'ID Document',
-      'salaryDeduction': 'Irrevocable Salary Deduction Authority',
-      'employmentLetter': 'Employment Confirmation Letter',
-      'dataEntryForm': 'Data Entry Form',
-      'permanentVariation': 'Permanent Variation Advice',
-      'nasfundForm': 'Nasfund Account Statement',
-      'salaryDeductionConfirmation': 'Salary Deduction Confirmation Letter'
-    };
-    
-    return documentTypeMap[documentKey] || null;
   };
 
   const handleFileUpload = async (documentKey: string, file: File) => {

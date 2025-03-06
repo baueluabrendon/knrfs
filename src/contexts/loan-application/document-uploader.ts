@@ -1,6 +1,10 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Database } from "@/integrations/supabase/types";
+
+// Type alias for document types
+type DocumentType = Database['public']['Enums']['document_type_enum'];
 
 /**
  * Uploads a document to Supabase storage for a loan application
@@ -94,6 +98,30 @@ export const uploadApplicationDocument = async (
     console.error(`Error in uploadApplicationDocument (${applicationType}):`, error);
     return false;
   }
+};
+
+/**
+ * Maps document key to Supabase enum value
+ * @param documentKey The document key from the frontend
+ * @returns The corresponding enum value for the database
+ */
+export const mapDocumentKeyToEnum = (documentKey: string): DocumentType | null => {
+  const documentTypeMap: Record<string, DocumentType> = {
+    'termsAndConditions': 'Terms and Conditions',
+    'paySlip1': 'Pay Slip 1',
+    'paySlip2': 'Pay Slip 2',
+    'paySlip3': 'Pay Slip 3',
+    'bankStatement': '3 Months Bank Statement',
+    'idDocument': 'ID Document',
+    'salaryDeduction': 'Irrevocable Salary Deduction Authority',
+    'employmentLetter': 'Employment Confirmation Letter',
+    'dataEntryForm': 'Data Entry Form',
+    'permanentVariation': 'Permanent Variation Advice',
+    'nasfundForm': 'Nasfund Account Statement',
+    'salaryDeductionConfirmation': 'Salary Deduction Confirmation Letter'
+  };
+  
+  return documentTypeMap[documentKey] || null;
 };
 
 /**
