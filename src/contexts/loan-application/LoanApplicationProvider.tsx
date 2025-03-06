@@ -23,6 +23,7 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
   const [documents, setDocuments] = useState<Record<string, DocumentUploadType>>({ ...defaultDocuments });
   const [applicationUuid, setApplicationUuid] = useState<string>("");
   const [uploadingDocument, setUploadingDocument] = useState(false);
+  const [ocrError, setOcrError] = useState<string | null>(null);
 
   useEffect(() => {
     setApplicationUuid(crypto.randomUUID());
@@ -35,6 +36,7 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
 
   const handleFileUpload = async (documentKey: string, file: File) => {
     setUploadingDocument(true);
+    setOcrError(null);
 
     try {
       setDocuments(prev => ({
@@ -43,67 +45,87 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
       }));
 
       if (documentKey === 'applicationForm') {
-        const documentUrl = await uploadApplicationDocument(
-          file, 
-          'applicationForm',
-          applicationUuid
-        );
+        let documentUrl;
+        try {
+          documentUrl = await uploadApplicationDocument(
+            file, 
+            'applicationForm',
+            applicationUuid
+          );
 
-        if (!documentUrl) {
-          throw new Error(`Failed to upload ${documentKey}`);
-        }
-
-        const { data: existingApp, error: fetchError } = await supabase
-          .from('applications')
-          .select('application_id')
-          .eq('application_id', applicationUuid)
-          .maybeSingle();
-
-        if (fetchError) {
-          console.error('Error checking existing application:', fetchError);
-          throw fetchError;
-        }
-
-        if (existingApp) {
-          const { error: updateError } = await supabase
-            .from('applications')
-            .update({
-              application_document_url: documentUrl,
-              status: 'pending',
-              uploaded_at: new Date().toISOString()
-            })
-            .eq('application_id', applicationUuid);
-            
-          if (updateError) {
-            console.error('Error updating application record:', updateError);
-            throw updateError;
+          if (!documentUrl) {
+            throw new Error(`Failed to upload ${documentKey}`);
           }
-        } else {
-          const { error: insertError } = await supabase
-            .from('applications')
-            .insert({
-              application_id: applicationUuid,
-              application_document_url: documentUrl,
-              uploaded_at: new Date().toISOString(),
-              status: 'pending'
-            });
-            
-          if (insertError) {
-            console.error('Error creating application record:', insertError);
-            throw insertError;
-          }
+        } catch (uploadError) {
+          console.error(`Error uploading ${documentKey}:`, uploadError);
+          toast.error(`Failed to upload ${documents[documentKey].name}`);
+          setUploadingDocument(false);
+          return;
         }
 
-        toast.success(`${documents[documentKey].name} uploaded successfully`);
+        try {
+          const { data: existingApp, error: fetchError } = await supabase
+            .from('applications')
+            .select('application_id')
+            .eq('application_id', applicationUuid)
+            .maybeSingle();
+
+          if (fetchError) {
+            console.error('Error checking existing application:', fetchError);
+            throw fetchError;
+          }
+
+          if (existingApp) {
+            const { error: updateError } = await supabase
+              .from('applications')
+              .update({
+                application_document_url: documentUrl,
+                status: 'pending',
+                uploaded_at: new Date().toISOString()
+              })
+              .eq('application_id', applicationUuid);
+              
+            if (updateError) {
+              console.error('Error updating application record:', updateError);
+              throw updateError;
+            }
+          } else {
+            const { error: insertError } = await supabase
+              .from('applications')
+              .insert({
+                application_id: applicationUuid,
+                application_document_url: documentUrl,
+                uploaded_at: new Date().toISOString(),
+                status: 'pending'
+              });
+              
+            if (insertError) {
+              console.error('Error creating application record:', insertError);
+              throw insertError;
+            }
+          }
+
+          toast.success(`${documents[documentKey].name} uploaded successfully`);
+        } catch (dbError) {
+          console.error('Database operation error:', dbError);
+          toast.error("Failed to update database. Please try again.");
+          setUploadingDocument(false);
+          return;
+        }
       } else {
-        const documentUrl = await uploadDocument(file, documentKey);
-        const documentTypeEnum = mapDocumentKeyToEnum(documentKey);
+        try {
+          const documentUrl = await uploadDocument(file, documentKey);
+          
+          if (!documentUrl) {
+            throw new Error(`Failed to upload ${documentKey}`);
+          }
+          
+          const documentTypeEnum = mapDocumentKeyToEnum(documentKey);
 
-        if (!documentTypeEnum) {
-          throw new Error(`Unknown document type: ${documentKey}`);
-        }
+          if (!documentTypeEnum) {
+            throw new Error(`Unknown document type: ${documentKey}`);
+          }
 
-        if (documentUrl) {
           const { error } = await supabase
             .from('documents')
             .insert({
@@ -117,13 +139,17 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
             console.error('Error saving document reference:', error);
             throw error;
           }
+          
           toast.success(`${documents[documentKey].name} uploaded successfully`);
-        } else {
-          throw new Error(`Failed to upload ${documentKey}`);
+        } catch (error) {
+          console.error(`Error uploading ${documentKey}:`, error);
+          toast.error(`Failed to upload ${documents[documentKey].name}`);
+          setUploadingDocument(false);
+          return;
         }
       }
     } catch (error) {
-      console.error(`Error uploading ${documentKey}:`, error);
+      console.error(`Error in handleFileUpload for ${documentKey}:`, error);
       toast.error(`Failed to upload ${documents[documentKey].name}`);
     } finally {
       setUploadingDocument(false);
@@ -137,6 +163,7 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
     }
     
     setIsProcessingOCR(true);
+    setOcrError(null);
     
     try {
       const extractedData = await processApplicationFormOCR(documents.applicationForm.file, applicationUuid);
@@ -162,6 +189,20 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
         }));
         
         toast.success('Application form processed successfully');
+      }
+    } catch (error) {
+      console.error("Error processing application form:", error);
+      
+      // More user-friendly error message
+      if (error.message && error.message.includes("502")) {
+        setOcrError("The OCR service is currently unavailable. This could be due to server maintenance or high traffic. Please try again later or proceed to manually enter your information.");
+        toast.error("OCR service unavailable. You can proceed to manually enter your information.");
+      } else if (error.message && error.message.includes("timeout")) {
+        setOcrError("The OCR processing timed out. Please try again or proceed to manually enter your information.");
+        toast.error("OCR processing timed out. You can proceed to manually enter your information.");
+      } else {
+        setOcrError("Failed to process the application form. Please try again or proceed to manually enter your information.");
+        toast.error("Failed to process application form. You can proceed to manually enter your information.");
       }
     } finally {
       setIsProcessingOCR(false);
@@ -193,12 +234,20 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const success = await submitApplication(formData, applicationUuid);
-    
-    if (success) {
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 2000);
+    try {
+      const success = await submitApplication(formData, applicationUuid);
+      
+      if (success) {
+        toast.success("Application submitted successfully! Redirecting to home page...");
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 2000);
+      } else {
+        toast.error("Failed to submit application. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error submitting application:", error);
+      toast.error("An unexpected error occurred. Please try again.");
     }
   };
 
@@ -212,6 +261,7 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
         isProcessingOCR,
         uploadingDocument,
         applicationUuid,
+        ocrError,
         setCurrentStep,
         handleEmployerTypeSelect,
         handleFileUpload,
