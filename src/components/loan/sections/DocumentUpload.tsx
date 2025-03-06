@@ -1,123 +1,130 @@
 
-import React, { useState } from "react";
 import { useLoanApplication } from "@/contexts/loan-application";
 import { DocumentList } from "./document-upload/DocumentList";
 import { EmployerTypeSelector } from "./document-upload/EmployerTypeSelector";
+import { DocumentUploadType } from "@/types/loan";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, FileText, Upload } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { EmployerType } from "@/types/loan";
+import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export const DocumentUpload = () => {
-  const { 
+  const {
     currentStep,
     selectedEmployerType,
-    isProcessingOCR,
     documents,
-    ocrError,
     handleEmployerTypeSelect,
     handleFileUpload,
+    processApplicationForm,
+    isProcessingOCR,
     uploadingDocument,
-    processApplicationForm
   } = useLoanApplication();
   
-  const [showProcessButton, setShowProcessButton] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Only show the process button if application form is uploaded
-  React.useEffect(() => {
-    if (documents.applicationForm && documents.applicationForm.file) {
-      setShowProcessButton(true);
-    } else {
-      setShowProcessButton(false);
+  const isDocumentEnabled = (doc: DocumentUploadType) => {
+    if (currentStep === 1) {
+      // Only enable applicationForm in step 1
+      return doc.key === "applicationForm";
     }
-  }, [documents.applicationForm]);
+    
+    if (currentStep === 2) {
+      // In step 2, enable termsAndConditions and employer-dependent docs
+      if (doc.key === "termsAndConditions") return true;
+      if (!selectedEmployerType) return false;
+      return doc.required || doc.employerTypes.includes(selectedEmployerType);
+    }
+    
+    return false;
+  };
 
   const handleProcessDocument = async () => {
     try {
+      setIsSubmitting(true);
+      if (!documents.applicationForm.file) {
+        toast.error("Please upload an Application Form first");
+        return;
+      }
+      
       await processApplicationForm();
+      toast.success("Application form processed successfully");
     } catch (error) {
       console.error("Error processing document:", error);
+      toast.error("Failed to process document. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   if (currentStep === 1) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h3 className="text-lg font-medium">Employment Information</h3>
-          <p className="text-sm text-gray-500">
-            Please select your employment type to continue with the application.
-          </p>
-        </div>
-        <EmployerTypeSelector 
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold text-gray-800">Initial Documents</h2>
+        <p className="text-sm text-gray-600">
+          Please upload your application form to proceed with your loan application.
+        </p>
+        
+        <DocumentList
+          documents={documents}
+          filter={(key) => ["applicationForm"].includes(key)}
+          isDocumentEnabled={isDocumentEnabled}
+          handleFileUpload={handleFileUpload}
+          isUploading={uploadingDocument}
+        />
+        
+        {documents.applicationForm.file && (
+          <div className="mt-6">
+            <Button 
+              onClick={handleProcessDocument} 
+              disabled={isSubmitting || isProcessingOCR}
+              className="w-full"
+            >
+              {(isSubmitting || isProcessingOCR) && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {(isSubmitting || isProcessingOCR) ? "Processing Document..." : "Process Application Form"}
+            </Button>
+            <p className="text-sm text-gray-500 mt-2">
+              Process your application form to extract information automatically.
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (currentStep === 2) {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold text-gray-800">Required Documents</h2>
+        <p className="text-sm text-gray-600">
+          Please upload the terms and conditions form and select your employer type for additional required documents.
+        </p>
+        
+        {/* Show Terms and Conditions document first */}
+        <DocumentList
+          documents={documents}
+          filter={(key) => ["termsAndConditions"].includes(key)}
+          isDocumentEnabled={isDocumentEnabled}
+          handleFileUpload={handleFileUpload}
+          isUploading={uploadingDocument}
+        />
+        
+        <EmployerTypeSelector
           selectedEmployerType={selectedEmployerType}
           onEmployerTypeSelect={handleEmployerTypeSelect}
+        />
+        
+        <DocumentList
+          documents={documents}
+          filter={(key) => !["applicationForm", "termsAndConditions"].includes(key)}
+          isDocumentEnabled={isDocumentEnabled}
+          handleFileUpload={handleFileUpload}
+          isUploading={uploadingDocument}
         />
       </div>
     );
   }
 
-  // Create filter and isDocumentEnabled functions for DocumentList
-  const documentFilter = (key: string) => {
-    if (!selectedEmployerType) return false;
-    
-    const doc = documents[key];
-    return doc.employerTypes.includes(selectedEmployerType);
-  };
-  
-  const isDocumentEnabled = (doc: { required: boolean }) => {
-    return doc.required || true;
-  };
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium">Upload Required Documents</h3>
-        <p className="text-sm text-gray-500">
-          Please upload all required documents to proceed with your application.
-        </p>
-      </div>
-
-      {ocrError && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>OCR Processing Error</AlertTitle>
-          <AlertDescription>
-            {ocrError}
-          </AlertDescription>
-        </Alert>
-      )}
-      
-      <DocumentList 
-        documents={documents} 
-        filter={documentFilter}
-        isDocumentEnabled={isDocumentEnabled}
-        handleFileUpload={handleFileUpload}
-        isUploading={uploadingDocument}
-      />
-      
-      {showProcessButton && (
-        <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:justify-end">
-          <Button
-            variant="secondary"
-            onClick={handleProcessDocument}
-            disabled={isProcessingOCR || !documents.applicationForm?.file}
-            className="flex items-center gap-2"
-          >
-            {isProcessingOCR ? (
-              <>
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-                Processing...
-              </>
-            ) : (
-              <>
-                <FileText className="h-4 w-4" />
-                Process Application Form
-              </>
-            )}
-          </Button>
-        </div>
-      )}
-    </div>
-  );
+  return null;
 };

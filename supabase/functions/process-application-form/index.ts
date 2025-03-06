@@ -52,9 +52,7 @@ serve(async (req) => {
     // 1. Call an OCR service (e.g., Google Cloud Vision, Amazon Textract, etc.)
     // 2. Process the response to extract relevant information
     
-    // For now, we'll return mock data with a short delay to simulate processing
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    // For now, we'll return mock data
     const mockExtractedData = {
       firstName: "John",
       middleName: "Robert",
