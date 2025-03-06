@@ -35,6 +35,26 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
     toast.success(`Selected employer type: ${type}`);
   };
 
+  // Helper function to map documentKey to proper enum value
+  const mapDocumentKeyToEnum = (documentKey: string) => {
+    const documentTypeMap: Record<string, string> = {
+      'termsAndConditions': 'Terms and Conditions',
+      'paySlip1': 'Pay Slip 1',
+      'paySlip2': 'Pay Slip 2',
+      'paySlip3': 'Pay Slip 3',
+      'bankStatement': '3 Months Bank Statement',
+      'idDocument': 'ID Document',
+      'salaryDeduction': 'Irrevocable Salary Deduction Authority',
+      'employmentLetter': 'Employment Confirmation Letter',
+      'dataEntryForm': 'Data Entry Form',
+      'permanentVariation': 'Permanent Variation Advice',
+      'nasfundForm': 'Nasfund Account Statement',
+      'salaryDeductionConfirmation': 'Salary Deduction Confirmation Letter'
+    };
+    
+    return documentTypeMap[documentKey] || null;
+  };
+
   const handleFileUpload = async (documentKey: string, file: File) => {
     setUploadingDocument(true);
     
@@ -91,13 +111,20 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
         // For all other documents, upload to Supabase storage and record in documents table
         const documentUrl = await uploadDocument(file, documentKey);
         
+        // Get the proper enum value for the document type
+        const documentTypeEnum = mapDocumentKeyToEnum(documentKey);
+        
+        if (!documentTypeEnum) {
+          throw new Error(`Unknown document type: ${documentKey}`);
+        }
+        
         if (documentUrl) {
           // Save document reference to the documents table
           const { error } = await supabase
             .from('documents')
             .insert({
               application_uuid: applicationUuid,
-              document_type: documentKey, 
+              document_type: documentTypeEnum,
               document_path: documentUrl,
               uploaded_at: new Date().toISOString()
             });

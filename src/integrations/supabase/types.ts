@@ -250,8 +250,9 @@ export type Database = {
       journal_entry: {
         Row: {
           account_id: string
-          amount: number
           created_at: string | null
+          credit: number | null
+          debit: number | null
           description: string | null
           entry_id: number
           ref_number: string
@@ -259,8 +260,9 @@ export type Database = {
         }
         Insert: {
           account_id: string
-          amount: number
           created_at?: string | null
+          credit?: number | null
+          debit?: number | null
           description?: string | null
           entry_id?: number
           ref_number: string
@@ -268,8 +270,9 @@ export type Database = {
         }
         Update: {
           account_id?: string
-          amount?: number
           created_at?: string | null
+          credit?: number | null
+          debit?: number | null
           description?: string | null
           entry_id?: number
           ref_number?: string
