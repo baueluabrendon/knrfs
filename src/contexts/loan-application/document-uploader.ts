@@ -45,17 +45,17 @@ export const uploadDocument = async (
 };
 
 /**
- * Uploads application form or terms and conditions to storage and updates applications table
+ * Uploads application form or terms and conditions to storage and returns the public URL
  * @param file The file to upload
  * @param applicationType The type of document ('applicationForm' or 'termsAndConditions')
  * @param applicationUuid The UUID of the application being processed
- * @returns True if upload was successful, false otherwise
+ * @returns The public URL of the uploaded file or null if upload failed
  */
 export const uploadApplicationDocument = async (
   file: File,
   applicationType: 'applicationForm' | 'termsAndConditions',
   applicationUuid: string
-): Promise<boolean> => {
+): Promise<string | null> => {
   try {
     const fileExt = file.name.split('.').pop();
     const fileName = `${applicationUuid}_${applicationType}.${fileExt}`;
@@ -68,7 +68,7 @@ export const uploadApplicationDocument = async (
     
     if (uploadError) {
       console.error(`Error uploading ${applicationType}:`, uploadError);
-      return false;
+      return null;
     }
     
     // Get public URL
@@ -76,27 +76,12 @@ export const uploadApplicationDocument = async (
       .from('application_documents')
       .getPublicUrl(filePath);
     
-    // Determine which column to update based on document type
-    const columnToUpdate = applicationType === 'applicationForm' 
-      ? 'application_document_url' 
-      : 'terms_and_conditions_url';
-    
-    // Update the application record with the document URL
-    const { error } = await supabase
-      .from('applications')
-      .update({ [columnToUpdate]: data.publicUrl })
-      .eq('application_id', applicationUuid);
-    
-    if (error) {
-      console.error(`Error updating ${applicationType} URL:`, error);
-      toast.error(`Failed to upload ${applicationType === 'applicationForm' ? 'Application Form' : 'Terms and Conditions'}`);
-      return false;
-    }
-    
-    return true;
+    // Ensure URL is HTTPS
+    const publicUrl = data.publicUrl.replace('http://', 'https://');
+    return publicUrl;
   } catch (error) {
     console.error(`Error in uploadApplicationDocument (${applicationType}):`, error);
-    return false;
+    return null;
   }
 };
 

@@ -35,27 +35,30 @@ export type Database = {
       }
       applications: {
         Row: {
-          application_document: string | null
+          application_document_url: string | null
           application_id: string
+          created_at: string | null
           jsonb_data: Json | null
           status: Database["public"]["Enums"]["application_status_enum"] | null
-          terms_and_conditions: string | null
+          terms_and_conditions_url: string | null
           uploaded_at: string
         }
         Insert: {
-          application_document?: string | null
+          application_document_url?: string | null
           application_id?: string
+          created_at?: string | null
           jsonb_data?: Json | null
           status?: Database["public"]["Enums"]["application_status_enum"] | null
-          terms_and_conditions?: string | null
-          uploaded_at: string
+          terms_and_conditions_url?: string | null
+          uploaded_at?: string
         }
         Update: {
-          application_document?: string | null
+          application_document_url?: string | null
           application_id?: string
+          created_at?: string | null
           jsonb_data?: Json | null
           status?: Database["public"]["Enums"]["application_status_enum"] | null
-          terms_and_conditions?: string | null
+          terms_and_conditions_url?: string | null
           uploaded_at?: string
         }
         Relationships: []
