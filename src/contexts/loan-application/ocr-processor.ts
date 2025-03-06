@@ -14,8 +14,15 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
     formData.append("file", file);
     formData.append("applicationUuid", applicationUuid);
     
+    // Get the Supabase anon key for authentication
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
     const response = await fetch("https://mhndkefbyvxasvayigvx.supabase.co/functions/v1/process-application-form", {
       method: "POST",
+      headers: {
+        // Add the authorization header
+        "Authorization": `Bearer ${supabaseAnonKey}`
+      },
       body: formData,
     });
     

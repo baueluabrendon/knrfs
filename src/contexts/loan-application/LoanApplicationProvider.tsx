@@ -63,18 +63,15 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
           throw fetchError;
         }
 
-        const insertPayload = {
-          application_document_url: documentUrl,
-          application_id: applicationUuid,
-          uploaded_at: new Date().toISOString(),
-          status: 'pending' as const
-        };
-
         if (existingApp) {
           const { error: updateError } = await supabase
             .from('applications')
-            .update(insertPayload)
+            .update({
+              application_document_url: documentUrl,
+              status: 'pending'
+            })
             .eq('application_id', applicationUuid);
+            
           if (updateError) {
             console.error('Error updating application record:', updateError);
             throw updateError;
@@ -82,7 +79,13 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
         } else {
           const { error: insertError } = await supabase
             .from('applications')
-            .insert(insertPayload);
+            .insert({
+              application_id: applicationUuid,
+              application_document_url: documentUrl,
+              created_at: new Date().toISOString(),
+              status: 'pending'
+            });
+            
           if (insertError) {
             console.error('Error creating application record:', insertError);
             throw insertError;

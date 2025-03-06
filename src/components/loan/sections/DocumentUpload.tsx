@@ -23,9 +23,19 @@ export const DocumentUpload = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isDocumentEnabled = (doc: DocumentUploadType) => {
-    if (currentStep === 1) return true;
-    if (!selectedEmployerType) return false;
-    return doc.required || doc.employerTypes.includes(selectedEmployerType);
+    if (currentStep === 1) {
+      // Only enable applicationForm in step 1
+      return doc.key === "applicationForm";
+    }
+    
+    if (currentStep === 2) {
+      // In step 2, enable termsAndConditions and employer-dependent docs
+      if (doc.key === "termsAndConditions") return true;
+      if (!selectedEmployerType) return false;
+      return doc.required || doc.employerTypes.includes(selectedEmployerType);
+    }
+    
+    return false;
   };
 
   const handleProcessDocument = async () => {
@@ -88,8 +98,17 @@ export const DocumentUpload = () => {
       <div className="space-y-4">
         <h2 className="text-xl font-semibold text-gray-800">Required Documents</h2>
         <p className="text-sm text-gray-600">
-          Please select your employer type and upload the required documents.
+          Please upload the terms and conditions form and select your employer type for additional required documents.
         </p>
+        
+        {/* Show Terms and Conditions document first */}
+        <DocumentList
+          documents={documents}
+          filter={(key) => ["termsAndConditions"].includes(key)}
+          isDocumentEnabled={isDocumentEnabled}
+          handleFileUpload={handleFileUpload}
+          isUploading={uploadingDocument}
+        />
         
         <EmployerTypeSelector
           selectedEmployerType={selectedEmployerType}

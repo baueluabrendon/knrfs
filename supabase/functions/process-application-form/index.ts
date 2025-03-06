@@ -24,6 +24,15 @@ serve(async (req) => {
     });
   }
 
+  // Check for authorization header
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) {
+    return new Response(JSON.stringify({ code: 401, message: 'Missing authorization header' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+
   try {
     console.log("Received request to process application form");
     
