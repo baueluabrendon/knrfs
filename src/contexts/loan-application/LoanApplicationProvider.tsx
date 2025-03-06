@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { 
@@ -68,7 +69,8 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
             .from('applications')
             .update({
               application_document_url: documentUrl,
-              status: 'pending'
+              status: 'pending',
+              uploaded_at: new Date().toISOString()
             })
             .eq('application_id', applicationUuid);
             
@@ -82,7 +84,7 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
             .insert({
               application_id: applicationUuid,
               application_document_url: documentUrl,
-              created_at: new Date().toISOString(),
+              uploaded_at: new Date().toISOString(),
               status: 'pending'
             });
             

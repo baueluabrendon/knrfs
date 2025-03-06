@@ -23,7 +23,7 @@ export async function submitApplication(formData: FormDataType, applicationUuid:
         .from('applications')
         .update({
           jsonb_data: formData as any,
-          updated_at: new Date().toISOString(),
+          uploaded_at: new Date().toISOString(),
           status: 'pending'
         })
         .eq('application_id', applicationUuid);
