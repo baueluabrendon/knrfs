@@ -41,7 +41,7 @@ export const uploadDocument = async (
 };
 
 /**
- * Uploads application form or terms and conditions directly to applications table
+ * Uploads application form or terms and conditions to storage and updates applications table
  * @param file The file to upload
  * @param applicationType The type of document ('applicationForm' or 'termsAndConditions')
  * @param applicationUuid The UUID of the application being processed
@@ -53,23 +53,38 @@ export const uploadApplicationDocument = async (
   applicationUuid: string
 ): Promise<boolean> => {
   try {
-    // Convert file to ArrayBuffer
-    const arrayBuffer = await file.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${applicationUuid}_${applicationType}.${fileExt}`;
+    const filePath = `applications/${fileName}`;
+    
+    // Upload file to storage
+    const { error: uploadError } = await supabase.storage
+      .from('application_documents')
+      .upload(filePath, file);
+    
+    if (uploadError) {
+      console.error(`Error uploading ${applicationType}:`, uploadError);
+      return false;
+    }
+    
+    // Get public URL
+    const { data } = supabase.storage
+      .from('application_documents')
+      .getPublicUrl(filePath);
     
     // Determine which column to update based on document type
     const columnToUpdate = applicationType === 'applicationForm' 
-      ? 'application_document' 
-      : 'terms_and_conditions';
+      ? 'application_document_url' 
+      : 'terms_and_conditions_url';
     
-    // Update the application record with the document
+    // Update the application record with the document URL
     const { error } = await supabase
       .from('applications')
-      .update({ [columnToUpdate]: uint8Array })
+      .update({ [columnToUpdate]: data.publicUrl })
       .eq('application_id', applicationUuid);
     
     if (error) {
-      console.error(`Error uploading ${applicationType}:`, error);
+      console.error(`Error updating ${applicationType} URL:`, error);
       toast.error(`Failed to upload ${applicationType === 'applicationForm' ? 'Application Form' : 'Terms and Conditions'}`);
       return false;
     }
@@ -95,7 +110,7 @@ export const uploadGroupRepaymentDocument = async (
     const filePath = `repayment_documents/${fileName}`;
 
     const { error } = await supabase.storage
-      .from('repayment_documents')
+      .from('application_documents')
       .upload(filePath, file);
 
     if (error) {
@@ -105,7 +120,7 @@ export const uploadGroupRepaymentDocument = async (
 
     // Get HTTPS public URL
     const { data } = supabase.storage
-      .from('repayment_documents')
+      .from('application_documents')
       .getPublicUrl(filePath);
 
     // Ensure URL is HTTPS

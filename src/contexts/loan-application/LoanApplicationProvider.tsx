@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { 
@@ -25,7 +24,6 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
   const [applicationUuid, setApplicationUuid] = useState<string>("");
   const [uploadingDocument, setUploadingDocument] = useState(false);
 
-  // Generate a unique application UUID when the component mounts
   useEffect(() => {
     setApplicationUuid(crypto.randomUUID());
   }, []);
@@ -35,7 +33,6 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
     toast.success(`Selected employer type: ${type}`);
   };
 
-  // Helper function to map documentKey to proper enum value
   const mapDocumentKeyToEnum = (documentKey: string) => {
     const documentTypeMap: Record<string, string> = {
       'termsAndConditions': 'Terms and Conditions',
@@ -59,15 +56,12 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
     setUploadingDocument(true);
     
     try {
-      // Update documents state immediately for UI feedback
       setDocuments(prev => ({
         ...prev,
         [documentKey]: { ...prev[documentKey], file }
       }));
       
-      // Special handling for application form and terms & conditions
       if (documentKey === 'applicationForm' || documentKey === 'termsAndConditions') {
-        // Create application record if it doesn't exist yet
         const { data: existingApp, error: fetchError } = await supabase
           .from('applications')
           .select('application_id')
@@ -80,7 +74,6 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
         }
         
         if (!existingApp) {
-          // Create initial application record
           const { error: insertError } = await supabase
             .from('applications')
             .insert({
@@ -95,7 +88,6 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
           }
         }
         
-        // Upload document directly to applications table
         const success = await uploadApplicationDocument(
           file, 
           documentKey as 'applicationForm' | 'termsAndConditions',
@@ -108,10 +100,8 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
           throw new Error(`Failed to upload ${documentKey}`);
         }
       } else {
-        // For all other documents, upload to Supabase storage and record in documents table
         const documentUrl = await uploadDocument(file, documentKey);
         
-        // Get the proper enum value for the document type
         const documentTypeEnum = mapDocumentKeyToEnum(documentKey);
         
         if (!documentTypeEnum) {
@@ -119,7 +109,6 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
         }
         
         if (documentUrl) {
-          // Save document reference to the documents table
           const { error } = await supabase
             .from('documents')
             .insert({
@@ -159,7 +148,6 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
       const extractedData = await processApplicationFormOCR(documents.applicationForm.file, applicationUuid);
       
       if (extractedData) {
-        // Update form data with extracted information
         setFormData(prevData => ({
           personalDetails: {
             ...prevData.personalDetails,
@@ -211,11 +199,9 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Submit the final application data
     const success = await submitApplication(formData, applicationUuid);
     
     if (success) {
-      // Redirect to a thank you or confirmation page
       setTimeout(() => {
         window.location.href = '/';
       }, 2000);
