@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 /**
  * Uploads a document to Supabase storage for a loan application
@@ -36,6 +37,47 @@ export const uploadDocument = async (
   } catch (error) {
     console.error('Error in uploadDocument:', error);
     return null;
+  }
+};
+
+/**
+ * Uploads application form or terms and conditions directly to applications table
+ * @param file The file to upload
+ * @param applicationType The type of document ('applicationForm' or 'termsAndConditions')
+ * @param applicationUuid The UUID of the application being processed
+ * @returns True if upload was successful, false otherwise
+ */
+export const uploadApplicationDocument = async (
+  file: File,
+  applicationType: 'applicationForm' | 'termsAndConditions',
+  applicationUuid: string
+): Promise<boolean> => {
+  try {
+    // Convert file to ArrayBuffer
+    const arrayBuffer = await file.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    
+    // Determine which column to update based on document type
+    const columnToUpdate = applicationType === 'applicationForm' 
+      ? 'application_document' 
+      : 'terms_and_conditions';
+    
+    // Update the application record with the document
+    const { error } = await supabase
+      .from('applications')
+      .update({ [columnToUpdate]: uint8Array })
+      .eq('application_id', applicationUuid);
+    
+    if (error) {
+      console.error(`Error uploading ${applicationType}:`, error);
+      toast.error(`Failed to upload ${applicationType === 'applicationForm' ? 'Application Form' : 'Terms and Conditions'}`);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`Error in uploadApplicationDocument (${applicationType}):`, error);
+    return false;
   }
 };
 

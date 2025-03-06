@@ -35,65 +35,33 @@ export type Database = {
       }
       applications: {
         Row: {
+          application_document: string | null
           application_id: string
-          document: string | null
           jsonb_data: Json | null
           status: Database["public"]["Enums"]["application_status_enum"] | null
+          terms_and_conditions: string | null
           updated_at: string | null
           uploaded_at: string
         }
         Insert: {
+          application_document?: string | null
           application_id?: string
-          document?: string | null
           jsonb_data?: Json | null
           status?: Database["public"]["Enums"]["application_status_enum"] | null
+          terms_and_conditions?: string | null
           updated_at?: string | null
           uploaded_at: string
         }
         Update: {
+          application_document?: string | null
           application_id?: string
-          document?: string | null
           jsonb_data?: Json | null
           status?: Database["public"]["Enums"]["application_status_enum"] | null
+          terms_and_conditions?: string | null
           updated_at?: string | null
           uploaded_at?: string
         }
         Relationships: []
-      }
-      arrear: {
-        Row: {
-          arrear_amount: number | null
-          arrear_date: string | null
-          arrear_id: number
-          created_at: string | null
-          loan_id: string
-          updated_at: string | null
-        }
-        Insert: {
-          arrear_amount?: number | null
-          arrear_date?: string | null
-          arrear_id?: number
-          created_at?: string | null
-          loan_id: string
-          updated_at?: string | null
-        }
-        Update: {
-          arrear_amount?: number | null
-          arrear_date?: string | null
-          arrear_id?: number
-          created_at?: string | null
-          loan_id?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "arrear_loan_id_fkey"
-            columns: ["loan_id"]
-            isOneToOne: false
-            referencedRelation: "loans"
-            referencedColumns: ["loan_id"]
-          },
-        ]
       }
       borrowers: {
         Row: {
@@ -211,6 +179,41 @@ export type Database = {
           work_phone_number?: string | null
         }
         Relationships: []
+      }
+      defaults: {
+        Row: {
+          arrear_id: number
+          created_at: string | null
+          date: string | null
+          default_amount: number | null
+          loan_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          arrear_id?: number
+          created_at?: string | null
+          date?: string | null
+          default_amount?: number | null
+          loan_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          arrear_id?: number
+          created_at?: string | null
+          date?: string | null
+          default_amount?: number | null
+          loan_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arrear_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans"
+            referencedColumns: ["loan_id"]
+          },
+        ]
       }
       documents: {
         Row: {
@@ -337,7 +340,7 @@ export type Database = {
           gross_salary?: number | null
           gst_amount?: number | null
           gst_rate?: number | null
-          interest: number
+          interest?: number
           interest_rate?:
             | Database["public"]["Enums"]["interest_rate_enum"]
             | null
@@ -345,7 +348,7 @@ export type Database = {
           loan_repayment_status?:
             | Database["public"]["Enums"]["repayment_status_enum"]
             | null
-          loan_risk_insurance: number
+          loan_risk_insurance?: number
           loan_status?: Database["public"]["Enums"]["loan_status_enum"] | null
           loan_term?:
             | Database["public"]["Enums"]["bi_weekly_loan_term_enum"]

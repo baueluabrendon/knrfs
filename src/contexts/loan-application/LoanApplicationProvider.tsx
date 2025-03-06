@@ -10,7 +10,8 @@ import { LoanApplicationContextType } from "./types";
 import { defaultFormData, defaultDocuments } from "./default-values";
 import { processApplicationFormOCR } from "./ocr-processor";
 import { submitApplication } from "./submit-application";
-import { uploadDocument } from "./document-uploader";
+import { uploadDocument, uploadApplicationDocument } from "./document-uploader";
+import { supabase } from "@/integrations/supabase/client";
 
 // Create the context
 const LoanApplicationContext = createContext<LoanApplicationContextType | undefined>(undefined);
@@ -44,11 +45,72 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
         [documentKey]: { ...prev[documentKey], file }
       }));
       
-      // Upload the document to Supabase
-      const documentUrl = await uploadDocument(file, documentKey);
-      
-      if (documentUrl) {
-        toast.success(`${documents[documentKey].name} uploaded successfully`);
+      // Special handling for application form and terms & conditions
+      if (documentKey === 'applicationForm' || documentKey === 'termsAndConditions') {
+        // Create application record if it doesn't exist yet
+        const { data: existingApp, error: fetchError } = await supabase
+          .from('applications')
+          .select('application_id')
+          .eq('application_id', applicationUuid)
+          .maybeSingle();
+        
+        if (fetchError) {
+          console.error('Error checking existing application:', fetchError);
+          throw fetchError;
+        }
+        
+        if (!existingApp) {
+          // Create initial application record
+          const { error: insertError } = await supabase
+            .from('applications')
+            .insert({
+              application_id: applicationUuid,
+              uploaded_at: new Date().toISOString(),
+              status: 'pending'
+            });
+          
+          if (insertError) {
+            console.error('Error creating application record:', insertError);
+            throw insertError;
+          }
+        }
+        
+        // Upload document directly to applications table
+        const success = await uploadApplicationDocument(
+          file, 
+          documentKey as 'applicationForm' | 'termsAndConditions',
+          applicationUuid
+        );
+        
+        if (success) {
+          toast.success(`${documents[documentKey].name} uploaded successfully`);
+        } else {
+          throw new Error(`Failed to upload ${documentKey}`);
+        }
+      } else {
+        // For all other documents, upload to Supabase storage and record in documents table
+        const documentUrl = await uploadDocument(file, documentKey);
+        
+        if (documentUrl) {
+          // Save document reference to the documents table
+          const { error } = await supabase
+            .from('documents')
+            .insert({
+              application_uuid: applicationUuid,
+              document_type: documentKey, 
+              document_path: documentUrl,
+              uploaded_at: new Date().toISOString()
+            });
+          
+          if (error) {
+            console.error('Error saving document reference:', error);
+            throw error;
+          }
+          
+          toast.success(`${documents[documentKey].name} uploaded successfully`);
+        } else {
+          throw new Error(`Failed to upload ${documentKey}`);
+        }
       }
     } catch (error) {
       console.error(`Error uploading ${documentKey}:`, error);
@@ -67,7 +129,7 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
     setIsProcessingOCR(true);
     
     try {
-      const extractedData = await processApplicationFormOCR(documents.applicationForm.file);
+      const extractedData = await processApplicationFormOCR(documents.applicationForm.file, applicationUuid);
       
       if (extractedData) {
         // Update form data with extracted information
@@ -122,13 +184,8 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Add the application UUID to the form data for reference
-    const formDataWithApplicationId = {
-      ...formData,
-      applicationUuid
-    };
-    
-    const success = await submitApplication(formDataWithApplicationId);
+    // Submit the final application data
+    const success = await submitApplication(formData, applicationUuid);
     
     if (success) {
       // Redirect to a thank you or confirmation page

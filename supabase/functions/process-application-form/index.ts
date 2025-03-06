@@ -1,5 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.1";
 
 // Configure CORS headers for cross-origin requests
 const corsHeaders = {
@@ -26,11 +27,21 @@ serve(async (req) => {
   try {
     console.log("Received request to process application form");
     
+    // Get the form data from the request
+    const formData = await req.formData();
+    const file = formData.get("file");
+    const applicationUuid = formData.get("applicationUuid");
+    
+    if (!file || !(file instanceof File)) {
+      throw new Error("No file provided or invalid file");
+    }
+    
+    console.log("Received file:", file.name, "size:", file.size, "type:", file.type);
+    console.log("Application UUID:", applicationUuid);
+    
     // In a real implementation, you would:
-    // 1. Extract the form data
-    // 2. Get the file from the form data
-    // 3. Call an OCR service (e.g., Google Cloud Vision, Amazon Textract, etc.)
-    // 4. Process the response to extract relevant information
+    // 1. Call an OCR service (e.g., Google Cloud Vision, Amazon Textract, etc.)
+    // 2. Process the response to extract relevant information
     
     // For now, we'll return mock data
     const mockExtractedData = {
@@ -68,6 +79,31 @@ serve(async (req) => {
       fortnightlyInstallment: "527.08",
       grossLoan: "12650"
     };
+    
+    // If application UUID is provided, update the database record
+    if (applicationUuid) {
+      try {
+        // Initialize Supabase client
+        const supabaseUrl = Deno.env.get("SUPABASE_URL") || "https://mhndkefbyvxasvayigvx.supabase.co";
+        const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY") || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1obmRrZWZieXZ4YXN2YXlpZ3Z4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwNTY3OTksImV4cCI6MjA1NjYzMjc5OX0.2hZ5PqNpNg6F6Q3q8o-W9fOrnqXpBFXe_On247krKYU";
+        
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        
+        // Update the application record with the extracted data
+        const { error } = await supabase
+          .from('applications')
+          .update({ jsonb_data: mockExtractedData })
+          .eq('application_id', applicationUuid);
+        
+        if (error) {
+          console.error("Error updating application record:", error);
+        } else {
+          console.log("Successfully updated application record with extracted data");
+        }
+      } catch (dbError) {
+        console.error("Database update error:", dbError);
+      }
+    }
     
     console.log("Returning extracted data", mockExtractedData);
     

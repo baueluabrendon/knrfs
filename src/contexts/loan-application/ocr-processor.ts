@@ -3,11 +3,12 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { FormDataType } from "@/types/loan";
 
-export async function processApplicationFormOCR(file: File): Promise<Partial<FormDataType> | null> {
+export async function processApplicationFormOCR(file: File, applicationUuid: string): Promise<Partial<FormDataType> | null> {
   try {
     // Create form data for file upload
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('applicationUuid', applicationUuid);
     
     // Call the Supabase Edge Function for OCR processing using the provided URL with HTTPS
     const functionUrl = "https://mhndkefbyvxasvayigvx.supabase.co/functions/v1/process-application-form";
@@ -35,6 +36,17 @@ export async function processApplicationFormOCR(file: File): Promise<Partial<For
     
     const result = await response.json();
     console.log("OCR processing result:", result);
+    
+    // Update the jsonb_data column in the applications table with the extracted data
+    const { error } = await supabase
+      .from('applications')
+      .update({ jsonb_data: result })
+      .eq('application_id', applicationUuid);
+    
+    if (error) {
+      console.error("Failed to update application with extracted data:", error);
+      throw error;
+    }
     
     return {
       personalDetails: {
