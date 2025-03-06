@@ -16,8 +16,6 @@ export const DocumentUpload = () => {
     documents,
     ocrError,
     handleEmployerTypeSelect,
-    handleFileUpload,
-    uploadingDocument,
     processApplicationForm
   } = useLoanApplication();
   
@@ -50,24 +48,12 @@ export const DocumentUpload = () => {
           </p>
         </div>
         <EmployerTypeSelector 
-          selectedEmployerType={selectedEmployerType}
-          onEmployerTypeSelect={handleEmployerTypeSelect}
+          onSelect={handleEmployerTypeSelect}
+          selectedType={selectedEmployerType}
         />
       </div>
     );
   }
-
-  // Create filter and isDocumentEnabled functions for DocumentList
-  const documentFilter = (key: string) => {
-    if (!selectedEmployerType) return false;
-    
-    const doc = documents[key];
-    return doc.employerTypes.includes(selectedEmployerType);
-  };
-  
-  const isDocumentEnabled = (doc: { required: boolean }) => {
-    return doc.required || true;
-  };
 
   return (
     <div className="space-y-6">
@@ -88,13 +74,7 @@ export const DocumentUpload = () => {
         </Alert>
       )}
       
-      <DocumentList 
-        documents={documents} 
-        filter={documentFilter}
-        isDocumentEnabled={isDocumentEnabled}
-        handleFileUpload={handleFileUpload}
-        isUploading={uploadingDocument}
-      />
+      <DocumentList employerType={selectedEmployerType as EmployerType} />
       
       {showProcessButton && (
         <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:justify-end">
