@@ -288,6 +288,7 @@ export type Database = {
       loans: {
         Row: {
           application_id: string | null
+          arrears: number | null
           borrower_id: string
           created_at: string | null
           default_fees_accumulated: number | null
@@ -316,18 +317,19 @@ export type Database = {
           maturity_date: string | null
           missed_payments_count: number | null
           net_income: number | null
-          partial_payment_penalty_fees_accumulated: number | null
+          outstanding_balance: number | null
           partial_payments_count: number | null
           principal: number
           product: string | null
+          refinanced_by: string | null
           repayment_completion_percentage: number | null
           repayment_count: number | null
           total_repayment: number | null
-          total_repayment_count: number | null
           updated_at: string | null
         }
         Insert: {
           application_id?: string | null
+          arrears?: number | null
           borrower_id: string
           created_at?: string | null
           default_fees_accumulated?: number | null
@@ -356,18 +358,19 @@ export type Database = {
           maturity_date?: string | null
           missed_payments_count?: number | null
           net_income?: number | null
-          partial_payment_penalty_fees_accumulated?: number | null
+          outstanding_balance?: number | null
           partial_payments_count?: number | null
           principal: number
           product?: string | null
+          refinanced_by?: string | null
           repayment_completion_percentage?: number | null
           repayment_count?: number | null
           total_repayment?: number | null
-          total_repayment_count?: number | null
           updated_at?: string | null
         }
         Update: {
           application_id?: string | null
+          arrears?: number | null
           borrower_id?: string
           created_at?: string | null
           default_fees_accumulated?: number | null
@@ -396,14 +399,14 @@ export type Database = {
           maturity_date?: string | null
           missed_payments_count?: number | null
           net_income?: number | null
-          partial_payment_penalty_fees_accumulated?: number | null
+          outstanding_balance?: number | null
           partial_payments_count?: number | null
           principal?: number
           product?: string | null
+          refinanced_by?: string | null
           repayment_completion_percentage?: number | null
           repayment_count?: number | null
           total_repayment?: number | null
-          total_repayment_count?: number | null
           updated_at?: string | null
         }
         Relationships: [

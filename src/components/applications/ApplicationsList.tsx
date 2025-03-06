@@ -26,6 +26,22 @@ const ApplicationsList = ({ onViewApplication }: ApplicationsListProps) => {
 
   useEffect(() => {
     fetchApplications();
+    
+    // Set up realtime subscription
+    const channel = supabase
+      .channel('public:applications')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'applications' 
+      }, () => {
+        fetchApplications();
+      })
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchApplications = async () => {
@@ -46,6 +62,53 @@ const ApplicationsList = ({ onViewApplication }: ApplicationsListProps) => {
     }
   };
 
+  const getBorrowerFullName = (application: LoanApplicationType) => {
+    const jsonbData = application.jsonb_data || {};
+    const { givenName, surname } = jsonbData.personalInfo || {};
+    return givenName && surname ? `${givenName} ${surname}` : 'N/A';
+  };
+
+  const getCompany = (application: LoanApplicationType) => {
+    const jsonbData = application.jsonb_data || {};
+    return jsonbData.employmentInfo?.employerName || 'N/A';
+  };
+
+  const getPosition = (application: LoanApplicationType) => {
+    const jsonbData = application.jsonb_data || {};
+    return jsonbData.employmentInfo?.position || 'N/A';
+  };
+
+  const getEmail = (application: LoanApplicationType) => {
+    const jsonbData = application.jsonb_data || {};
+    return jsonbData.personalInfo?.email || 'N/A';
+  };
+
+  const getPrincipal = (application: LoanApplicationType) => {
+    const jsonbData = application.jsonb_data || {};
+    return jsonbData.loanDetails?.loanAmount || 0;
+  };
+
+  const getLoanTerm = (application: LoanApplicationType) => {
+    const jsonbData = application.jsonb_data || {};
+    return jsonbData.loanDetails?.loanTerm || 0;
+  };
+
+  const getGrossLoan = (application: LoanApplicationType) => {
+    const jsonbData = application.jsonb_data || {};
+    return jsonbData.loanDetails?.grossLoan || 0;
+  };
+
+  const getInterest = (application: LoanApplicationType) => {
+    const principal = getPrincipal(application);
+    const grossLoan = getGrossLoan(application);
+    return grossLoan - principal;
+  };
+
+  const getFortnightlyInstallment = (application: LoanApplicationType) => {
+    const jsonbData = application.jsonb_data || {};
+    return jsonbData.loanDetails?.fortnightlyInstallment || 0;
+  };
+
   return (
     <Card className="p-6">
       {loading ? (
@@ -59,10 +122,17 @@ const ApplicationsList = ({ onViewApplication }: ApplicationsListProps) => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Amount Requested</TableHead>
+                <TableHead>Application ID</TableHead>
+                <TableHead>Borrower Name</TableHead>
+                <TableHead>Company</TableHead>
+                <TableHead>Position</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Loan Amount</TableHead>
+                <TableHead>Interest</TableHead>
+                <TableHead>Loan Term</TableHead>
+                <TableHead>PVA</TableHead>
+                <TableHead>Total Repayable</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Submission Date</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -70,13 +140,20 @@ const ApplicationsList = ({ onViewApplication }: ApplicationsListProps) => {
               {applications.map((application) => (
                 <TableRow key={application.application_id}>
                   <TableCell>{application.application_id}</TableCell>
-                  <TableCell>{formatAmount(application)}</TableCell>
+                  <TableCell>{getBorrowerFullName(application)}</TableCell>
+                  <TableCell>{getCompany(application)}</TableCell>
+                  <TableCell>{getPosition(application)}</TableCell>
+                  <TableCell>{getEmail(application)}</TableCell>
+                  <TableCell>${getPrincipal(application).toLocaleString()}</TableCell>
+                  <TableCell>${getInterest(application).toLocaleString()}</TableCell>
+                  <TableCell>{getLoanTerm(application)}</TableCell>
+                  <TableCell>${getFortnightlyInstallment(application).toLocaleString()}</TableCell>
+                  <TableCell>${getGrossLoan(application).toLocaleString()}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(application.status)}`}>
-                      {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
+                      {application.status?.charAt(0).toUpperCase() + application.status?.slice(1) || 'N/A'}
                     </span>
                   </TableCell>
-                  <TableCell>{new Date(application.uploaded_at).toLocaleDateString()}</TableCell>
                   <TableCell>
                     <Button 
                       variant="ghost" 
