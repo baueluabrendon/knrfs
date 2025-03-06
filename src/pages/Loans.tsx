@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -56,7 +55,6 @@ const Loans = () => {
   useEffect(() => {
     fetchLoans();
     
-    // Set up realtime subscription
     const channel = supabase
       .channel('public:loans')
       .on('postgres_changes', { 
@@ -103,10 +101,7 @@ const Loans = () => {
   };
 
   const handleEmail = () => {
-    toast({
-      title: "Email Sent",
-      description: "Loan details have been emailed successfully.",
-    });
+    toast("Loan details have been emailed successfully.");
   };
 
   const getBorrowerFullName = (loan: Loan) => {
@@ -115,14 +110,12 @@ const Loans = () => {
 
   const getInterestRateValue = (loan: Loan) => {
     if (!loan.interest_rate) return 'N/A';
-    // Extract numeric part from interest_rate enum (e.g., "RATE_20" -> "20")
     const rateMatch = loan.interest_rate.match(/RATE_(\d+)/);
     return rateMatch ? `${rateMatch[1]}%` : loan.interest_rate;
   };
 
   const getLoanTermValue = (loan: Loan) => {
     if (!loan.loan_term) return 'N/A';
-    // Extract numeric part from loan_term enum (e.g., "TERM_12" -> "12")
     const termMatch = loan.loan_term.match(/TERM_(\d+)/);
     return termMatch ? termMatch[1] : loan.loan_term;
   };
