@@ -1,6 +1,73 @@
 
 import { createWorker } from 'tesseract.js';
 import { supabase } from "@/integrations/supabase/client";
+import * as pdfjsLib from 'pdfjs-dist';
+import { PDFDocument } from 'pdf-lib';
+
+// Initialize PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+
+/**
+ * Converts a PDF file to a PNG image
+ * @param file The PDF file to convert
+ * @returns A PNG image file
+ */
+const convertPdfToPng = async (file: File): Promise<File> => {
+  console.log("Converting PDF to PNG...");
+  
+  // Read the PDF file as an ArrayBuffer
+  const arrayBuffer = await file.arrayBuffer();
+  
+  // Load the PDF document
+  const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+  const pdf = await loadingTask.promise;
+  
+  // Get the first page
+  const page = await pdf.getPage(1);
+  
+  // Render the page to a canvas
+  const viewport = page.getViewport({ scale: 2.0 }); // Scale for better quality
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  
+  canvas.height = viewport.height;
+  canvas.width = viewport.width;
+  
+  await page.render({
+    canvasContext: context,
+    viewport: viewport
+  }).promise;
+  
+  // Convert canvas to PNG file
+  const pngBlob = await new Promise<Blob>((resolve) => {
+    canvas.toBlob((blob) => resolve(blob), 'image/png');
+  });
+  
+  // Create a new File object from the PNG blob
+  const pngFile = new File([pngBlob], `${file.name.replace('.pdf', '')}.png`, { type: 'image/png' });
+  
+  console.log("PDF converted to PNG successfully");
+  return pngFile;
+};
+
+/**
+ * Checks if the file is a PDF
+ * @param file The file to check
+ * @returns True if the file is a PDF, false otherwise
+ */
+const isPdf = (file: File): boolean => {
+  return file.type === 'application/pdf';
+};
+
+/**
+ * Checks if the file is a supported image type
+ * @param file The file to check
+ * @returns True if the file is a supported image, false otherwise
+ */
+const isSupportedImage = (file: File): boolean => {
+  const supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/bmp', 'image/tiff'];
+  return supportedTypes.includes(file.type);
+};
 
 /**
  * Processes an application form using OCR to extract information
@@ -12,7 +79,15 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
   try {
     console.log("Processing application form with OCR using Tesseract.js...");
     
-    // Create a worker instance - fixed initialization to use correct options format
+    // Check if file is supported
+    if (!isPdf(file) && !isSupportedImage(file)) {
+      throw new Error("Unsupported file type. Please upload a PDF or an image file (JPEG, PNG, BMP, TIFF).");
+    }
+    
+    // Convert PDF to PNG if necessary
+    const fileToProcess = isPdf(file) ? await convertPdfToPng(file) : file;
+    
+    // Create a worker instance
     const worker = await createWorker();
     
     // Load English language data
@@ -20,7 +95,7 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
     await worker.initialize('eng');
     
     // Convert file to blob URL for tesseract
-    const imageUrl = URL.createObjectURL(file);
+    const imageUrl = URL.createObjectURL(fileToProcess);
     
     console.log("Starting OCR recognition...");
     // Recognize text from the image

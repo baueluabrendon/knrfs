@@ -46,6 +46,14 @@ export const DocumentUpload = () => {
         return;
       }
       
+      const fileType = documents.applicationForm.file.type;
+      const supportedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/bmp', 'image/tiff'];
+      
+      if (!supportedTypes.includes(fileType)) {
+        toast.error("Unsupported file type. Please upload a PDF or an image file (JPEG, PNG, BMP, TIFF).");
+        return;
+      }
+      
       await processApplicationForm();
       toast.success("Application form processed successfully");
     } catch (error) {
