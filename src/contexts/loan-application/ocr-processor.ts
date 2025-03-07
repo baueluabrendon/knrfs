@@ -1,9 +1,10 @@
+
 import { createWorker } from 'tesseract.js';
 import { supabase } from "@/integrations/supabase/client";
-import * as pdfjsLib from 'pdfjs-dist-legacy/build/pdf';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
 
 // Set the pdf.js worker source dynamically using Vite's import.meta.url
-pdfjsLib.GlobalWorkerOptions.workerSrc = `${import.meta.url.substring(0, import.meta.url.lastIndexOf('/'))}/../../../node_modules/pdfjs-dist-legacy/build/pdf.worker.min.js`;
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/legacy/build/pdf.worker.min.js', import.meta.url).href;
 
 /**
  * Converts a PDF file to a PNG image.
