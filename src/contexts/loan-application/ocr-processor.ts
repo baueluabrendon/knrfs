@@ -1,11 +1,10 @@
-
 import { createWorker } from 'tesseract.js';
 import { supabase } from "@/integrations/supabase/client";
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
-import pdfWorker from 'pdfjs-dist/build/pdf.worker.entry';
+import * as pdfjsLib from 'pdfjs-dist';
+import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.js';
 
-// Set the pdf.js worker source to the locally imported worker file
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
+// Set the pdf.js worker source
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerSrc;
 
 /**
  * Converts a PDF file to a PNG image.
