@@ -12,8 +12,12 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
   try {
     console.log("Processing application form with OCR using Tesseract.js...");
     
-    // Create a worker instance
-    const worker = await createWorker('eng');
+    // Create a worker instance - fixed initialization to use correct options format
+    const worker = await createWorker();
+    
+    // Load English language data
+    await worker.loadLanguage('eng');
+    await worker.initialize('eng');
     
     // Convert file to blob URL for tesseract
     const imageUrl = URL.createObjectURL(file);
