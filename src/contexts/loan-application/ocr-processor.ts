@@ -1,15 +1,16 @@
 
 import { createWorker } from 'tesseract.js';
 import { supabase } from "@/integrations/supabase/client";
-import * as pdfjsLib from 'pdfjs-dist';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.entry';
 
-// Initialize PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Set the pdf.js worker source to the locally imported worker file
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 /**
- * Converts a PDF file to a PNG image
- * @param file The PDF file to convert
- * @returns A PNG image file
+ * Converts a PDF file to a PNG image.
+ * @param file The PDF file to convert.
+ * @returns A PNG image file.
  */
 export const convertPdfToPng = async (file: File): Promise<File> => {
   console.log("Converting PDF to PNG...");
@@ -28,30 +29,32 @@ export const convertPdfToPng = async (file: File): Promise<File> => {
     // Render the page to a canvas
     const viewport = page.getViewport({ scale: 2.0 }); // Scale for better quality
     const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
     const context = canvas.getContext('2d');
     
     if (!context) {
       throw new Error("Failed to get canvas context");
     }
     
-    canvas.height = viewport.height;
-    canvas.width = viewport.width;
-    
     await page.render({
       canvasContext: context,
       viewport: viewport
     }).promise;
     
-    // Convert canvas to PNG file
+    // Convert canvas to PNG blob
     const pngBlob = await new Promise<Blob>((resolve, reject) => {
       canvas.toBlob((blob) => {
-        if (blob) resolve(blob);
-        else reject(new Error("Failed to convert canvas to blob"));
-      }, 'image/png', 0.95); // Use high quality
+        if (blob) {
+          resolve(blob);
+        } else {
+          reject(new Error("Failed to convert canvas to blob"));
+        }
+      }, 'image/png', 0.95);
     });
     
     // Create a new File object from the PNG blob
-    const pngFile = new File([pngBlob], `${file.name.replace('.pdf', '')}.png`, { type: 'image/png' });
+    const pngFile = new File([pngBlob], `${file.name.replace(/\.pdf$/i, '')}.png`, { type: 'image/png' });
     
     console.log("PDF converted to PNG successfully");
     return pngFile;
@@ -62,10 +65,10 @@ export const convertPdfToPng = async (file: File): Promise<File> => {
 };
 
 /**
- * Compresses an image file to reduce its size
- * @param file The image file to compress
- * @param maxSizeInMB Maximum size in MB (default: 3)
- * @returns A compressed image file
+ * Compresses an image file to reduce its size.
+ * @param file The image file to compress.
+ * @param maxSizeInMB Maximum size in MB (default: 3).
+ * @returns A compressed image file.
  */
 export const compressImage = async (file: File, maxSizeInMB: number = 3): Promise<File> => {
   console.log(`Compressing image: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)}MB)`);
@@ -79,15 +82,12 @@ export const compressImage = async (file: File, maxSizeInMB: number = 3): Promis
         let width = img.width;
         let height = img.height;
         
-        // Calculate the ratio to maintain aspect ratio while reducing size
-        const maxSize = Math.max(width, height);
-        let quality = 0.7; // Start with 70% quality
-        
-        // If image is very large, reduce dimensions
-        if (maxSize > 2000) {
-          const ratio = 2000 / maxSize;
-          width *= ratio;
-          height *= ratio;
+        // Reduce dimensions if image is very large
+        const maxDimension = Math.max(width, height);
+        if (maxDimension > 2000) {
+          const ratio = 2000 / maxDimension;
+          width = Math.floor(width * ratio);
+          height = Math.floor(height * ratio);
         }
         
         canvas.width = width;
@@ -101,8 +101,8 @@ export const compressImage = async (file: File, maxSizeInMB: number = 3): Promis
         
         ctx.drawImage(img, 0, 0, width, height);
         
-        // Use createObjectURL instead of dataURL for better memory performance
-        const compressFile = (q: number) => {
+        // Recursive compression using canvas.toBlob
+        const compressFile = (quality: number) => {
           canvas.toBlob((blob) => {
             if (!blob) {
               reject(new Error("Failed to compress image"));
@@ -110,27 +110,28 @@ export const compressImage = async (file: File, maxSizeInMB: number = 3): Promis
             }
             
             const newFile = new File([blob], file.name, { type: 'image/png' });
-            
-            // If still too large and quality can be reduced further
-            if (newFile.size > maxSizeInMB * 1024 * 1024 && q > 0.2) {
-              quality -= 0.1;
-              compressFile(quality);
+            if (newFile.size > maxSizeInMB * 1024 * 1024 && quality > 0.2) {
+              compressFile(quality - 0.1);
             } else {
               console.log(`Compression complete: ${(newFile.size / (1024 * 1024)).toFixed(2)}MB`);
               resolve(newFile);
             }
-          }, 'image/png', q);
+          }, 'image/png', quality);
         };
         
-        // Start compression process
-        compressFile(quality);
+        // Start compression with an initial quality of 0.7
+        compressFile(0.7);
       };
       
       img.onerror = function() {
         reject(new Error("Failed to load image for compression"));
       };
       
-      img.src = event.target!.result as string;
+      if (event.target && event.target.result) {
+        img.src = event.target.result as string;
+      } else {
+        reject(new Error("FileReader did not return a valid result"));
+      }
     };
     
     reader.onerror = function() {
@@ -142,18 +143,18 @@ export const compressImage = async (file: File, maxSizeInMB: number = 3): Promis
 };
 
 /**
- * Checks if the file is a PDF
- * @param file The file to check
- * @returns True if the file is a PDF, false otherwise
+ * Checks if the file is a PDF.
+ * @param file The file to check.
+ * @returns True if the file is a PDF, false otherwise.
  */
 export const isPdf = (file: File): boolean => {
   return file.type === 'application/pdf';
 };
 
 /**
- * Checks if the file is a supported image type
- * @param file The file to check
- * @returns True if the file is a supported image, false otherwise
+ * Checks if the file is a supported image type.
+ * @param file The file to check.
+ * @returns True if the file is a supported image, false otherwise.
  */
 export const isSupportedImage = (file: File): boolean => {
   const supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/bmp', 'image/tiff'];
@@ -161,17 +162,16 @@ export const isSupportedImage = (file: File): boolean => {
 };
 
 /**
- * Processes an application form using OCR to extract information
- * @param file The application form file
- * @param applicationUuid The UUID of the application being processed
- * @returns The extracted data from the form
+ * Processes an application form using OCR to extract information.
+ * @param file The application form file.
+ * @param applicationUuid The UUID of the application being processed.
+ * @returns The extracted data from the form.
  */
 export const processApplicationFormOCR = async (file: File, applicationUuid: string): Promise<any> => {
   try {
     console.log("Processing application form with OCR using Tesseract.js...");
     
-    // Step 5: Prepare file for OCR processing
-    // The file should already be in a format suitable for OCR processing (either original image or converted from PDF)
+    // Ensure file is in a valid format for OCR
     const fileToProcess = isSupportedImage(file) ? file : 
                          isPdf(file) ? await convertPdfToPng(file) : 
                          null;
@@ -180,34 +180,31 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
       throw new Error("Unsupported file type. Please upload a PDF or an image file (JPEG, PNG, BMP, TIFF).");
     }
     
-    // Create a worker instance
-    const worker = await createWorker();
+    // Create a Tesseract worker instance
+    const worker = await createWorker({
+      logger: m => console.log(m)
+    });
     
-    // Load English language data
     await worker.loadLanguage('eng');
     await worker.initialize('eng');
     
-    // Convert file to blob URL for tesseract
+    // Create a Blob URL for OCR processing
     const imageUrl = URL.createObjectURL(fileToProcess);
-    
     console.log("Starting OCR recognition...");
-    // Recognize text from the image
+    
     const { data } = await worker.recognize(imageUrl);
     console.log("OCR Recognition completed");
     
-    // Release the worker when done
     await worker.terminate();
-    
-    // Clean up the blob URL
     URL.revokeObjectURL(imageUrl);
     
     console.log("OCR Text extracted:", data.text.substring(0, 200) + "...");
     
-    // Parse the extracted text to identify fields
+    // Parse the extracted text
     const extractedData = parseExtractedText(data.text);
     console.log("Parsed data:", extractedData);
     
-    // Step 6: Update the application record in the database with the OCR data
+    // Update the application record with OCR data
     await updateApplicationWithOCRData(applicationUuid, extractedData);
     
     return {
@@ -260,15 +257,12 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
 };
 
 /**
- * Parse the extracted text to identify form fields
- * This is a simplified implementation that looks for key terms and patterns
- * In a real application, you'd want more sophisticated parsing logic
+ * Parse the extracted text to identify form fields.
+ * This is a simplified implementation using regex patterns.
  */
 const parseExtractedText = (text: string): Record<string, string> => {
-  // Initialize an object to store the extracted fields
   const extractedData: Record<string, string> = {};
   
-  // Define regex patterns for common field formats
   const namePattern = /Name:?\s*([A-Za-z\s]+)/i;
   const emailPattern = /Email:?\s*([\w.-]+@[\w.-]+\.\w+)/i;
   const phonePattern = /Phone:?\s*(\+?[\d\s-]+)/i;
@@ -276,7 +270,6 @@ const parseExtractedText = (text: string): Record<string, string> => {
   const amountPattern = /Amount:?\s*([\d,.]+)/i;
   const addressPattern = /Address:?\s*([A-Za-z0-9\s,.]+)/i;
   
-  // Extract fields using regex
   const nameMatch = text.match(namePattern);
   if (nameMatch && nameMatch[1]) {
     const fullName = nameMatch[1].trim().split(' ');
@@ -310,12 +303,7 @@ const parseExtractedText = (text: string): Record<string, string> => {
     extractedData.loanAmount = amountMatch[1].trim();
   }
   
-  // For fields that are not found through regex, use fallback mock data
-  // In a real application, you would improve the extraction logic
-  // or implement machine learning models to identify these fields
   return {
-    // Default mock data for demonstration purposes - these would be overwritten
-    // by the real extracted values when available
     firstName: "John",
     middleName: "Robert",
     lastName: "Doe",
@@ -349,15 +337,14 @@ const parseExtractedText = (text: string): Record<string, string> => {
     documentationFee: "50",
     fortnightlyInstallment: "527.08",
     grossLoan: "12650",
-    // Override with any extracted values
     ...extractedData
   };
 };
 
 /**
- * Update the application record in the database with the OCR data
- * @param applicationUuid The UUID of the application being processed
- * @param extractedData The data extracted from the OCR process
+ * Updates the application record with the OCR extracted data.
+ * @param applicationUuid The UUID of the application.
+ * @param extractedData The data extracted from OCR.
  */
 const updateApplicationWithOCRData = async (
   applicationUuid: string, 

@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { 
@@ -7,7 +8,7 @@ import {
 } from "@/types/loan";
 import { LoanApplicationContextType } from "./types";
 import { defaultFormData, defaultDocuments } from "./default-values";
-import { processApplicationFormOCR, isPdf, isSupportedImage } from "./ocr-processor";
+import { processApplicationFormOCR } from "./ocr-processor";
 import { submitApplication } from "./submit-application";
 import { uploadDocument, uploadApplicationDocument, mapDocumentKeyToEnum } from "./document-uploader";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,12 +37,7 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
     setUploadingDocument(true);
 
     try {
-      if (!isPdf(file) && !isSupportedImage(file)) {
-        toast.error("Unsupported file type. Please upload a PDF or an image file (JPEG, PNG, BMP, TIFF).");
-        setUploadingDocument(false);
-        return;
-      }
-      
+      // Store file locally for reference
       setDocuments(prev => ({
         ...prev,
         [documentKey]: { ...prev[documentKey], file }

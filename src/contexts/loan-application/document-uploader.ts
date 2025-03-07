@@ -78,14 +78,13 @@ export const uploadApplicationDocument = async (
       console.log(`Compressed to ${(fileToUpload.size / (1024 * 1024)).toFixed(2)}MB`);
     }
     
-    // Step 4: Upload to storage bucket
-    const fileExt = 'png'; // Always use PNG for consistency
+    // Step 4: Upload to storage bucket (always as PNG)
+    const fileExt = 'png';
     const fileName = `${applicationUuid}_${applicationType}.${fileExt}`;
     const filePath = `applications/${fileName}`;
     
     console.log(`Uploading ${applicationType} as ${fileExt} file...`);
     
-    // Upload file to storage
     const { error: uploadError } = await supabase.storage
       .from('application_documents')
       .upload(filePath, fileToUpload);
@@ -100,7 +99,6 @@ export const uploadApplicationDocument = async (
       .from('application_documents')
       .getPublicUrl(filePath);
     
-    // Ensure URL is HTTPS
     const publicUrl = data.publicUrl.replace('http://', 'https://');
     return publicUrl;
   } catch (error) {
@@ -155,12 +153,10 @@ export const uploadGroupRepaymentDocument = async (
       return null;
     }
 
-    // Get HTTPS public URL
     const { data } = supabase.storage
       .from('application_documents')
       .getPublicUrl(filePath);
 
-    // Ensure URL is HTTPS
     const publicUrl = data.publicUrl.replace('http://', 'https://');
     return publicUrl;
   } catch (error) {
