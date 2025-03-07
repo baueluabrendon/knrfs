@@ -1,144 +1,10 @@
+
 import { createWorker } from 'tesseract.js';
 import { supabase } from "@/integrations/supabase/client";
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
 
 // Set the pdf.js worker source to the public path where we copied the worker file
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
-
-/**
- * Converts a PDF file to a PNG image.
- * @param file The PDF file to convert.
- * @returns A PNG image file.
- */
-export const convertPdfToPng = async (file: File): Promise<File> => {
-  console.log("Converting PDF to PNG...");
-  
-  try {
-    // Read the PDF file as an ArrayBuffer
-    const arrayBuffer = await file.arrayBuffer();
-    
-    // Load the PDF document
-    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-    const pdf = await loadingTask.promise;
-    
-    // Get the first page
-    const page = await pdf.getPage(1);
-    
-    // Render the page to a canvas
-    const viewport = page.getViewport({ scale: 2.0 }); // Scale for better quality
-    const canvas = document.createElement('canvas');
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    const context = canvas.getContext('2d');
-    
-    if (!context) {
-      throw new Error("Failed to get canvas context");
-    }
-    
-    await page.render({
-      canvasContext: context,
-      viewport: viewport
-    }).promise;
-    
-    // Convert canvas to PNG blob
-    const pngBlob = await new Promise<Blob>((resolve, reject) => {
-      canvas.toBlob((blob) => {
-        if (blob) {
-          resolve(blob);
-        } else {
-          reject(new Error("Failed to convert canvas to blob"));
-        }
-      }, 'image/png', 0.95);
-    });
-    
-    // Create a new File object from the PNG blob
-    const pngFile = new File([pngBlob], `${file.name.replace(/\.pdf$/i, '')}.png`, { type: 'image/png' });
-    
-    console.log("PDF converted to PNG successfully");
-    return pngFile;
-  } catch (error) {
-    console.error("Error converting PDF to PNG:", error);
-    throw new Error("Failed to convert PDF to image for OCR processing");
-  }
-};
-
-/**
- * Compresses an image file to reduce its size.
- * @param file The image file to compress.
- * @param maxSizeInMB Maximum size in MB (default: 3).
- * @returns A compressed image file.
- */
-export const compressImage = async (file: File, maxSizeInMB: number = 3): Promise<File> => {
-  console.log(`Compressing image: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)}MB)`);
-  
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = function(event) {
-      const img = new Image();
-      img.onload = function() {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-        
-        // Reduce dimensions if image is very large
-        const maxDimension = Math.max(width, height);
-        if (maxDimension > 2000) {
-          const ratio = 2000 / maxDimension;
-          width = Math.floor(width * ratio);
-          height = Math.floor(height * ratio);
-        }
-        
-        canvas.width = width;
-        canvas.height = height;
-        
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error("Failed to get canvas context"));
-          return;
-        }
-        
-        ctx.drawImage(img, 0, 0, width, height);
-        
-        // Recursive compression using canvas.toBlob
-        const compressFile = (quality: number) => {
-          canvas.toBlob((blob) => {
-            if (!blob) {
-              reject(new Error("Failed to compress image"));
-              return;
-            }
-            
-            const newFile = new File([blob], file.name, { type: 'image/png' });
-            if (newFile.size > maxSizeInMB * 1024 * 1024 && quality > 0.2) {
-              compressFile(quality - 0.1);
-            } else {
-              console.log(`Compression complete: ${(newFile.size / (1024 * 1024)).toFixed(2)}MB`);
-              resolve(newFile);
-            }
-          }, 'image/png', quality);
-        };
-        
-        // Start compression with an initial quality of 0.7
-        compressFile(0.7);
-      };
-      
-      img.onerror = function() {
-        reject(new Error("Failed to load image for compression"));
-      };
-      
-      if (event.target && event.target.result) {
-        img.src = event.target.result as string;
-      } else {
-        reject(new Error("FileReader did not return a valid result"));
-      }
-    };
-    
-    reader.onerror = function() {
-      reject(new Error("Failed to read file for compression"));
-    };
-    
-    reader.readAsDataURL(file);
-  });
-};
 
 /**
  * Checks if the file is a PDF.
@@ -160,6 +26,41 @@ export const isSupportedImage = (file: File): boolean => {
 };
 
 /**
+ * Extracts text from a PDF file using pdf.js.
+ * @param file The PDF file to extract text from.
+ * @returns The extracted text.
+ */
+const extractTextFromPdf = async (file: File): Promise<string> => {
+  console.log("Extracting text from PDF using pdf.js...");
+  
+  try {
+    // Read the PDF file as an ArrayBuffer
+    const arrayBuffer = await file.arrayBuffer();
+    
+    // Load the PDF document
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
+    
+    let fullText = '';
+    
+    // Extract text from all pages
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const textItems = textContent.items.map((item: any) => item.str);
+      const pageText = textItems.join(' ');
+      fullText += pageText + '\n';
+    }
+    
+    console.log("PDF text extraction complete.");
+    return fullText;
+  } catch (error) {
+    console.error("Error extracting text from PDF:", error);
+    throw new Error("Failed to extract text from PDF");
+  }
+};
+
+/**
  * Processes an application form using OCR to extract information.
  * @param file The application form file.
  * @param applicationUuid The UUID of the application being processed.
@@ -167,39 +68,46 @@ export const isSupportedImage = (file: File): boolean => {
  */
 export const processApplicationFormOCR = async (file: File, applicationUuid: string): Promise<any> => {
   try {
-    console.log("Processing application form with OCR using Tesseract.js...");
+    console.log("Processing application form...");
     
-    // Ensure file is in a valid format for OCR
-    const fileToProcess = isSupportedImage(file) ? file : 
-                         isPdf(file) ? await convertPdfToPng(file) : 
-                         null;
-    
-    if (!fileToProcess) {
+    // Check if the file type is supported
+    if (!isSupportedImage(file) && !isPdf(file)) {
       throw new Error("Unsupported file type. Please upload a PDF or an image file (JPEG, PNG, BMP, TIFF).");
     }
     
-    // Create a Tesseract worker instance
-    const worker = await createWorker({
-      logger: m => console.log(m)
-    });
+    let extractedText = '';
     
-    await worker.loadLanguage('eng');
-    await worker.initialize('eng');
+    // Process based on file type
+    if (isPdf(file)) {
+      console.log("Processing PDF document...");
+      extractedText = await extractTextFromPdf(file);
+    } else if (isSupportedImage(file)) {
+      console.log("Processing image document with Tesseract OCR...");
+      // Create a Tesseract worker instance
+      const worker = await createWorker({
+        logger: m => console.log(m)
+      });
+      
+      await worker.loadLanguage('eng');
+      await worker.initialize('eng');
+      
+      // Create a Blob URL for OCR processing
+      const imageUrl = URL.createObjectURL(file);
+      console.log("Starting OCR recognition...");
+      
+      const { data } = await worker.recognize(imageUrl);
+      extractedText = data.text;
+      
+      await worker.terminate();
+      URL.revokeObjectURL(imageUrl);
+      
+      console.log("OCR Recognition completed");
+    }
     
-    // Create a Blob URL for OCR processing
-    const imageUrl = URL.createObjectURL(fileToProcess);
-    console.log("Starting OCR recognition...");
-    
-    const { data } = await worker.recognize(imageUrl);
-    console.log("OCR Recognition completed");
-    
-    await worker.terminate();
-    URL.revokeObjectURL(imageUrl);
-    
-    console.log("OCR Text extracted:", data.text.substring(0, 200) + "...");
+    console.log("Text extracted:", extractedText.substring(0, 200) + "...");
     
     // Parse the extracted text
-    const extractedData = parseExtractedText(data.text);
+    const extractedData = parseExtractedText(extractedText);
     console.log("Parsed data:", extractedData);
     
     // Update the application record with OCR data
