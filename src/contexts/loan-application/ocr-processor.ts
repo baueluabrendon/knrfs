@@ -2,7 +2,6 @@
 import { createWorker } from 'tesseract.js';
 import { supabase } from "@/integrations/supabase/client";
 import * as pdfjsLib from 'pdfjs-dist';
-import { PDFDocument } from 'pdf-lib';
 
 // Initialize PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
@@ -12,42 +11,54 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.j
  * @param file The PDF file to convert
  * @returns A PNG image file
  */
-const convertPdfToPng = async (file: File): Promise<File> => {
+export const convertPdfToPng = async (file: File): Promise<File> => {
   console.log("Converting PDF to PNG...");
   
-  // Read the PDF file as an ArrayBuffer
-  const arrayBuffer = await file.arrayBuffer();
-  
-  // Load the PDF document
-  const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-  const pdf = await loadingTask.promise;
-  
-  // Get the first page
-  const page = await pdf.getPage(1);
-  
-  // Render the page to a canvas
-  const viewport = page.getViewport({ scale: 2.0 }); // Scale for better quality
-  const canvas = document.createElement('canvas');
-  const context = canvas.getContext('2d');
-  
-  canvas.height = viewport.height;
-  canvas.width = viewport.width;
-  
-  await page.render({
-    canvasContext: context,
-    viewport: viewport
-  }).promise;
-  
-  // Convert canvas to PNG file
-  const pngBlob = await new Promise<Blob>((resolve) => {
-    canvas.toBlob((blob) => resolve(blob), 'image/png');
-  });
-  
-  // Create a new File object from the PNG blob
-  const pngFile = new File([pngBlob], `${file.name.replace('.pdf', '')}.png`, { type: 'image/png' });
-  
-  console.log("PDF converted to PNG successfully");
-  return pngFile;
+  try {
+    // Read the PDF file as an ArrayBuffer
+    const arrayBuffer = await file.arrayBuffer();
+    
+    // Load the PDF document
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
+    
+    // Get the first page
+    const page = await pdf.getPage(1);
+    
+    // Render the page to a canvas
+    const viewport = page.getViewport({ scale: 2.0 }); // Scale for better quality
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    
+    if (!context) {
+      throw new Error("Failed to get canvas context");
+    }
+    
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+    
+    await page.render({
+      canvasContext: context,
+      viewport: viewport
+    }).promise;
+    
+    // Convert canvas to PNG file
+    const pngBlob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("Failed to convert canvas to blob"));
+      }, 'image/png', 0.95); // Use high quality
+    });
+    
+    // Create a new File object from the PNG blob
+    const pngFile = new File([pngBlob], `${file.name.replace('.pdf', '')}.png`, { type: 'image/png' });
+    
+    console.log("PDF converted to PNG successfully");
+    return pngFile;
+  } catch (error) {
+    console.error("Error converting PDF to PNG:", error);
+    throw new Error("Failed to convert PDF to image for OCR processing");
+  }
 };
 
 /**
@@ -55,7 +66,7 @@ const convertPdfToPng = async (file: File): Promise<File> => {
  * @param file The file to check
  * @returns True if the file is a PDF, false otherwise
  */
-const isPdf = (file: File): boolean => {
+export const isPdf = (file: File): boolean => {
   return file.type === 'application/pdf';
 };
 
@@ -64,7 +75,7 @@ const isPdf = (file: File): boolean => {
  * @param file The file to check
  * @returns True if the file is a supported image, false otherwise
  */
-const isSupportedImage = (file: File): boolean => {
+export const isSupportedImage = (file: File): boolean => {
   const supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/bmp', 'image/tiff'];
   return supportedTypes.includes(file.type);
 };
@@ -84,7 +95,8 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
       throw new Error("Unsupported file type. Please upload a PDF or an image file (JPEG, PNG, BMP, TIFF).");
     }
     
-    // Convert PDF to PNG if necessary
+    // The file should already be processed when it was uploaded to Supabase
+    // But we'll check again and convert if needed
     const fileToProcess = isPdf(file) ? await convertPdfToPng(file) : file;
     
     // Create a worker instance

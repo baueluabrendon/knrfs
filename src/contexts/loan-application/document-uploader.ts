@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
+import { convertPdfToPng, isPdf } from "./ocr-processor";
 
 // Type alias for document types
 type DocumentType = Database['public']['Enums']['document_type_enum'];
@@ -57,14 +58,20 @@ export const uploadApplicationDocument = async (
   applicationUuid: string
 ): Promise<string | null> => {
   try {
-    const fileExt = file.name.split('.').pop();
+    // Check if file is PDF and convert if needed
+    const fileToUpload = isPdf(file) ? await convertPdfToPng(file) : file;
+    
+    // Use PNG extension if converted from PDF, otherwise use original extension
+    const fileExt = isPdf(file) ? 'png' : fileToUpload.name.split('.').pop();
     const fileName = `${applicationUuid}_${applicationType}.${fileExt}`;
     const filePath = `applications/${fileName}`;
+    
+    console.log(`Uploading ${applicationType} as ${fileExt} file...`);
     
     // Upload file to storage
     const { error: uploadError } = await supabase.storage
       .from('application_documents')
-      .upload(filePath, file);
+      .upload(filePath, fileToUpload);
     
     if (uploadError) {
       console.error(`Error uploading ${applicationType}:`, uploadError);
