@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { 
@@ -37,26 +36,21 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
     setUploadingDocument(true);
 
     try {
-      // Validate file type
-      if (documentKey === 'applicationForm' || documentKey === 'termsAndConditions') {
-        if (!isPdf(file) && !isSupportedImage(file)) {
-          toast.error("Unsupported file type. Please upload a PDF or an image file (JPEG, PNG, BMP, TIFF).");
-          setUploadingDocument(false);
-          return;
-        }
+      if (!isPdf(file) && !isSupportedImage(file)) {
+        toast.error("Unsupported file type. Please upload a PDF or an image file (JPEG, PNG, BMP, TIFF).");
+        setUploadingDocument(false);
+        return;
       }
       
-      // Update state with the uploaded file
       setDocuments(prev => ({
         ...prev,
         [documentKey]: { ...prev[documentKey], file }
       }));
 
-      if (documentKey === 'applicationForm') {
-        // Upload file, converting PDF to PNG if necessary (handled by uploadApplicationDocument)
+      if (documentKey === 'applicationForm' || documentKey === 'termsAndConditions') {
         const documentUrl = await uploadApplicationDocument(
           file, 
-          'applicationForm',
+          documentKey as 'applicationForm' | 'termsAndConditions',
           applicationUuid
         );
 
@@ -107,7 +101,6 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
 
         toast.success(`${documents[documentKey].name} uploaded successfully`);
       } else {
-        // For other documents
         const documentUrl = await uploadDocument(file, documentKey);
         const documentTypeEnum = mapDocumentKeyToEnum(documentKey);
 
@@ -145,15 +138,6 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
   const processApplicationForm = async (): Promise<void> => {
     if (!documents.applicationForm.file) {
       toast.error("No application form uploaded");
-      return;
-    }
-    
-    // Validate file type
-    const fileType = documents.applicationForm.file.type;
-    const supportedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/bmp', 'image/tiff'];
-    
-    if (!supportedTypes.includes(fileType)) {
-      toast.error("Unsupported file type. Please upload a PDF or an image file (JPEG, PNG, BMP, TIFF).");
       return;
     }
     

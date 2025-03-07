@@ -2,7 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
-import { convertPdfToPng, isPdf } from "./ocr-processor";
+import { convertPdfToPng, isPdf, isSupportedImage, compressImage } from "./ocr-processor";
 
 // Type alias for document types
 type DocumentType = Database['public']['Enums']['document_type_enum'];
@@ -58,11 +58,28 @@ export const uploadApplicationDocument = async (
   applicationUuid: string
 ): Promise<string | null> => {
   try {
-    // Check if file is PDF and convert if needed
-    const fileToUpload = isPdf(file) ? await convertPdfToPng(file) : file;
+    let fileToUpload: File;
     
-    // Use PNG extension if converted from PDF, otherwise use original extension
-    const fileExt = isPdf(file) ? 'png' : fileToUpload.name.split('.').pop();
+    // Step 1 & 2: Check file type and convert if needed
+    if (isPdf(file)) {
+      console.log(`Converting PDF to PNG...`);
+      fileToUpload = await convertPdfToPng(file);
+    } else if (isSupportedImage(file)) {
+      console.log(`Using image file directly...`);
+      fileToUpload = file;
+    } else {
+      throw new Error("Unsupported file type. Please upload a PDF or an image file (JPEG, PNG, BMP, TIFF).");
+    }
+    
+    // Step 3: Compress file to max 3MB if it's larger
+    if (fileToUpload.size > 3 * 1024 * 1024) {
+      console.log(`File size (${(fileToUpload.size / (1024 * 1024)).toFixed(2)}MB) exceeds 3MB, compressing...`);
+      fileToUpload = await compressImage(fileToUpload);
+      console.log(`Compressed to ${(fileToUpload.size / (1024 * 1024)).toFixed(2)}MB`);
+    }
+    
+    // Step 4: Upload to storage bucket
+    const fileExt = 'png'; // Always use PNG for consistency
     const fileName = `${applicationUuid}_${applicationType}.${fileExt}`;
     const filePath = `applications/${fileName}`;
     

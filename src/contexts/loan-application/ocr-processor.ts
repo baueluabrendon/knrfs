@@ -62,6 +62,86 @@ export const convertPdfToPng = async (file: File): Promise<File> => {
 };
 
 /**
+ * Compresses an image file to reduce its size
+ * @param file The image file to compress
+ * @param maxSizeInMB Maximum size in MB (default: 3)
+ * @returns A compressed image file
+ */
+export const compressImage = async (file: File, maxSizeInMB: number = 3): Promise<File> => {
+  console.log(`Compressing image: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)}MB)`);
+  
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        
+        // Calculate the ratio to maintain aspect ratio while reducing size
+        const maxSize = Math.max(width, height);
+        let quality = 0.7; // Start with 70% quality
+        
+        // If image is very large, reduce dimensions
+        if (maxSize > 2000) {
+          const ratio = 2000 / maxSize;
+          width *= ratio;
+          height *= ratio;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error("Failed to get canvas context"));
+          return;
+        }
+        
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Use createObjectURL instead of dataURL for better memory performance
+        const compressFile = (q: number) => {
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              reject(new Error("Failed to compress image"));
+              return;
+            }
+            
+            const newFile = new File([blob], file.name, { type: 'image/png' });
+            
+            // If still too large and quality can be reduced further
+            if (newFile.size > maxSizeInMB * 1024 * 1024 && q > 0.2) {
+              quality -= 0.1;
+              compressFile(quality);
+            } else {
+              console.log(`Compression complete: ${(newFile.size / (1024 * 1024)).toFixed(2)}MB`);
+              resolve(newFile);
+            }
+          }, 'image/png', q);
+        };
+        
+        // Start compression process
+        compressFile(quality);
+      };
+      
+      img.onerror = function() {
+        reject(new Error("Failed to load image for compression"));
+      };
+      
+      img.src = event.target!.result as string;
+    };
+    
+    reader.onerror = function() {
+      reject(new Error("Failed to read file for compression"));
+    };
+    
+    reader.readAsDataURL(file);
+  });
+};
+
+/**
  * Checks if the file is a PDF
  * @param file The file to check
  * @returns True if the file is a PDF, false otherwise
@@ -90,14 +170,15 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
   try {
     console.log("Processing application form with OCR using Tesseract.js...");
     
-    // Check if file is supported
-    if (!isPdf(file) && !isSupportedImage(file)) {
+    // Step 5: Prepare file for OCR processing
+    // The file should already be in a format suitable for OCR processing (either original image or converted from PDF)
+    const fileToProcess = isSupportedImage(file) ? file : 
+                         isPdf(file) ? await convertPdfToPng(file) : 
+                         null;
+    
+    if (!fileToProcess) {
       throw new Error("Unsupported file type. Please upload a PDF or an image file (JPEG, PNG, BMP, TIFF).");
     }
-    
-    // The file should already be processed when it was uploaded to Supabase
-    // But we'll check again and convert if needed
-    const fileToProcess = isPdf(file) ? await convertPdfToPng(file) : file;
     
     // Create a worker instance
     const worker = await createWorker();
@@ -120,15 +201,13 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
     // Clean up the blob URL
     URL.revokeObjectURL(imageUrl);
     
-    console.log("OCR Text:", data.text);
+    console.log("OCR Text extracted:", data.text.substring(0, 200) + "...");
     
     // Parse the extracted text to identify fields
-    // This is a simple implementation - in production you'd use more sophisticated 
-    // parsing logic based on your form layout and field positions
     const extractedData = parseExtractedText(data.text);
     console.log("Parsed data:", extractedData);
     
-    // Update the application record in the database
+    // Step 6: Update the application record in the database with the OCR data
     await updateApplicationWithOCRData(applicationUuid, extractedData);
     
     return {

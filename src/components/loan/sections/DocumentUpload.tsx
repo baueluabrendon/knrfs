@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { isPdf, isSupportedImage } from "@/contexts/loan-application/ocr-processor";
 
 export const DocumentUpload = () => {
   const {
@@ -38,6 +39,14 @@ export const DocumentUpload = () => {
     return false;
   };
 
+  const validateFileType = (file: File): boolean => {
+    if (!isPdf(file) && !isSupportedImage(file)) {
+      toast.error("Unsupported file type. Please upload a PDF or an image file (JPEG, PNG, BMP, TIFF).");
+      return false;
+    }
+    return true;
+  };
+
   const handleProcessDocument = async () => {
     try {
       setIsSubmitting(true);
@@ -46,11 +55,7 @@ export const DocumentUpload = () => {
         return;
       }
       
-      const fileType = documents.applicationForm.file.type;
-      const supportedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/bmp', 'image/tiff'];
-      
-      if (!supportedTypes.includes(fileType)) {
-        toast.error("Unsupported file type. Please upload a PDF or an image file (JPEG, PNG, BMP, TIFF).");
+      if (!validateFileType(documents.applicationForm.file)) {
         return;
       }
       
@@ -76,7 +81,11 @@ export const DocumentUpload = () => {
           documents={documents}
           filter={(key) => ["applicationForm"].includes(key)}
           isDocumentEnabled={isDocumentEnabled}
-          handleFileUpload={handleFileUpload}
+          handleFileUpload={(documentKey, file) => {
+            if (validateFileType(file)) {
+              handleFileUpload(documentKey, file);
+            }
+          }}
           isUploading={uploadingDocument}
         />
         
@@ -114,7 +123,11 @@ export const DocumentUpload = () => {
           documents={documents}
           filter={(key) => ["termsAndConditions"].includes(key)}
           isDocumentEnabled={isDocumentEnabled}
-          handleFileUpload={handleFileUpload}
+          handleFileUpload={(documentKey, file) => {
+            if (validateFileType(file)) {
+              handleFileUpload(documentKey, file);
+            }
+          }}
           isUploading={uploadingDocument}
         />
         
@@ -127,7 +140,11 @@ export const DocumentUpload = () => {
           documents={documents}
           filter={(key) => !["applicationForm", "termsAndConditions"].includes(key)}
           isDocumentEnabled={isDocumentEnabled}
-          handleFileUpload={handleFileUpload}
+          handleFileUpload={(documentKey, file) => {
+            if (validateFileType(file)) {
+              handleFileUpload(documentKey, file);
+            }
+          }}
           isUploading={uploadingDocument}
         />
       </div>
