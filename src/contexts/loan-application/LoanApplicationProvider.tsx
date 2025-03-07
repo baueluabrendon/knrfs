@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { 
@@ -163,6 +162,9 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
         
         toast.success('Application form processed successfully');
       }
+    } catch (error) {
+      console.error("Error processing application form:", error);
+      toast.error("Failed to process application form");
     } finally {
       setIsProcessingOCR(false);
     }
