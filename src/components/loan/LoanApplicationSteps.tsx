@@ -13,6 +13,7 @@ import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
 
+// This component is used inside the provider
 const ApplicationForm = () => {
   const { handleSubmit, formData, updateFormData } = useLoanApplication();
   const form = useForm();
@@ -66,6 +67,7 @@ const ApplicationForm = () => {
   );
 };
 
+// This component must be used inside the provider
 const LoanApplicationContent = () => {
   const { currentStep } = useLoanApplication();
 
@@ -85,13 +87,14 @@ const LoanApplicationContent = () => {
   );
 };
 
+// Main component with the provider correctly wrapping the content
 const LoanApplicationSteps = () => {
   return (
-    <LoanApplicationProvider>
-      <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-8">
+      <LoanApplicationProvider>
         <LoanApplicationContent />
-      </div>
-    </LoanApplicationProvider>
+      </LoanApplicationProvider>
+    </div>
   );
 };
 
