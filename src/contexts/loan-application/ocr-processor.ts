@@ -1,9 +1,8 @@
-
 import { createWorker } from 'tesseract.js';
 import { supabase } from "@/integrations/supabase/client";
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
 
-// Set the pdf.js worker source to the public path where we copied the worker file
+// Configure pdf.js worker - point to the worker file in the public directory
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
 
 /**
@@ -52,7 +51,7 @@ const extractTextFromPdf = async (file: File): Promise<string> => {
       fullText += pageText + '\n';
     }
     
-    console.log("PDF text extraction complete.");
+    console.log("PDF text extraction complete. First 100 chars:", fullText.substring(0, 100));
     return fullText;
   } catch (error) {
     console.error("Error extracting text from PDF:", error);
