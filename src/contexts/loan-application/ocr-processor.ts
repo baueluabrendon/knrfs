@@ -46,20 +46,20 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
       throw new Error("Unsupported file type. Please upload a PDF or an image file (JPEG, PNG, BMP, TIFF).");
     }
     
-    // Try to get the application URL with retries
+    // Try to get the application URL with increased retries and longer delays
     let application = null;
     let fetchError = null;
-    let retries = 3;
+    let retries = 5; // Increased from 3 to 5
     
-    // Wait a bit for the upload transaction to complete before the first attempt
-    await delay(1000);
+    // Wait longer for the upload transaction to complete before the first attempt
+    await delay(2500); // Increased from 1000ms to 2500ms
     
     while (retries > 0 && !application) {
-      console.log(`Attempt ${4-retries} to retrieve application document URL`);
+      console.log(`Attempt ${6-retries} of 5 to retrieve application document URL`);
       
       const result = await supabase
         .from('applications')
-        .select('application_document_url')
+        .select('application_document_url, status')
         .eq('application_id', applicationUuid)
         .maybeSingle();
         
@@ -69,14 +69,59 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
       if (fetchError) {
         console.error('Error fetching application document URL:', fetchError);
         retries--;
-        if (retries > 0) await delay(1500); // Wait before retry
+        if (retries > 0) {
+          console.log(`Waiting ${2500}ms before retry...`);
+          await delay(2500); // Increased from 1500ms to 2500ms
+        }
         continue;
       }
       
-      if (!application || !application.application_document_url) {
-        console.log('Application found but URL is missing, retrying...');
+      if (!application) {
+        console.log('Application not found in database, retrying...');
         retries--;
-        if (retries > 0) await delay(1500); // Wait before retry
+        if (retries > 0) {
+          console.log(`Waiting ${2500}ms before retry...`);
+          await delay(2500); // Increased delay
+        }
+        continue;
+      }
+      
+      if (!application.application_document_url) {
+        console.log('Application found but URL is missing, retrying...');
+        // Check if we have already waited enough and should verify storage directly
+        if (retries === 2) {
+          console.log('Trying to verify document in storage directly...');
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${applicationUuid}_applicationForm.${fileExt}`;
+          const filePath = `applications/${fileName}`;
+          
+          // Check if the file exists in storage
+          const { data: fileData, error: fileError } = await supabase.storage
+            .from('application_documents')
+            .getPublicUrl(filePath);
+            
+          if (!fileError && fileData) {
+            console.log('Found file in storage, updating application record with URL:', fileData.publicUrl);
+            // Update the application record with the URL
+            const { error: updateError } = await supabase
+              .from('applications')
+              .update({ application_document_url: fileData.publicUrl.replace('http://', 'https://') })
+              .eq('application_id', applicationUuid);
+              
+            if (updateError) {
+              console.error('Error updating application with URL:', updateError);
+            } else {
+              // Try again immediately
+              continue;
+            }
+          }
+        }
+        
+        retries--;
+        if (retries > 0) {
+          console.log(`Waiting ${3000}ms before retry...`);
+          await delay(3000); // Increased from 1500ms to 3000ms
+        }
         continue;
       }
       
@@ -84,7 +129,7 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
     }
     
     if (fetchError) {
-      throw new Error('Failed to retrieve application document URL after multiple attempts');
+      throw new Error(`Failed to retrieve application document URL after multiple attempts: ${fetchError.message}`);
     }
     
     if (!application || !application.application_document_url) {
@@ -97,7 +142,7 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
     const result = await callProcessApplicationEdgeFunction({
       application_id: applicationUuid,
       application_document_url: application.application_document_url,
-      status: 'pending'
+      status: application.status || 'pending'
     });
     
     console.log('Edge function response:', result);

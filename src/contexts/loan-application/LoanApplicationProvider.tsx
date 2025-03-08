@@ -95,7 +95,21 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
           throw updateResult.error;
         }
 
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        const { data: verifyApp, error: verifyError } = await supabase
+          .from('applications')
+          .select('application_document_url')
+          .eq('application_id', applicationUuid)
+          .single();
+        
+        if (verifyError) {
+          console.error('Error verifying application document URL:', verifyError);
+        } else if (!verifyApp?.application_document_url) {
+          console.warn('Application URL not yet available in DB, may need retry during processing');
+        } else {
+          console.log('Verified application_document_url is saved:', verifyApp.application_document_url);
+        }
 
         toast.success(`${documents[documentKey].name} uploaded successfully`);
       } else {
