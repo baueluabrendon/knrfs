@@ -59,6 +59,10 @@ export const DocumentUpload = () => {
         return;
       }
       
+      toast.info("Processing document... This may take a few moments", {
+        duration: 3000,
+      });
+      
       await processApplicationForm();
       toast.success("Application form processed successfully");
     } catch (error) {
@@ -99,10 +103,12 @@ export const DocumentUpload = () => {
               {(isSubmitting || isProcessingOCR) && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              {(isSubmitting || isProcessingOCR) ? "Processing Document..." : "Process Application Form"}
+              {(isSubmitting || isProcessingOCR) 
+                ? "Processing Document... (Cloud-based OCR)" 
+                : "Process Application Form"}
             </Button>
             <p className="text-sm text-gray-500 mt-2">
-              Process your application form to extract information automatically.
+              Process your application form to extract information automatically using cloud-based OCR.
             </p>
           </div>
         )}
