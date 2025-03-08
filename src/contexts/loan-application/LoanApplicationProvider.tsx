@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { 
@@ -95,13 +96,15 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
           throw updateResult.error;
         }
 
+        // Delay to allow the database to update
         await new Promise(resolve => setTimeout(resolve, 3000));
         
+        // Use maybeSingle instead of single to prevent errors when the record isn't found
         const { data: verifyApp, error: verifyError } = await supabase
           .from('applications')
           .select('application_document_url')
           .eq('application_id', applicationUuid)
-          .single();
+          .maybeSingle(); // Changed from single() to maybeSingle()
         
         if (verifyError) {
           console.error('Error verifying application document URL:', verifyError);
