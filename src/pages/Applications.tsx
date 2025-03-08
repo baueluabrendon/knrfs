@@ -40,13 +40,12 @@ const Applications = () => {
         
       if (fetchError) throw fetchError;
       
-      // Ensure HTTPS is used for the function URL
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const functionUrl = `${supabaseUrl}/functions/v1/process-approved-application`;
+      // Call the edge function to process the approved application with Google Vision API
+      const edgeFunctionUrl = 'https://mhndkefbyvxasvayigvx.supabase.co/functions/v1/process-approved-application';
       
       console.log('Calling edge function to process application:', updatedApplication.application_id);
       
-      const response = await fetch(functionUrl, {
+      const response = await fetch(edgeFunctionUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
