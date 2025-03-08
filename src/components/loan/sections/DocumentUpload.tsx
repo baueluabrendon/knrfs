@@ -4,10 +4,11 @@ import { DocumentList } from "./document-upload/DocumentList";
 import { EmployerTypeSelector } from "./document-upload/EmployerTypeSelector";
 import { DocumentUploadType } from "@/types/loan";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, FileText, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { isPdf, isSupportedImage } from "@/contexts/loan-application/ocr-processor";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export const DocumentUpload = () => {
   const {
@@ -22,6 +23,7 @@ export const DocumentUpload = () => {
   } = useLoanApplication();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [processingError, setProcessingError] = useState<string | null>(null);
 
   const isDocumentEnabled = (doc: DocumentUploadType) => {
     if (currentStep === 1) {
@@ -50,6 +52,8 @@ export const DocumentUpload = () => {
   const handleProcessDocument = async () => {
     try {
       setIsSubmitting(true);
+      setProcessingError(null);
+      
       if (!documents.applicationForm.file) {
         toast.error("Please upload an Application Form first");
         return;
@@ -59,15 +63,17 @@ export const DocumentUpload = () => {
         return;
       }
       
-      toast.info("Processing document... This may take a few moments", {
-        duration: 3000,
+      toast.info("Processing document with Google Cloud Vision OCR... This may take up to a minute", {
+        duration: 5000,
       });
       
       await processApplicationForm();
-      toast.success("Application form processed successfully");
-    } catch (error) {
+      toast.success("Application form processed successfully. Data extracted and saved.");
+    } catch (error: any) {
       console.error("Error processing document:", error);
-      toast.error("Failed to process document. Please try again.");
+      const errorMessage = error.message || "Failed to process document. Please try again.";
+      setProcessingError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -86,12 +92,22 @@ export const DocumentUpload = () => {
           filter={(key) => ["applicationForm"].includes(key)}
           isDocumentEnabled={isDocumentEnabled}
           handleFileUpload={(documentKey, file) => {
+            setProcessingError(null);
             if (validateFileType(file)) {
               handleFileUpload(documentKey, file);
             }
           }}
           isUploading={uploadingDocument}
         />
+        
+        {processingError && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {processingError}
+            </AlertDescription>
+          </Alert>
+        )}
         
         {documents.applicationForm.file && (
           <div className="mt-6">
@@ -100,15 +116,21 @@ export const DocumentUpload = () => {
               disabled={isSubmitting || isProcessingOCR}
               className="w-full"
             >
-              {(isSubmitting || isProcessingOCR) && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {(isSubmitting || isProcessingOCR) ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing Document with Google Cloud Vision OCR...
+                </>
+              ) : (
+                <>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Extract Data from Application Form
+                </>
               )}
-              {(isSubmitting || isProcessingOCR) 
-                ? "Processing Document... (Cloud Vision OCR)" 
-                : "Process Application Form"}
             </Button>
             <p className="text-sm text-gray-500 mt-2">
-              Process your application form to extract information automatically using Google Cloud Vision OCR.
+              Your document will be processed using Google Cloud Vision OCR to automatically extract application information.
+              This process typically takes 30-60 seconds depending on the document complexity.
             </p>
           </div>
         )}

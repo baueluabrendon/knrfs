@@ -28,16 +28,20 @@ export const isSupportedImage = (file: File): boolean => {
  */
 export const processApplicationFormOCR = async (file: File, applicationUuid: string): Promise<any> => {
   try {
-    console.log("Processing application form using Supabase Edge Function...");
+    console.log(`Starting OCR processing for application ID: ${applicationUuid}`);
+    console.log(`File details: name=${file.name}, type=${file.type}, size=${file.size} bytes`);
     
     // Check if the file type is supported
     if (!isSupportedImage(file) && !isPdf(file)) {
+      console.error(`Unsupported file type: ${file.type}`);
       throw new Error("Unsupported file type. Please upload a PDF or an image file (JPEG, PNG, BMP, TIFF).");
     }
     
     // Create a FormData instance
     const formData = new FormData();
     formData.append('file', file);
+    
+    console.log("Sending document to Supabase Edge Function for processing...");
     
     // Call the Supabase Edge Function with application_id as part of the URL
     const functionPath = `process-document?application_id=${encodeURIComponent(applicationUuid)}`;
@@ -55,10 +59,15 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
       throw new Error(`Failed to process document: ${error.message}`);
     }
     
-    console.log("Document processed successfully:", data);
+    if (!data) {
+      console.error("No data returned from process-document function");
+      throw new Error("No data could be extracted from the document");
+    }
+    
+    console.log("Document processed successfully with extracted data:", data);
     return data;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in OCR processing:", error);
-    throw error;
+    throw new Error(`OCR processing failed: ${error.message}`);
   }
 };

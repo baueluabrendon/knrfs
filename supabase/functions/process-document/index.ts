@@ -35,13 +35,18 @@ async function processImageWithGoogleVision(arrayBuffer) {
       image: { content: base64Image }
     });
     
-    const fullText = result.fullTextAnnotation ? result.fullTextAnnotation.text : '';
+    if (!result || !result.fullTextAnnotation) {
+      console.error("No text detected in the image");
+      throw new Error("No text could be extracted from the image");
+    }
+    
+    const fullText = result.fullTextAnnotation.text;
     console.log("Vision API extraction complete. First 100 chars:", fullText.substring(0, 100));
     
     return fullText;
   } catch (error) {
     console.error("Error processing image with Google Vision:", error);
-    return generateMockPdfText();
+    throw error;
   }
 }
 
@@ -59,136 +64,132 @@ async function extractTextFromPdf(arrayBuffer) {
       image: { content: base64Pdf }
     });
     
-    const fullText = result.fullTextAnnotation ? result.fullTextAnnotation.text : '';
+    if (!result || !result.fullTextAnnotation) {
+      console.error("No text detected in the PDF");
+      throw new Error("No text could be extracted from the PDF");
+    }
+    
+    const fullText = result.fullTextAnnotation.text;
     console.log("PDF text extraction complete. First 100 chars:", fullText.substring(0, 100));
     
     return fullText;
   } catch (error) {
     console.error("Error extracting text from PDF with Google Vision:", error);
-    return generateMockPdfText();
+    throw error;
   }
 }
 
 // Parse extracted text to get application data
 function parseExtractedText(text) {
+  console.log("Parsing extracted text to find application data...");
+  
+  // Initialize empty object for extracted data
   const extractedData = {};
   
-  // Simple regex patterns to extract information
-  const namePattern = /Name:?\s*([A-Za-z\s]+)/i;
-  const emailPattern = /Email:?\s*([\w.-]+@[\w.-]+\.\w+)/i;
-  const phonePattern = /Phone:?\s*(\+?[\d\s-]+)/i;
-  const datePattern = /Date of Birth:?\s*(\d{1,2}[\/\.-]\d{1,2}[\/\.-]\d{2,4}|\d{4}-\d{2}-\d{2})/i;
-  const amountPattern = /Amount:?\s*([\d,.]+)/i;
-  const addressPattern = /Address:?\s*([A-Za-z0-9\s,.]+)/i;
-  
+  // Define regex patterns for data extraction
+  const patterns = {
+    personalDetails: {
+      firstName: /First\s*Name:?\s*([A-Za-z\s]+)/i,
+      middleName: /Middle\s*Name:?\s*([A-Za-z\s]*)/i,
+      lastName: /Last\s*Name:?\s*([A-Za-z\s]+)/i,
+      name: /Name:?\s*([A-Za-z\s]+)/i,
+      dateOfBirth: /Date\s*of\s*Birth:?\s*(\d{1,2}[\/\.-]\d{1,2}[\/\.-]\d{2,4}|\d{4}-\d{2}-\d{2})/i,
+      gender: /Gender:?\s*(Male|Female|Other)/i,
+      email: /Email:?\s*([\w.-]+@[\w.-]+\.\w+)/i,
+      phone: /Phone:?\s*(\+?[\d\s-]+)/i,
+      idType: /ID\s*Type:?\s*([A-Za-z\s]+)/i,
+      idNumber: /ID\s*Number:?\s*([A-Za-z0-9\s-]+)/i,
+      nationality: /Nationality:?\s*([A-Za-z\s]+)/i,
+      maritalStatus: /Marital\s*Status:?\s*([A-Za-z\s]+)/i,
+    },
+    employmentDetails: {
+      employerName: /Employer:?\s*([A-Za-z0-9\s.,&]+)/i,
+      employmentDate: /Date\s*Employed:?\s*(\d{1,2}[\/\.-]\d{1,2}[\/\.-]\d{2,4}|\d{4}-\d{2}-\d{2})/i,
+      occupation: /Occupation:?\s*([A-Za-z\s]+)/i,
+      salary: /Salary:?\s*([\d,]+)/i,
+      payDay: /Pay\s*Day:?\s*(\d{1,2})/i,
+      fileNumber: /File\s*Number:?\s*([A-Za-z0-9\s-]+)/i,
+      position: /Position:?\s*([A-Za-z\s]+)/i,
+      workPhoneNumber: /Work\s*Phone:?\s*(\+?[\d\s-]+)/i,
+    },
+    residentialDetails: {
+      address: /Address:?\s*([A-Za-z0-9\s,.]+)/i,
+      suburb: /Suburb:?\s*([A-Za-z\s]+)/i,
+      city: /City:?\s*([A-Za-z\s]+)/i,
+      province: /Province:?\s*([A-Za-z\s]+)/i,
+      postalCode: /Postal\s*Code:?\s*(\d+)/i,
+      residentialStatus: /Residential\s*Status:?\s*([A-Za-z\s]+)/i,
+      yearsAtAddress: /Years\s*at\s*Address:?\s*(\d+)/i,
+    },
+    financialDetails: {
+      monthlyIncome: /Monthly\s*Income:?\s*([\d,.]+)/i,
+      otherIncome: /Other\s*Income:?\s*([\d,.]+)/i,
+      totalExpenses: /Total\s*Expenses:?\s*([\d,.]+)/i,
+      loanAmount: /Loan\s*Amount:?\s*([\d,.]+)/i,
+      loanPurpose: /Loan\s*Purpose:?\s*([A-Za-z\s]+)/i,
+      loanTerm: /Loan\s*Term:?\s*(\d+)/i,
+      interestRate: /Interest\s*Rate:?\s*([\d.]+)/i,
+      bank: /Bank:?\s*([A-Za-z\s]+)/i,
+      accountNumber: /Account\s*Number:?\s*(\d+)/i,
+    }
+  };
+
   // Extract data using regex patterns
-  const nameMatch = text.match(namePattern);
+  console.log("Applying regex patterns to extract structured data...");
+  
+  // Extract name field that could contain full name
+  const nameMatch = text.match(patterns.personalDetails.name);
   if (nameMatch && nameMatch[1]) {
     const fullName = nameMatch[1].trim().split(' ');
-    extractedData.firstName = fullName[0] || '';
-    extractedData.middleName = fullName.length > 2 ? fullName[1] : '';
-    extractedData.lastName = fullName.length > 1 ? fullName[fullName.length - 1] : '';
+    if (fullName.length >= 1) extractedData.firstName = fullName[0] || '';
+    if (fullName.length >= 3) extractedData.middleName = fullName[1] || '';
+    if (fullName.length >= 2) extractedData.lastName = fullName[fullName.length - 1] || '';
   }
   
-  const emailMatch = text.match(emailPattern);
-  if (emailMatch && emailMatch[1]) {
-    extractedData.email = emailMatch[1].trim();
+  // Process each category and its fields
+  for (const [category, fieldPatterns] of Object.entries(patterns)) {
+    // Initialize the category if not exists
+    if (!extractedData[category]) extractedData[category] = {};
+    
+    // Process each field in the category
+    for (const [field, pattern] of Object.entries(fieldPatterns)) {
+      // Skip name field as it's handled separately
+      if (field === 'name') continue;
+      
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        extractedData[category][field] = match[1].trim();
+      }
+    }
   }
-  
-  const phoneMatch = text.match(phonePattern);
-  if (phoneMatch && phoneMatch[1]) {
-    extractedData.phone = phoneMatch[1].trim();
-  }
-  
-  const dateMatch = text.match(datePattern);
-  if (dateMatch && dateMatch[1]) {
-    extractedData.dateOfBirth = dateMatch[1].trim();
-  }
-  
-  const addressMatch = text.match(addressPattern);
-  if (addressMatch && addressMatch[1]) {
-    extractedData.address = addressMatch[1].trim();
-  }
-  
-  const amountMatch = text.match(amountPattern);
-  if (amountMatch && amountMatch[1]) {
-    extractedData.loanAmount = amountMatch[1].trim();
-  }
-  
-  // Fall back to mock data for demo purposes
-  return {
-    firstName: "John",
-    middleName: "Robert",
-    lastName: "Doe",
-    dateOfBirth: "1990-01-15",
-    gender: "Male",
-    email: "john.doe@example.com",
-    phone: "+675 7654 3210",
-    idType: "National ID",
-    idNumber: "ID12345678",
-    employerName: "Pacific Industries Ltd",
-    employmentDate: "2018-06-01",
-    occupation: "Senior Accountant",
-    salary: "75000",
-    payDay: "15",
-    address: "123 Harbor Street",
-    suburb: "Seaside",
-    city: "Port Moresby",
-    province: "National Capital District",
-    postalCode: "111",
-    residentialStatus: "Owner",
-    yearsAtAddress: "5",
-    monthlyIncome: "6250",
-    otherIncome: "1000",
-    totalExpenses: "3500",
-    loanAmount: "10000",
-    loanPurpose: "Home Renovation",
-    loanTerm: "24",
-    interest: "2400",
-    interestRate: "24",
-    loanRiskInsurance: "200",
-    documentationFee: "50",
-    fortnightlyInstallment: "527.08",
-    grossLoan: "12650",
-    ...extractedData
-  };
-}
 
-// Generate mock PDF text for testing or fallback
-function generateMockPdfText() {
-  return `
-    Application Form
-    Name: John Robert Doe
-    Date of Birth: 1990-01-15
-    Gender: Male
-    Email: john.doe@example.com
-    Phone: +675 7654 3210
-    ID Type: National ID
-    ID Number: ID12345678
-    
-    Employment Details:
-    Employer: Pacific Industries Ltd
-    Date Employed: 2018-06-01
-    Occupation: Senior Accountant
-    Salary: 75000
-    Pay Day: 15
-    
-    Address: 123 Harbor Street, Seaside
-    Suburb: Seaside
-    City: Port Moresby
-    Province: National Capital District
-    Postal Code: 111
-    Residential Status: Owner
-    Years at Address: 5
-    
-    Financial Details:
-    Monthly Income: 6250
-    Other Income: 1000
-    Total Expenses: 3500
-    Loan Amount: 10000
-    Loan Purpose: Home Renovation
-    Loan Term: 24 months
-  `;
+  // If first/last name weren't found via direct fields but were extracted from name field,
+  // add them to the personalDetails
+  if (!extractedData.personalDetails) extractedData.personalDetails = {};
+  
+  if (extractedData.firstName && !extractedData.personalDetails.firstName) {
+    extractedData.personalDetails.firstName = extractedData.firstName;
+    delete extractedData.firstName;
+  }
+  
+  if (extractedData.middleName && !extractedData.personalDetails.middleName) {
+    extractedData.personalDetails.middleName = extractedData.middleName;
+    delete extractedData.middleName;
+  }
+  
+  if (extractedData.lastName && !extractedData.personalDetails.lastName) {
+    extractedData.personalDetails.lastName = extractedData.lastName;
+    delete extractedData.lastName;
+  }
+
+  console.log("Data extraction complete. Fields extracted:", 
+    Object.keys(extractedData.personalDetails || {}).length +
+    Object.keys(extractedData.employmentDetails || {}).length +
+    Object.keys(extractedData.residentialDetails || {}).length +
+    Object.keys(extractedData.financialDetails || {}).length
+  );
+  
+  return extractedData;
 }
 
 // Main function to process documents and extract data
@@ -213,15 +214,19 @@ serve(async (req) => {
     const applicationUuid = url.searchParams.get('application_id');
 
     if (!applicationUuid) {
+      console.error("Missing application_id in request");
       return new Response(JSON.stringify({ error: 'Application ID is required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
+    console.log(`Processing document for application ID: ${applicationUuid}`);
+
     // Check if content type is multipart/form-data
     const contentType = req.headers.get('content-type') || '';
     if (!contentType.includes('multipart/form-data')) {
+      console.error(`Invalid content type: ${contentType}`);
       return new Response(JSON.stringify({ error: 'Content type must be multipart/form-data' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -233,13 +238,14 @@ serve(async (req) => {
     const fileData = formData.get('file');
 
     if (!fileData || !(fileData instanceof File)) {
+      console.error("No file uploaded in request");
       return new Response(JSON.stringify({ error: 'No file uploaded' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    console.log(`Processing file: ${fileData.name}, size: ${fileData.size}, type: ${fileData.type}`);
+    console.log(`Processing file: ${fileData.name}, size: ${fileData.size} bytes, type: ${fileData.type}`);
 
     // Convert file to array buffer
     const arrayBuffer = await fileData.arrayBuffer();
@@ -254,6 +260,7 @@ serve(async (req) => {
     } else if (isImage) {
       extractedText = await processImageWithGoogleVision(arrayBuffer);
     } else {
+      console.error(`Unsupported file type: ${fileData.type}`);
       return new Response(JSON.stringify({ 
         error: 'Unsupported file type. Please upload a PDF or an image file (JPEG, PNG, BMP, TIFF).'
       }), {
@@ -262,73 +269,55 @@ serve(async (req) => {
       });
     }
 
+    if (!extractedText || extractedText.trim().length === 0) {
+      console.error("No text extracted from document");
+      return new Response(JSON.stringify({ 
+        error: 'No text could be extracted from the document. Please try with a clearer image or PDF.'
+      }), {
+        status: 422,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    console.log(`Successfully extracted ${extractedText.length} characters of text`);
+
     // Parse extracted text and prepare application data
     const extractedData = parseExtractedText(extractedText);
-    console.log("Extracted data:", JSON.stringify(extractedData).substring(0, 200) + "...");
+    console.log("Structured data extracted:", JSON.stringify(extractedData).substring(0, 200) + "...");
 
     // Store extracted data in Supabase
-    const { error } = await supabaseClient
+    console.log(`Updating application ${applicationUuid} with extracted data in database...`);
+    const { error: dbError } = await supabaseClient
       .from('applications')
       .update({ jsonb_data: extractedData })
       .eq('application_id', applicationUuid);
 
-    if (error) {
-      console.error("Error updating application with OCR data:", error);
-      throw error;
+    if (dbError) {
+      console.error("Error updating application with OCR data:", dbError);
+      return new Response(JSON.stringify({ 
+        error: `Database error: ${dbError.message}`
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
 
     // Structure the response data
     const responseData = {
-      personalDetails: {
-        firstName: extractedData.firstName || "",
-        middleName: extractedData.middleName || "",
-        lastName: extractedData.lastName || "",
-        dateOfBirth: extractedData.dateOfBirth || "",
-        gender: extractedData.gender || "",
-        email: extractedData.email || "",
-        phone: extractedData.phone || "",
-        idType: extractedData.idType || "",
-        idNumber: extractedData.idNumber || "",
-      },
-      employmentDetails: {
-        employerName: extractedData.employerName || "",
-        employmentDate: extractedData.employmentDate || "",
-        occupation: extractedData.occupation || "",
-        salary: extractedData.salary || "",
-        payDay: extractedData.payDay || "",
-      },
-      residentialDetails: {
-        address: extractedData.address || "",
-        suburb: extractedData.suburb || "",
-        city: extractedData.city || "",
-        province: extractedData.province || "",
-        postalCode: extractedData.postalCode || "",
-        residentialStatus: extractedData.residentialStatus || "",
-        yearsAtAddress: extractedData.yearsAtAddress || "",
-      },
-      financialDetails: {
-        monthlyIncome: extractedData.monthlyIncome || "",
-        otherIncome: extractedData.otherIncome || "",
-        totalExpenses: extractedData.totalExpenses || "",
-        loanAmount: extractedData.loanAmount || "",
-        loanPurpose: extractedData.loanPurpose || "",
-        loanTerm: extractedData.loanTerm || "",
-        interest: extractedData.interest || "",
-        interestRate: extractedData.interestRate || "",
-        loanRiskInsurance: extractedData.loanRiskInsurance || "",
-        documentationFee: extractedData.documentationFee || "",
-        fortnightlyInstallment: extractedData.fortnightlyInstallment || "",
-        grossLoan: extractedData.grossLoan || "",
-      }
+      personalDetails: extractedData.personalDetails || {},
+      employmentDetails: extractedData.employmentDetails || {},
+      residentialDetails: extractedData.residentialDetails || {},
+      financialDetails: extractedData.financialDetails || {}
     };
 
+    console.log("OCR processing completed successfully");
     return new Response(JSON.stringify(responseData), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
     console.error("Error in process-document function:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: error.message || "Unknown error occurred" }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
