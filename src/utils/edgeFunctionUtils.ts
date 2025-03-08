@@ -7,7 +7,7 @@ import { toast } from "sonner";
 interface ApplicationRecord {
   application_id: string;
   application_document_url: string;
-  status: 'pending' | 'approved' | 'declined';
+  status: 'pending' | 'approved' | 'declined' | 'in_review' | 'cancelled' | 'additional_documents_required';
   jsonb_data?: any;
 }
 
