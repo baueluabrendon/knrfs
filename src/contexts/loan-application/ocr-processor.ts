@@ -61,8 +61,12 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
     
     console.log("Image loaded, initializing Tesseract worker...");
     
-    // Initialize Tesseract worker
-    const worker = await createWorker('eng');
+    // Initialize Tesseract worker with correct options format
+    const worker = await createWorker({
+      logger: progress => console.log('OCR Progress:', progress),
+      langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+      lang: 'eng'
+    });
     
     console.log("Tesseract worker initialized, starting OCR...");
     
@@ -107,8 +111,8 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
     const { error: updateError } = await supabase
       .from('applications')
       .update({
-        ocr_data: extractedData,
-        ocr_processed_at: new Date().toISOString(),
+        jsonb_data: extractedData,
+        updated_at: new Date().toISOString()
       })
       .eq('application_id', applicationUuid);
     

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import ApplicationDetailsDialog from "@/components/applications/ApplicationDetai
 const Applications = () => {
   const [selectedApplication, setSelectedApplication] = useState<LoanApplicationType | null>(null);
   const [showApplicationDetails, setShowApplicationDetails] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleViewApplication = (application: LoanApplicationType) => {
     setSelectedApplication(application);
@@ -20,6 +21,9 @@ const Applications = () => {
     if (!selectedApplication) return;
 
     try {
+      setIsProcessing(true);
+      
+      // First update the application status in the database
       const { error } = await supabase
         .from('applications')
         .update({ status: 'approved' })
@@ -27,9 +31,20 @@ const Applications = () => {
 
       if (error) throw error;
       
+      // Get the latest application data before sending to the edge function
+      const { data: updatedApplication, error: fetchError } = await supabase
+        .from('applications')
+        .select('*')
+        .eq('application_id', selectedApplication.application_id)
+        .single();
+        
+      if (fetchError) throw fetchError;
+      
       // Ensure HTTPS is used for the function URL
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const functionUrl = `${supabaseUrl}/functions/v1/process-approved-application`;
+      
+      console.log('Calling edge function to process application:', updatedApplication.application_id);
       
       const response = await fetch(functionUrl, {
         method: 'POST',
@@ -37,7 +52,7 @@ const Applications = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
         },
-        body: JSON.stringify({ record: selectedApplication })
+        body: JSON.stringify({ record: updatedApplication })
       });
 
       if (!response.ok) {
@@ -45,13 +60,17 @@ const Applications = () => {
         throw new Error(errorData.error || 'Failed to process application');
       }
       
+      const result = await response.json();
+      console.log('Edge function response:', result);
+      
       toast.success('Application approved and processed successfully');
       setShowApplicationDetails(false);
-      // Refresh the applications list by forcing a re-render
       setSelectedApplication(null);
     } catch (error) {
       console.error('Error approving application:', error);
       toast.error('Failed to approve application: ' + (error.message || 'Unknown error'));
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -68,7 +87,6 @@ const Applications = () => {
       
       toast.success('Application declined');
       setShowApplicationDetails(false);
-      // Refresh the applications list by forcing a re-render
       setSelectedApplication(null);
     } catch (error) {
       console.error('Error declining application:', error);
@@ -91,6 +109,7 @@ const Applications = () => {
         onOpenChange={setShowApplicationDetails}
         onApprove={handleApproveApplication}
         onDecline={handleDeclineApplication}
+        isProcessing={isProcessing}
       />
     </div>
   );

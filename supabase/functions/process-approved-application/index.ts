@@ -1,11 +1,98 @@
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import vision from 'npm:@google-cloud/vision@3.1.3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Initialize Google Cloud Vision client
+let visionClient: any = null;
+
+function initVisionClient() {
+  if (visionClient) return visionClient;
+  
+  try {
+    const googleCredentials = JSON.parse(Deno.env.get('GOOGLE_VISION_CREDENTIALS') || '{}');
+    visionClient = new vision.ImageAnnotatorClient({
+      credentials: googleCredentials
+    });
+    console.log('Google Vision API client initialized successfully');
+    return visionClient;
+  } catch (error) {
+    console.error('Error initializing Google Vision API client:', error);
+    throw new Error('Failed to initialize Google Vision API client');
+  }
+}
+
+// Process application form image using Google Vision OCR
+async function processApplicationFormWithVision(imageUrl: string) {
+  console.log('Processing application form with Google Vision API:', imageUrl);
+  
+  try {
+    const client = initVisionClient();
+    const [result] = await client.textDetection(imageUrl);
+    const detections = result.textAnnotations;
+    
+    if (!detections || detections.length === 0) {
+      throw new Error('No text detected in the application form');
+    }
+    
+    const extractedText = detections[0].description;
+    console.log('Extracted text from application form (first 200 chars):', extractedText.substring(0, 200));
+    
+    // Parse the extracted text to get structured data
+    const extractedData = {
+      personalDetails: {
+        firstName: extractValue(extractedText, 'first name', 20),
+        lastName: extractValue(extractedText, 'last name', 20),
+        dateOfBirth: extractValue(extractedText, 'date of birth', 10),
+        email: extractValue(extractedText, 'email', 30),
+        phone: extractValue(extractedText, 'phone', 15),
+        gender: extractValue(extractedText, 'gender', 10),
+        nationality: extractValue(extractedText, 'nationality', 20),
+        maritalStatus: extractValue(extractedText, 'marital status', 15),
+      },
+      employmentDetails: {
+        employerName: extractValue(extractedText, 'employer', 30),
+        position: extractValue(extractedText, 'position', 30),
+        employmentDate: extractValue(extractedText, 'employment date', 10),
+        fileNumber: extractValue(extractedText, 'file number', 20),
+        paymaster: extractValue(extractedText, 'paymaster', 30),
+        workPhoneNumber: extractValue(extractedText, 'work phone', 15),
+      },
+      residentialDetails: {
+        address: extractValue(extractedText, 'address', 50),
+        city: extractValue(extractedText, 'city', 20),
+        province: extractValue(extractedText, 'province', 20),
+        district: extractValue(extractedText, 'district', 20),
+        village: extractValue(extractedText, 'village', 20),
+        suburb: extractValue(extractedText, 'suburb', 20),
+      },
+      financialDetails: {
+        income: extractValue(extractedText, 'income', 15),
+        loanAmount: extractValue(extractedText, 'loan amount', 15),
+        loanTerm: extractValue(extractedText, 'loan term', 10),
+        bank: extractValue(extractedText, 'bank', 20),
+        accountNumber: extractValue(extractedText, 'account number', 20),
+      }
+    };
+    
+    return extractedData;
+  } catch (error) {
+    console.error('Error processing application form with Google Vision:', error);
+    throw error;
+  }
+}
+
+// Helper function to extract values from text
+function extractValue(text: string, label: string, maxLength: number): string {
+  const regex = new RegExp(`${label}[\\s:\\-]*([^\\n]{1,${maxLength}})`, 'i');
+  const match = text.match(regex);
+  return match ? match[1].trim() : '';
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -23,7 +110,7 @@ serve(async (req) => {
     const { record } = await req.json();
 
     // Ensure we have a valid record with an approved status
-    if (!record || record.status !== 'approved' || !record.jsonb_data) {
+    if (!record || record.status !== 'approved') {
       return new Response(
         JSON.stringify({ error: 'Invalid request or application not approved' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
@@ -31,7 +118,40 @@ serve(async (req) => {
     }
 
     console.log('Processing approved application:', record.application_id);
-    const applicationData = record.jsonb_data;
+    
+    // Check if the application has an OCR-processed document
+    let applicationData = record.jsonb_data;
+    
+    if (!applicationData && record.application_document_url) {
+      // If no OCR data exists but we have a document URL, process it with Google Vision
+      console.log('No pre-processed OCR data found, processing document with Google Vision:', record.application_document_url);
+      try {
+        applicationData = await processApplicationFormWithVision(record.application_document_url);
+        
+        // Update the application with the OCR data
+        const { error: updateError } = await supabase
+          .from('applications')
+          .update({
+            jsonb_data: applicationData,
+            updated_at: new Date().toISOString()
+          })
+          .eq('application_id', record.application_id);
+          
+        if (updateError) {
+          console.error('Error updating application with OCR data:', updateError);
+          throw updateError;
+        }
+        
+        console.log('Successfully processed document with Google Vision and updated application');
+      } catch (error) {
+        console.error('Failed to process document with Google Vision:', error);
+        // Continue with existing data or empty object if processing fails
+        applicationData = applicationData || {};
+      }
+    } else if (!applicationData) {
+      applicationData = {};
+    }
+    
     const personalDetails = applicationData.personalDetails || {};
     const employmentDetails = applicationData.employmentDetails || {};
     const residentialDetails = applicationData.residentialDetails || {};
