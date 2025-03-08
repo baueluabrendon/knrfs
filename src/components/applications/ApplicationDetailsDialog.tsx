@@ -19,6 +19,7 @@ interface ApplicationDetailsDialogProps {
   onOpenChange: (open: boolean) => void;
   onApprove: () => Promise<void>;
   onDecline: () => Promise<void>;
+  isProcessing?: boolean; // Added isProcessing prop as optional
 }
 
 const ApplicationDetailsDialog = ({
@@ -26,7 +27,8 @@ const ApplicationDetailsDialog = ({
   open,
   onOpenChange,
   onApprove,
-  onDecline
+  onDecline,
+  isProcessing = false // Default to false if not provided
 }: ApplicationDetailsDialogProps) => {
   const [processingAction, setProcessingAction] = useState(false);
 
@@ -44,6 +46,9 @@ const ApplicationDetailsDialog = ({
 
   if (!selectedApplication) return null;
 
+  // Use the isProcessing prop from parent if provided, otherwise use local state
+  const isCurrentlyProcessing = isProcessing || processingAction;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl">
@@ -59,18 +64,18 @@ const ApplicationDetailsDialog = ({
               <Button 
                 variant="outline" 
                 onClick={handleDecline}
-                disabled={processingAction}
+                disabled={isCurrentlyProcessing}
                 className="flex items-center gap-1"
               >
-                {processingAction ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+                {isCurrentlyProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
                 Decline
               </Button>
               <Button 
                 onClick={handleApproval}
-                disabled={processingAction}
+                disabled={isCurrentlyProcessing}
                 className="flex items-center gap-1"
               >
-                {processingAction ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                {isCurrentlyProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
                 Approve
               </Button>
             </>
