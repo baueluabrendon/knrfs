@@ -44,43 +44,6 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
 
       if (documentKey === 'applicationForm' || documentKey === 'termsAndConditions') {
         console.log(`Uploading ${documentKey} to storage...`);
-        
-        // First, ensure the application record exists in the database
-        // This ensures a record exists before trying to process the document
-        console.log(`Creating/verifying application record: ${applicationUuid}`);
-        const { data: existingApp, error: checkError } = await supabase
-          .from('applications')
-          .select('application_id')
-          .eq('application_id', applicationUuid)
-          .maybeSingle();
-          
-        if (checkError) {
-          console.error('Error checking for existing application:', checkError);
-          // Continue anyway, as we'll create the record if it doesn't exist
-        }
-        
-        if (!existingApp) {
-          // Create a placeholder record before uploading document
-          const { error: insertError } = await supabase
-            .from('applications')
-            .insert({
-              application_id: applicationUuid,
-              status: 'pending',
-              uploaded_at: new Date().toISOString()
-            });
-            
-          if (insertError) {
-            console.error('Error creating application placeholder:', insertError);
-            throw insertError;
-          }
-          
-          console.log('Created application placeholder record');
-          
-          // Give DB time to complete transaction
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-        
-        // Now upload the document
         const documentUrl = await uploadApplicationDocument(
           file, 
           documentKey as 'applicationForm' | 'termsAndConditions',
@@ -92,32 +55,56 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
         }
 
         console.log(`Successfully uploaded ${documentKey} to: ${documentUrl}`);
-        
-        // Update the application record with the document URL
-        const updateResult = await supabase
+        console.log(`Checking if application record exists for ID: ${applicationUuid}`);
+
+        const { data: existingApp, error: fetchError } = await supabase
           .from('applications')
-          .update({
-            application_document_url: documentUrl,
-            uploaded_at: new Date().toISOString()
-          })
-          .eq('application_id', applicationUuid);
+          .select('application_id')
+          .eq('application_id', applicationUuid)
+          .maybeSingle();
+
+        if (fetchError) {
+          console.error('Error checking existing application:', fetchError);
+          throw fetchError;
+        }
+
+        let updateResult;
+        if (existingApp) {
+          console.log(`Updating existing application record: ${applicationUuid}`);
+          updateResult = await supabase
+            .from('applications')
+            .update({
+              application_document_url: documentUrl,
+              status: 'pending',
+              uploaded_at: new Date().toISOString()
+            })
+            .eq('application_id', applicationUuid);
+        } else {
+          console.log(`Creating new application record with ID: ${applicationUuid}`);
+          updateResult = await supabase
+            .from('applications')
+            .insert({
+              application_id: applicationUuid,
+              application_document_url: documentUrl,
+              uploaded_at: new Date().toISOString(),
+              status: 'pending'
+            });
+        }
             
         if (updateResult.error) {
-          console.error('Error updating application record:', updateResult.error);
+          console.error('Error updating/creating application record:', updateResult.error);
           throw updateResult.error;
         }
-        
-        console.log('Updated application record with document URL');
 
-        // Delay to allow the database to update (increased from 3000 to 5000)
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        // Delay to allow the database to update
+        await new Promise(resolve => setTimeout(resolve, 3000));
         
         // Use maybeSingle instead of single to prevent errors when the record isn't found
         const { data: verifyApp, error: verifyError } = await supabase
           .from('applications')
           .select('application_document_url')
           .eq('application_id', applicationUuid)
-          .maybeSingle();
+          .maybeSingle(); // Changed from single() to maybeSingle()
         
         if (verifyError) {
           console.error('Error verifying application document URL:', verifyError);
@@ -173,41 +160,6 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
     
     try {
       console.log("Starting OCR processing of application form...");
-      console.log("Using application ID:", applicationUuid);
-      
-      // Double check that the application record exists before processing
-      const { data: appCheck, error: appCheckError } = await supabase
-        .from('applications')
-        .select('application_id, application_document_url')
-        .eq('application_id', applicationUuid)
-        .maybeSingle();
-        
-      if (appCheckError) {
-        console.error("Error checking application record:", appCheckError);
-      }
-      
-      if (!appCheck) {
-        console.log("Application record not found in database, creating placeholder...");
-        // Create a placeholder record if it doesn't exist
-        const { error: createError } = await supabase
-          .from('applications')
-          .insert({
-            application_id: applicationUuid,
-            status: 'pending',
-            uploaded_at: new Date().toISOString()
-          });
-          
-        if (createError) {
-          console.error("Error creating placeholder record:", createError);
-          throw new Error("Failed to create application record");
-        }
-        
-        // Wait for DB transaction to complete
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      } else {
-        console.log("Application record found:", appCheck);
-      }
-      
       const extractedData = await processApplicationFormOCR(documents.applicationForm.file, applicationUuid);
       
       if (extractedData) {
