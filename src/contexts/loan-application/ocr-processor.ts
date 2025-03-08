@@ -39,14 +39,14 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
     const formData = new FormData();
     formData.append('file', file);
     
-    // Call the Supabase Edge Function
+    // Call the Supabase Edge Function with application_id as URL parameter
     const { data, error } = await supabase.functions.invoke('process-document', {
       method: 'POST',
       body: formData,
       headers: {
         // No custom headers needed for FormData
       },
-      query: {
+      queryParams: {
         application_id: applicationUuid
       }
     });

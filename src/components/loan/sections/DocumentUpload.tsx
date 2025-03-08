@@ -104,11 +104,11 @@ export const DocumentUpload = () => {
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
               {(isSubmitting || isProcessingOCR) 
-                ? "Processing Document... (Cloud-based OCR)" 
+                ? "Processing Document... (Cloud Vision OCR)" 
                 : "Process Application Form"}
             </Button>
             <p className="text-sm text-gray-500 mt-2">
-              Process your application form to extract information automatically using cloud-based OCR.
+              Process your application form to extract information automatically using Google Cloud Vision OCR.
             </p>
           </div>
         )}

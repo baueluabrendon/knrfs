@@ -1,8 +1,7 @@
 
-import { createWorker } from "npm:tesseract.js@4.1.4";
-import * as pdfjs from "npm:pdfjs-dist@4.10.38";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import vision from "npm:@google-cloud/vision@3.1.3";
 
 // Configure CORS headers
 const corsHeaders = {
@@ -16,78 +15,56 @@ const supabaseClient = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 );
 
-// Configure the path to the PDF.js worker 
-const PDFJS_WORKER_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.js";
+// Initialize Google Cloud Vision client
+const googleCredentials = JSON.parse(Deno.env.get('GOOGLE_VISION_CREDENTIALS') || '{}');
+const visionClient = new vision.ImageAnnotatorClient({
+  credentials: googleCredentials
+});
 
-// Parse array buffer from request
-async function arrayBufferFromStream(stream) {
-  const reader = stream.getReader();
-  const chunks = [];
-  
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-  }
-  
-  return new Uint8Array(
-    chunks.reduce((acc, chunk) => [...acc, ...chunk], [])
-  ).buffer;
-}
-
-// Process PDF document
-async function extractTextFromPdf(arrayBuffer) {
-  console.log("Extracting text from PDF in edge function...");
+// Process image document using Google Cloud Vision OCR
+async function processImageWithGoogleVision(arrayBuffer) {
+  console.log("Processing image with Google Cloud Vision in edge function...");
   
   try {
-    // Configure the worker
-    pdfjs.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
+    // Convert array buffer to base64
+    const uint8Array = new Uint8Array(arrayBuffer);
+    const base64Image = btoa(String.fromCharCode(...uint8Array));
     
-    // Load the PDF document
-    const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
-    const pdf = await loadingTask.promise;
+    // Perform OCR with Google Cloud Vision
+    const [result] = await visionClient.textDetection({
+      image: { content: base64Image }
+    });
     
-    let fullText = '';
+    const fullText = result.fullTextAnnotation ? result.fullTextAnnotation.text : '';
+    console.log("Vision API extraction complete. First 100 chars:", fullText.substring(0, 100));
     
-    // Extract text from all pages
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const textContent = await page.getTextContent();
-      const textItems = textContent.items.map((item) => item.str);
-      const pageText = textItems.join(' ');
-      fullText += pageText + '\n';
-    }
-    
-    console.log("PDF text extraction complete. First 100 chars:", fullText.substring(0, 100));
     return fullText;
   } catch (error) {
-    console.error("Error extracting text from PDF:", error);
+    console.error("Error processing image with Google Vision:", error);
     return generateMockPdfText();
   }
 }
 
-// Process image document using Tesseract OCR
-async function processImageWithOCR(arrayBuffer) {
-  console.log("Processing image with Tesseract OCR in edge function...");
+// Process PDF document using Google Cloud Vision
+async function extractTextFromPdf(arrayBuffer) {
+  console.log("Extracting text from PDF with Google Cloud Vision in edge function...");
   
   try {
-    // Create a Tesseract worker
-    const worker = await createWorker();
-    await worker.loadLanguage('eng');
-    await worker.initialize('eng');
-    
-    // Convert array buffer to Uint8Array for Tesseract
+    // Convert array buffer to base64
     const uint8Array = new Uint8Array(arrayBuffer);
+    const base64Pdf = btoa(String.fromCharCode(...uint8Array));
     
-    // Perform OCR
-    const { data } = await worker.recognize(uint8Array);
-    const text = data.text;
+    // Perform OCR on PDF with Google Cloud Vision
+    const [result] = await visionClient.documentTextDetection({
+      image: { content: base64Pdf }
+    });
     
-    await worker.terminate();
+    const fullText = result.fullTextAnnotation ? result.fullTextAnnotation.text : '';
+    console.log("PDF text extraction complete. First 100 chars:", fullText.substring(0, 100));
     
-    return text;
+    return fullText;
   } catch (error) {
-    console.error("Error processing image with OCR:", error);
+    console.error("Error extracting text from PDF with Google Vision:", error);
     return generateMockPdfText();
   }
 }
@@ -275,7 +252,7 @@ serve(async (req) => {
     if (isPdf) {
       extractedText = await extractTextFromPdf(arrayBuffer);
     } else if (isImage) {
-      extractedText = await processImageWithOCR(arrayBuffer);
+      extractedText = await processImageWithGoogleVision(arrayBuffer);
     } else {
       return new Response(JSON.stringify({ 
         error: 'Unsupported file type. Please upload a PDF or an image file (JPEG, PNG, BMP, TIFF).'
