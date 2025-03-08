@@ -27,25 +27,37 @@ const ApplicationForm = () => {
       // Pre-fill the form fields using useForm's setValue method
       if (formData.personalDetails) {
         Object.entries(formData.personalDetails).forEach(([key, value]) => {
-          form.setValue(`personalDetails.${key}`, value);
+          if (value) {
+            form.setValue(`personalDetails.${key}`, value);
+            console.log(`Setting personalDetails.${key} to`, value);
+          }
         });
       }
       
       if (formData.employmentDetails) {
         Object.entries(formData.employmentDetails).forEach(([key, value]) => {
-          form.setValue(`employmentDetails.${key}`, value);
+          if (value) {
+            form.setValue(`employmentDetails.${key}`, value);
+            console.log(`Setting employmentDetails.${key} to`, value);
+          }
         });
       }
       
       if (formData.residentialDetails) {
         Object.entries(formData.residentialDetails).forEach(([key, value]) => {
-          form.setValue(`residentialDetails.${key}`, value);
+          if (value) {
+            form.setValue(`residentialDetails.${key}`, value);
+            console.log(`Setting residentialDetails.${key} to`, value);
+          }
         });
       }
       
       if (formData.financialDetails) {
         Object.entries(formData.financialDetails).forEach(([key, value]) => {
-          form.setValue(`financialDetails.${key}`, value);
+          if (value) {
+            form.setValue(`financialDetails.${key}`, value);
+            console.log(`Setting financialDetails.${key} to`, value);
+          }
         });
       }
     }

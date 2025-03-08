@@ -46,26 +46,29 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
     // Call the Supabase Edge Function with application_id as part of the URL
     const functionPath = `process-document?application_id=${encodeURIComponent(applicationUuid)}`;
     
-    const { data, error } = await supabase.functions.invoke(functionPath, {
-      method: 'POST',
-      body: formData,
-      headers: {
-        // No custom headers needed for FormData
+    // Better error handling by checking response status
+    try {
+      const { data, error } = await supabase.functions.invoke(functionPath, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (error) {
+        console.error("Error calling process-document function:", error);
+        throw new Error(`Failed to process document: ${error.message}`);
       }
-    });
-    
-    if (error) {
+      
+      if (!data) {
+        console.error("No data returned from process-document function");
+        throw new Error("No data could be extracted from the document");
+      }
+      
+      console.log("Document processed successfully with extracted data:", data);
+      return data;
+    } catch (error: any) {
       console.error("Error calling process-document function:", error);
       throw new Error(`Failed to process document: ${error.message}`);
     }
-    
-    if (!data) {
-      console.error("No data returned from process-document function");
-      throw new Error("No data could be extracted from the document");
-    }
-    
-    console.log("Document processed successfully with extracted data:", data);
-    return data;
   } catch (error: any) {
     console.error("Error in OCR processing:", error);
     throw new Error(`OCR processing failed: ${error.message}`);

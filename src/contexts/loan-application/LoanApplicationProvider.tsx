@@ -44,6 +44,7 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
       }));
 
       if (documentKey === 'applicationForm' || documentKey === 'termsAndConditions') {
+        console.log(`Uploading ${documentKey} to storage...`);
         const documentUrl = await uploadApplicationDocument(
           file, 
           documentKey as 'applicationForm' | 'termsAndConditions',
@@ -53,6 +54,9 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
         if (!documentUrl) {
           throw new Error(`Failed to upload ${documentKey}`);
         }
+
+        console.log(`Successfully uploaded ${documentKey} to: ${documentUrl}`);
+        console.log(`Checking if application record exists for ID: ${applicationUuid}`);
 
         const { data: existingApp, error: fetchError } = await supabase
           .from('applications')
@@ -66,6 +70,7 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
         }
 
         if (existingApp) {
+          console.log(`Updating existing application record: ${applicationUuid}`);
           const { error: updateError } = await supabase
             .from('applications')
             .update({
@@ -80,6 +85,7 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
             throw updateError;
           }
         } else {
+          console.log(`Creating new application record with ID: ${applicationUuid}`);
           const { error: insertError } = await supabase
             .from('applications')
             .insert({
@@ -140,9 +146,12 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
     setIsProcessingOCR(true);
     
     try {
+      console.log("Starting OCR processing of application form...");
       const extractedData = await processApplicationFormOCR(documents.applicationForm.file, applicationUuid);
       
       if (extractedData) {
+        console.log("Successfully extracted data from application form:", extractedData);
+        
         setFormData(prevData => ({
           personalDetails: {
             ...prevData.personalDetails,
@@ -167,6 +176,7 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
     } catch (error) {
       console.error("Error processing application form:", error);
       toast.error("Failed to process application form");
+      throw error; // Re-throw to allow for custom error handling in UI
     } finally {
       setIsProcessingOCR(false);
     }
