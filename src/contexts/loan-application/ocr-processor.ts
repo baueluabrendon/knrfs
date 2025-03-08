@@ -96,16 +96,18 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
           const filePath = `applications/${fileName}`;
           
           // Check if the file exists in storage
-          const { data: fileData, error: fileError } = await supabase.storage
+          const fileData = supabase.storage
             .from('application_documents')
             .getPublicUrl(filePath);
             
-          if (!fileError && fileData) {
-            console.log('Found file in storage, updating application record with URL:', fileData.publicUrl);
+          // Fixed: The getPublicUrl method doesn't return an error property
+          // Instead, it always returns { data: { publicUrl: string } }
+          if (fileData.data) {
+            console.log('Found file in storage, updating application record with URL:', fileData.data.publicUrl);
             // Update the application record with the URL
             const { error: updateError } = await supabase
               .from('applications')
-              .update({ application_document_url: fileData.publicUrl.replace('http://', 'https://') })
+              .update({ application_document_url: fileData.data.publicUrl.replace('http://', 'https://') })
               .eq('application_id', applicationUuid);
               
             if (updateError) {
