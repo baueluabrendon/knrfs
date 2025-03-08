@@ -41,12 +41,15 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
     const formData = new FormData();
     formData.append('file', file);
     
-    console.log("Sending document to Supabase Edge Function for processing...");
+    console.log("Processing document using Supabase Edge Function...");
     
     // Call the Supabase Edge Function with application_id as part of the URL
     const functionPath = `process-document?application_id=${encodeURIComponent(applicationUuid)}`;
     
-    // Better error handling by checking response status
+    // Make the request to the edge function
+    console.log(`Calling edge function: ${functionPath}`);
+    
+    // Handle edge function call with improved error handling
     try {
       const { data, error } = await supabase.functions.invoke(functionPath, {
         method: 'POST',
