@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { callProcessApplicationEdgeFunction } from "@/utils/edgeFunctionUtils";
 
 /**
  * Checks if the file is a PDF.
@@ -38,47 +39,31 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
       throw new Error("Unsupported file type. Please upload a PDF or an image file (JPEG, PNG, BMP, TIFF).");
     }
     
-    // Get the application document URL
+    // Get the application document URL using maybeSingle() to handle missing records gracefully
     const { data: application, error: fetchError } = await supabase
       .from('applications')
       .select('application_document_url')
       .eq('application_id', applicationUuid)
-      .single();
+      .maybeSingle();
       
     if (fetchError) {
       console.error('Error fetching application document URL:', fetchError);
       throw new Error('Failed to retrieve application document URL');
     }
     
-    if (!application.application_document_url) {
+    if (!application || !application.application_document_url) {
       throw new Error('No application document URL found. Please upload the document first.');
     }
     
-    console.log('Calling edge function to process document with Google Vision API');
+    console.log('Successfully retrieved application_document_url:', application.application_document_url);
     
-    // Call the edge function to process the document with Google Vision
-    const edgeFunctionUrl = 'https://mhndkefbyvxasvayigvx.supabase.co/functions/v1/process-approved-application';
-    const response = await fetch(edgeFunctionUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
-      },
-      body: JSON.stringify({ 
-        record: {
-          application_id: applicationUuid,
-          application_document_url: application.application_document_url,
-          status: 'pending'
-        }
-      })
+    // Use the shared utility function to call the edge function
+    const result = await callProcessApplicationEdgeFunction({
+      application_id: applicationUuid,
+      application_document_url: application.application_document_url,
+      status: 'pending'
     });
     
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to process document with Google Vision API');
-    }
-    
-    const result = await response.json();
     console.log('Edge function response:', result);
     
     // Fetch the updated application data with extracted information
