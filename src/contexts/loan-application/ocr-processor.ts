@@ -22,6 +22,13 @@ export const isSupportedImage = (file: File): boolean => {
 };
 
 /**
+ * Helper function to wait for a specified time
+ * @param ms Time to wait in milliseconds
+ * @returns A promise that resolves after the specified time
+ */
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+/**
  * Processes an application form using Google Cloud Vision API through edge function
  * to extract information.
  * @param file The application form file.
@@ -39,20 +46,49 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
       throw new Error("Unsupported file type. Please upload a PDF or an image file (JPEG, PNG, BMP, TIFF).");
     }
     
-    // Get the application document URL using maybeSingle() to handle missing records gracefully
-    const { data: application, error: fetchError } = await supabase
-      .from('applications')
-      .select('application_document_url')
-      .eq('application_id', applicationUuid)
-      .maybeSingle();
+    // Try to get the application URL with retries
+    let application = null;
+    let fetchError = null;
+    let retries = 3;
+    
+    // Wait a bit for the upload transaction to complete before the first attempt
+    await delay(1000);
+    
+    while (retries > 0 && !application) {
+      console.log(`Attempt ${4-retries} to retrieve application document URL`);
       
+      const result = await supabase
+        .from('applications')
+        .select('application_document_url')
+        .eq('application_id', applicationUuid)
+        .maybeSingle();
+        
+      fetchError = result.error;
+      application = result.data;
+      
+      if (fetchError) {
+        console.error('Error fetching application document URL:', fetchError);
+        retries--;
+        if (retries > 0) await delay(1500); // Wait before retry
+        continue;
+      }
+      
+      if (!application || !application.application_document_url) {
+        console.log('Application found but URL is missing, retrying...');
+        retries--;
+        if (retries > 0) await delay(1500); // Wait before retry
+        continue;
+      }
+      
+      break; // Success, exit the loop
+    }
+    
     if (fetchError) {
-      console.error('Error fetching application document URL:', fetchError);
-      throw new Error('Failed to retrieve application document URL');
+      throw new Error('Failed to retrieve application document URL after multiple attempts');
     }
     
     if (!application || !application.application_document_url) {
-      throw new Error('No application document URL found. Please upload the document first.');
+      throw new Error('No application document URL found after multiple attempts. Please try again.');
     }
     
     console.log('Successfully retrieved application_document_url:', application.application_document_url);

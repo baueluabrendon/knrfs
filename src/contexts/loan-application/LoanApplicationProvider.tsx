@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { 
@@ -37,7 +36,6 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
     setUploadingDocument(true);
 
     try {
-      // Store file locally for reference
       setDocuments(prev => ({
         ...prev,
         [documentKey]: { ...prev[documentKey], file }
@@ -69,9 +67,10 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
           throw fetchError;
         }
 
+        let updateResult;
         if (existingApp) {
           console.log(`Updating existing application record: ${applicationUuid}`);
-          const { error: updateError } = await supabase
+          updateResult = await supabase
             .from('applications')
             .update({
               application_document_url: documentUrl,
@@ -79,14 +78,9 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
               uploaded_at: new Date().toISOString()
             })
             .eq('application_id', applicationUuid);
-            
-          if (updateError) {
-            console.error('Error updating application record:', updateError);
-            throw updateError;
-          }
         } else {
           console.log(`Creating new application record with ID: ${applicationUuid}`);
-          const { error: insertError } = await supabase
+          updateResult = await supabase
             .from('applications')
             .insert({
               application_id: applicationUuid,
@@ -94,12 +88,14 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
               uploaded_at: new Date().toISOString(),
               status: 'pending'
             });
-            
-          if (insertError) {
-            console.error('Error creating application record:', insertError);
-            throw insertError;
-          }
         }
+            
+        if (updateResult.error) {
+          console.error('Error updating/creating application record:', updateResult.error);
+          throw updateResult.error;
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         toast.success(`${documents[documentKey].name} uploaded successfully`);
       } else {
