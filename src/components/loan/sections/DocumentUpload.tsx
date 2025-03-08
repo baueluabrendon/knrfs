@@ -63,7 +63,7 @@ export const DocumentUpload = () => {
         return;
       }
       
-      toast.info("Processing document with Google Cloud Vision OCR... This may take up to a minute", {
+      toast.info("Processing document with Tesseract.js OCR... This may take a minute", {
         duration: 5000,
       });
       
@@ -119,7 +119,7 @@ export const DocumentUpload = () => {
               {(isSubmitting || isProcessingOCR) ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing Document with Google Cloud Vision OCR...
+                  Processing Document with Tesseract.js OCR...
                 </>
               ) : (
                 <>
@@ -129,8 +129,8 @@ export const DocumentUpload = () => {
               )}
             </Button>
             <p className="text-sm text-gray-500 mt-2">
-              Your document will be processed using Google Cloud Vision OCR to automatically extract application information.
-              This process typically takes 30-60 seconds depending on the document complexity.
+              Your document will be processed using Tesseract.js OCR to automatically extract application information.
+              This process may take 1-2 minutes depending on the document complexity and your device.
             </p>
           </div>
         )}

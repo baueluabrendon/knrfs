@@ -1,4 +1,4 @@
 
 project_id = "mhndkefbyvxasvayigvx"
-[functions.process-document]
+[functions.process-approved-application]
 verify_jwt = false
