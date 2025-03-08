@@ -36,14 +36,28 @@ const Applications = () => {
         .from('applications')
         .select('*')
         .eq('application_id', selectedApplication.application_id)
-        .single();
+        .maybeSingle();
         
       if (fetchError) throw fetchError;
+      
+      if (!updatedApplication) {
+        throw new Error('Could not find the updated application');
+      }
+      
+      // Log the application data to verify application_document_url is present
+      console.log('Application data to be sent to edge function:', updatedApplication);
+      
+      if (!updatedApplication.application_document_url) {
+        console.error('Missing application_document_url for application:', selectedApplication.application_id);
+        toast.error('Application document URL is missing. OCR processing cannot proceed.');
+        throw new Error('Application document URL is missing');
+      }
       
       // Call the edge function to process the approved application with Google Vision API
       const edgeFunctionUrl = 'https://mhndkefbyvxasvayigvx.supabase.co/functions/v1/process-approved-application';
       
       console.log('Calling edge function to process application:', updatedApplication.application_id);
+      console.log('With document URL:', updatedApplication.application_document_url);
       
       const response = await fetch(edgeFunctionUrl, {
         method: 'POST',
@@ -51,7 +65,14 @@ const Applications = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
         },
-        body: JSON.stringify({ record: updatedApplication })
+        body: JSON.stringify({ 
+          record: {
+            application_id: updatedApplication.application_id,
+            application_document_url: updatedApplication.application_document_url,
+            status: updatedApplication.status,
+            jsonb_data: updatedApplication.jsonb_data
+          } 
+        })
       });
 
       if (!response.ok) {
