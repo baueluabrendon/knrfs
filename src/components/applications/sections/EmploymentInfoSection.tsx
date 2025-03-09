@@ -1,23 +1,36 @@
 
 import { LoanApplicationType } from "@/types/loan";
+import ApplicationSection, { SectionField } from "../common/ApplicationSection";
 
 interface EmploymentInfoSectionProps {
   application: LoanApplicationType;
 }
 
 const EmploymentInfoSection = ({ application }: EmploymentInfoSectionProps) => {
-  return (
-    <div className="bg-gray-50 p-4 rounded-md">
-      <h3 className="text-lg font-semibold mb-2">Employment Information</h3>
-      <div className="grid grid-cols-2 gap-2">
-        <p><span className="font-medium">Employer:</span> {application.jsonb_data?.employmentDetails?.employerName}</p>
-        <p><span className="font-medium">Occupation:</span> {application.jsonb_data?.employmentDetails?.occupation}</p>
-        <p><span className="font-medium">Employed Since:</span> {application.jsonb_data?.employmentDetails?.employmentDate}</p>
-        <p><span className="font-medium">Salary:</span> {application.jsonb_data?.employmentDetails?.salary}</p>
-        <p><span className="font-medium">Pay Day:</span> {application.jsonb_data?.employmentDetails?.payDay}</p>
-      </div>
-    </div>
-  );
+  const fields: SectionField[] = [
+    {
+      label: "Employer",
+      value: application.jsonb_data?.employmentDetails?.employerName || ''
+    },
+    {
+      label: "Occupation",
+      value: application.jsonb_data?.employmentDetails?.occupation || ''
+    },
+    {
+      label: "Employed Since",
+      value: application.jsonb_data?.employmentDetails?.employmentDate || ''
+    },
+    {
+      label: "Salary",
+      value: application.jsonb_data?.employmentDetails?.salary || ''
+    },
+    {
+      label: "Pay Day",
+      value: application.jsonb_data?.employmentDetails?.payDay || ''
+    }
+  ];
+
+  return <ApplicationSection title="Employment Information" fields={fields} />;
 };
 
 export default EmploymentInfoSection;
