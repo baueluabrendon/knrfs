@@ -9,24 +9,32 @@ interface EmploymentInfoSectionProps {
 const EmploymentInfoSection = ({ application }: EmploymentInfoSectionProps) => {
   const fields: SectionField[] = [
     {
-      label: "Employer",
+      label: "Department/Company",
       value: application.jsonb_data?.employmentDetails?.employerName || ''
     },
     {
-      label: "Occupation",
-      value: application.jsonb_data?.employmentDetails?.occupation || ''
+      label: "File Number",
+      value: application.jsonb_data?.employmentDetails?.fileNumber || ''
     },
     {
-      label: "Employed Since",
+      label: "Postal Address",
+      value: application.jsonb_data?.employmentDetails?.postalAddress || ''
+    },
+    {
+      label: "Work Phone Number",
+      value: application.jsonb_data?.employmentDetails?.workPhoneNumber || ''
+    },
+    {
+      label: "Fax",
+      value: application.jsonb_data?.employmentDetails?.fax || ''
+    },
+    {
+      label: "Date Employed",
       value: application.jsonb_data?.employmentDetails?.employmentDate || ''
     },
     {
-      label: "Salary",
-      value: application.jsonb_data?.employmentDetails?.salary || ''
-    },
-    {
-      label: "Pay Day",
-      value: application.jsonb_data?.employmentDetails?.payDay || ''
+      label: "Paymaster",
+      value: application.jsonb_data?.employmentDetails?.paymaster || ''
     }
   ];
 

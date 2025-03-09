@@ -9,28 +9,40 @@ interface ResidentialInfoSectionProps {
 const ResidentialInfoSection = ({ application }: ResidentialInfoSectionProps) => {
   const fields: SectionField[] = [
     {
-      label: "Address",
-      value: application.jsonb_data?.residentialDetails?.address || ''
+      label: "Lot",
+      value: application.jsonb_data?.residentialDetails?.lot || ''
+    },
+    {
+      label: "Section",
+      value: application.jsonb_data?.residentialDetails?.section || ''
     },
     {
       label: "Suburb",
       value: application.jsonb_data?.residentialDetails?.suburb || ''
     },
     {
-      label: "City",
-      value: application.jsonb_data?.residentialDetails?.city || ''
+      label: "Street Name",
+      value: application.jsonb_data?.residentialDetails?.streetName || ''
     },
     {
-      label: "Province",
-      value: application.jsonb_data?.residentialDetails?.province || ''
+      label: "Marital Status",
+      value: application.jsonb_data?.personalDetails?.maritalStatus || ''
     },
     {
-      label: "Postal Code",
-      value: application.jsonb_data?.residentialDetails?.postalCode || ''
+      label: "Spouse Last Name",
+      value: application.jsonb_data?.personalDetails?.spouseLastName || ''
     },
     {
-      label: "Years at Address",
-      value: application.jsonb_data?.residentialDetails?.yearsAtAddress || ''
+      label: "Spouse First Name",
+      value: application.jsonb_data?.personalDetails?.spouseFirstName || ''
+    },
+    {
+      label: "Spouse Employer Name",
+      value: application.jsonb_data?.personalDetails?.spouseEmployerName || ''
+    },
+    {
+      label: "Spouse Contact Details",
+      value: application.jsonb_data?.personalDetails?.spouseContactDetails || ''
     }
   ];
 

@@ -9,8 +9,12 @@ interface PersonalInfoSectionProps {
 const PersonalInfoSection = ({ application }: PersonalInfoSectionProps) => {
   const fields: SectionField[] = [
     {
-      label: "Name",
-      value: `${application.jsonb_data?.personalDetails?.firstName || ''} ${application.jsonb_data?.personalDetails?.middleName || ''} ${application.jsonb_data?.personalDetails?.lastName || ''}`.trim()
+      label: "Given Name",
+      value: application.jsonb_data?.personalDetails?.firstName || ''
+    },
+    {
+      label: "Surname",
+      value: application.jsonb_data?.personalDetails?.lastName || ''
     },
     {
       label: "Date of Birth",
@@ -21,18 +25,28 @@ const PersonalInfoSection = ({ application }: PersonalInfoSectionProps) => {
       value: application.jsonb_data?.personalDetails?.gender || ''
     },
     {
+      label: "Mobile Number",
+      value: application.jsonb_data?.personalDetails?.phone || ''
+    },
+    {
       label: "Email",
       value: application.jsonb_data?.personalDetails?.email || ''
     },
     {
-      label: "Phone",
-      value: application.jsonb_data?.personalDetails?.phone || ''
+      label: "Village",
+      value: application.jsonb_data?.residentialDetails?.village || ''
     },
     {
-      label: "ID",
-      value: application.jsonb_data?.personalDetails?.idNumber 
-        ? `${application.jsonb_data?.personalDetails?.idType || ''} - ${application.jsonb_data?.personalDetails?.idNumber}`
-        : ''
+      label: "District",
+      value: application.jsonb_data?.residentialDetails?.district || ''
+    },
+    {
+      label: "Province",
+      value: application.jsonb_data?.residentialDetails?.province || ''
+    },
+    {
+      label: "Nationality",
+      value: application.jsonb_data?.personalDetails?.nationality || ''
     }
   ];
 
