@@ -131,36 +131,23 @@ serve(async (req) => {
     console.log('Processing application:', record.application_id);
     console.log('Document URL:', record.application_document_url);
     
-    // Check if the application has an OCR-processed document
+    // Check if the application has already processed data
     let applicationData = record.jsonb_data;
     
     if (!applicationData) {
-      console.log('No pre-processed OCR data found, processing document with Google Vision');
+      console.log('Processing document with Google Vision');
       try {
         applicationData = await processApplicationFormWithVision(record.application_document_url);
         
-        // Update the application with the OCR data
-        const { error: updateError } = await supabase
-          .from('applications')
-          .update({
-            jsonb_data: applicationData,
-            updated_at: new Date().toISOString()
-          })
-          .eq('application_id', record.application_id);
-          
-        if (updateError) {
-          console.error('Error updating application with OCR data:', updateError);
-          throw updateError;
-        }
-        
-        console.log('Successfully processed document with Google Vision and updated application');
+        // Important change: Do NOT update the application with the OCR data
+        // The data will only be used to prefill the form, not saved to database yet
+        console.log('Successfully processed document with Google Vision');
       } catch (error) {
         console.error('Failed to process document with Google Vision:', error);
-        // Continue with existing data or empty object if processing fails
-        applicationData = applicationData || {};
+        applicationData = {};
       }
     } else {
-      console.log('Using existing OCR data from application record');
+      console.log('Using existing data from application record');
     }
     
     // Return success response with the processed data

@@ -30,7 +30,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 /**
  * Processes an application form using Google Cloud Vision API through edge function
- * to extract information.
+ * to extract information without saving to the database.
  * @param file The application form file.
  * @param applicationUuid The UUID of the application being processed.
  * @returns The extracted data from the form.
@@ -147,19 +147,10 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
     
     console.log('Edge function response:', result);
     
-    // Fetch the updated application data with extracted information
-    const { data: updatedApp, error: updateFetchError } = await supabase
-      .from('applications')
-      .select('jsonb_data')
-      .eq('application_id', applicationUuid)
-      .single();
-      
-    if (updateFetchError) {
-      console.error('Error fetching processed application data:', updateFetchError);
-      throw new Error('Failed to retrieve processed application data');
-    }
-    
-    return updatedApp.jsonb_data;
+    // Return the extracted data from the edge function response
+    // This is the critical change - we don't update the database with jsonb_data yet
+    // We just return the extracted data to be used to prefill the form
+    return result.data || {};
   } catch (error: any) {
     console.error("Error in OCR processing:", error);
     throw new Error(`OCR processing failed: ${error.message}`);

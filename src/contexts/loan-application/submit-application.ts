@@ -3,6 +3,15 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { FormDataType } from "@/types/loan";
 
+/**
+ * Submits the reviewed application form data to the database
+ * This function is called after the user has reviewed the prefilled form
+ * and made any necessary corrections in stage 3
+ * 
+ * @param formData The final form data after review
+ * @param applicationUuid The UUID of the application being processed
+ * @returns A boolean indicating success or failure
+ */
 export async function submitApplication(formData: FormDataType, applicationUuid: string): Promise<boolean> {
   try {
     // Check if application already exists
@@ -17,13 +26,16 @@ export async function submitApplication(formData: FormDataType, applicationUuid:
       throw fetchError;
     }
     
+    // Log the form data being submitted
+    console.log('Submitting reviewed application data:', formData);
+    
     if (existingApp) {
-      // Update existing application
+      // Update existing application with the reviewed form data
       const { error: updateError } = await supabase
         .from('applications')
         .update({
-          jsonb_data: formData as any,
-          uploaded_at: new Date().toISOString(),
+          jsonb_data: formData as any,  // Save the reviewed form data
+          updated_at: new Date().toISOString(),
           status: 'pending'
         })
         .eq('application_id', applicationUuid);
@@ -37,7 +49,7 @@ export async function submitApplication(formData: FormDataType, applicationUuid:
         .from('applications')
         .insert({
           application_id: applicationUuid,
-          jsonb_data: formData as any,
+          jsonb_data: formData as any,  // Save the reviewed form data
           uploaded_at: new Date().toISOString(),
           status: 'pending'
         });
