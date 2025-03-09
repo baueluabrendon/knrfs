@@ -13,6 +13,10 @@ const EmploymentInfoSection = ({ application }: EmploymentInfoSectionProps) => {
       value: application.jsonb_data?.employmentDetails?.employerName || ''
     },
     {
+      label: "Position",
+      value: application.jsonb_data?.employmentDetails?.position || ''
+    },
+    {
       label: "File Number",
       value: application.jsonb_data?.employmentDetails?.fileNumber || ''
     },
