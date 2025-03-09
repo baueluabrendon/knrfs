@@ -14,11 +14,12 @@ type DocumentType = Database['public']['Enums']['document_type_enum'];
  */
 export const uploadDocument = async (
   file: File,
-  document_type: string
+  document_type: string,
+  applicationUuid: string
 ): Promise<string | null> => {
   try {
     const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}_${document_type}.${fileExt}`;
+    const fileName = `${applicationUuid}_${document_type}_${Date.now()}.${fileExt}`;
     const filePath = `loan_documents/${fileName}`;
 
     const { error } = await supabase.storage
@@ -53,7 +54,7 @@ export const uploadDocument = async (
  */
 export const uploadApplicationDocument = async (
   file: File,
-  applicationType: 'applicationForm' | 'termsAndConditions',
+  applicationType: 'applicationForm',
   applicationUuid: string
 ): Promise<string | null> => {
   try {

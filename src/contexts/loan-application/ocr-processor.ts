@@ -49,10 +49,10 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
     // Try to get the application URL with increased retries and longer delays
     let application = null;
     let fetchError = null;
-    let retries = 5; // Increased from 3 to 5
+    let retries = 5; 
     
-    // Wait longer for the upload transaction to complete before the first attempt
-    await delay(2500); // Increased from 1000ms to 2500ms
+    // Wait for the upload transaction to complete before the first attempt
+    await delay(2500); 
     
     while (retries > 0 && !application) {
       console.log(`Attempt ${6-retries} of 5 to retrieve application document URL`);
@@ -71,7 +71,7 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
         retries--;
         if (retries > 0) {
           console.log(`Waiting ${2500}ms before retry...`);
-          await delay(2500); // Increased from 1500ms to 2500ms
+          await delay(2500);
         }
         continue;
       }
@@ -81,7 +81,7 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
         retries--;
         if (retries > 0) {
           console.log(`Waiting ${2500}ms before retry...`);
-          await delay(2500); // Increased delay
+          await delay(2500);
         }
         continue;
       }
@@ -100,8 +100,6 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
             .from('application_documents')
             .getPublicUrl(filePath);
             
-          // Fixed: The getPublicUrl method doesn't return an error property
-          // Instead, it always returns { data: { publicUrl: string } }
           if (fileData.data) {
             console.log('Found file in storage, updating application record with URL:', fileData.data.publicUrl);
             // Update the application record with the URL
@@ -122,7 +120,7 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
         retries--;
         if (retries > 0) {
           console.log(`Waiting ${3000}ms before retry...`);
-          await delay(3000); // Increased from 1500ms to 3000ms
+          await delay(3000);
         }
         continue;
       }

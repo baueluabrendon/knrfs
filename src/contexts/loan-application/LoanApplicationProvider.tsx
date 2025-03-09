@@ -42,11 +42,11 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
         [documentKey]: { ...prev[documentKey], file }
       }));
 
-      if (documentKey === 'applicationForm' || documentKey === 'termsAndConditions') {
+      if (documentKey === 'applicationForm') {
         console.log(`Uploading ${documentKey} to storage...`);
         const documentUrl = await uploadApplicationDocument(
           file, 
-          documentKey as 'applicationForm' | 'termsAndConditions',
+          'applicationForm',
           applicationUuid
         );
 
@@ -104,7 +104,7 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
           .from('applications')
           .select('application_document_url')
           .eq('application_id', applicationUuid)
-          .maybeSingle(); // Changed from single() to maybeSingle()
+          .maybeSingle();
         
         if (verifyError) {
           console.error('Error verifying application document URL:', verifyError);
@@ -116,31 +116,39 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
 
         toast.success(`${documents[documentKey].name} uploaded successfully`);
       } else {
-        const documentUrl = await uploadDocument(file, documentKey);
+        // This is a supporting document (terms and conditions, pay slip, etc.)
+        // Verify document type is valid
         const documentTypeEnum = mapDocumentKeyToEnum(documentKey);
 
         if (!documentTypeEnum) {
           throw new Error(`Unknown document type: ${documentKey}`);
         }
 
-        if (documentUrl) {
-          const { error } = await supabase
-            .from('documents')
-            .insert({
-              application_uuid: applicationUuid,
-              document_type: documentTypeEnum,
-              document_path: documentUrl,
-              uploaded_at: new Date().toISOString()
-            });
-          
-          if (error) {
-            console.error('Error saving document reference:', error);
-            throw error;
-          }
-          toast.success(`${documents[documentKey].name} uploaded successfully`);
-        } else {
+        // Upload the supporting document
+        const documentUrl = await uploadDocument(file, documentKey, applicationUuid);
+        
+        if (!documentUrl) {
           throw new Error(`Failed to upload ${documentKey}`);
         }
+
+        console.log(`Successfully uploaded ${documentKey} to: ${documentUrl}`);
+        
+        // Insert record into documents table
+        const { error } = await supabase
+          .from('documents')
+          .insert({
+            application_uuid: applicationUuid,
+            document_type: documentTypeEnum,
+            document_path: documentUrl,
+            uploaded_at: new Date().toISOString()
+          });
+        
+        if (error) {
+          console.error('Error saving document reference:', error);
+          throw error;
+        }
+        
+        toast.success(`${documents[documentKey].name} uploaded successfully`);
       }
     } catch (error) {
       console.error(`Error uploading ${documentKey}:`, error);
