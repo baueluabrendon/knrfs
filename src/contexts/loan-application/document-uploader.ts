@@ -1,7 +1,12 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
-import { isPdf, isSupportedImage } from "./ocr-processor";
+import { 
+  uploadFileToStorage, 
+  isPdf, 
+  isSupportedImage, 
+  STORAGE_CONFIG 
+} from "@/utils/storageUtils";
 
 // Type alias for document types
 type DocumentType = Database['public']['Enums']['document_type_enum'];
@@ -20,25 +25,12 @@ export const uploadDocument = async (
   try {
     const fileExt = file.name.split('.').pop();
     const fileName = `${applicationUuid}_${document_type}_${Date.now()}.${fileExt}`;
-    const filePath = `loan_documents/${fileName}`;
-
-    const { error } = await supabase.storage
-      .from('application_documents')
-      .upload(filePath, file);
-
-    if (error) {
-      console.error('Error uploading file:', error);
-      return null;
-    }
-
-    // Get HTTPS public URL
-    const { data } = supabase.storage
-      .from('application_documents')
-      .getPublicUrl(filePath);
-
-    // Ensure URL is HTTPS
-    const publicUrl = data.publicUrl.replace('http://', 'https://');
-    return publicUrl;
+    
+    return await uploadFileToStorage(
+      file,
+      STORAGE_CONFIG.FOLDERS.LOAN_DOCUMENTS,
+      fileName
+    );
   } catch (error) {
     console.error('Error in uploadDocument:', error);
     return null;
@@ -66,26 +58,14 @@ export const uploadApplicationDocument = async (
     // Upload file with original format and extension
     const fileExt = file.name.split('.').pop();
     const fileName = `${applicationUuid}_${applicationType}.${fileExt}`;
-    const filePath = `applications/${fileName}`;
     
     console.log(`Uploading ${applicationType} as ${fileExt} file...`);
     
-    const { error: uploadError } = await supabase.storage
-      .from('application_documents')
-      .upload(filePath, file);
-    
-    if (uploadError) {
-      console.error(`Error uploading ${applicationType}:`, uploadError);
-      return null;
-    }
-    
-    // Get public URL
-    const { data } = supabase.storage
-      .from('application_documents')
-      .getPublicUrl(filePath);
-    
-    const publicUrl = data.publicUrl.replace('http://', 'https://');
-    return publicUrl;
+    return await uploadFileToStorage(
+      file,
+      STORAGE_CONFIG.FOLDERS.APPLICATIONS,
+      fileName
+    );
   } catch (error) {
     console.error(`Error in uploadApplicationDocument (${applicationType}):`, error);
     return null;
@@ -127,23 +107,12 @@ export const uploadGroupRepaymentDocument = async (
   try {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}_group_repayment.${fileExt}`;
-    const filePath = `repayment_documents/${fileName}`;
-
-    const { error } = await supabase.storage
-      .from('application_documents')
-      .upload(filePath, file);
-
-    if (error) {
-      console.error('Error uploading repayment document:', error);
-      return null;
-    }
-
-    const { data } = supabase.storage
-      .from('application_documents')
-      .getPublicUrl(filePath);
-
-    const publicUrl = data.publicUrl.replace('http://', 'https://');
-    return publicUrl;
+    
+    return await uploadFileToStorage(
+      file,
+      STORAGE_CONFIG.FOLDERS.REPAYMENTS,
+      fileName
+    );
   } catch (error) {
     console.error('Error in uploadGroupRepaymentDocument:', error);
     return null;

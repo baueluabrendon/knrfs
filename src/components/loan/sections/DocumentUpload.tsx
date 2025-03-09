@@ -1,4 +1,3 @@
-
 import { useLoanApplication } from "@/contexts/loan-application";
 import { DocumentList } from "./document-upload/DocumentList";
 import { EmployerTypeSelector } from "./document-upload/EmployerTypeSelector";
@@ -7,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, FileText, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { isPdf, isSupportedImage } from "@/contexts/loan-application/ocr-processor";
+import { isPdf, isSupportedImage } from "@/utils/storageUtils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export const DocumentUpload = () => {
@@ -27,12 +26,10 @@ export const DocumentUpload = () => {
 
   const isDocumentEnabled = (doc: DocumentUploadType) => {
     if (currentStep === 1) {
-      // Only enable applicationForm in step 1
       return doc.key === "applicationForm";
     }
     
     if (currentStep === 2) {
-      // In step 2, enable termsAndConditions and employer-dependent docs
       if (doc.key === "termsAndConditions") return true;
       if (!selectedEmployerType) return false;
       return doc.required || doc.employerTypes.includes(selectedEmployerType);
@@ -146,7 +143,6 @@ export const DocumentUpload = () => {
           Please upload the terms and conditions form and select your employer type for additional required documents.
         </p>
         
-        {/* Show Terms and Conditions document first */}
         <DocumentList
           documents={documents}
           filter={(key) => ["termsAndConditions"].includes(key)}

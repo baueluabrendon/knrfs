@@ -1,32 +1,12 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { callProcessApplicationEdgeFunction } from "@/utils/edgeFunctionUtils";
-
-/**
- * Checks if the file is a PDF.
- * @param file The file to check.
- * @returns True if the file is a PDF, false otherwise.
- */
-export const isPdf = (file: File): boolean => {
-  return file.type === 'application/pdf';
-};
-
-/**
- * Checks if the file is a supported image type.
- * @param file The file to check.
- * @returns True if the file is a supported image, false otherwise.
- */
-export const isSupportedImage = (file: File): boolean => {
-  const supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/bmp', 'image/tiff'];
-  return supportedTypes.includes(file.type);
-};
-
-/**
- * Helper function to wait for a specified time
- * @param ms Time to wait in milliseconds
- * @returns A promise that resolves after the specified time
- */
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+import { 
+  isPdf, 
+  isSupportedImage, 
+  retryOperation,
+  STORAGE_CONFIG
+} from "@/utils/storageUtils";
 
 /**
  * Processes an application form using Google Cloud Vision API through edge function
@@ -46,16 +26,9 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
       throw new Error("Unsupported file type. Please upload a PDF or an image file (JPEG, PNG, BMP, TIFF).");
     }
     
-    // Try to get the application URL with increased retries and longer delays
-    let application = null;
-    let fetchError = null;
-    let retries = 5; 
-    
-    // Wait for the upload transaction to complete before the first attempt
-    await delay(2500); 
-    
-    while (retries > 0 && !application) {
-      console.log(`Attempt ${6-retries} of 5 to retrieve application document URL`);
+    // Define the operation to retrieve the application document URL
+    const getApplicationDocumentUrl = async () => {
+      console.log(`Attempting to retrieve application document URL for ID: ${applicationUuid}`);
       
       const result = await supabase
         .from('applications')
@@ -63,74 +36,62 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
         .eq('application_id', applicationUuid)
         .maybeSingle();
         
-      fetchError = result.error;
-      application = result.data;
-      
-      if (fetchError) {
-        console.error('Error fetching application document URL:', fetchError);
-        retries--;
-        if (retries > 0) {
-          console.log(`Waiting ${2500}ms before retry...`);
-          await delay(2500);
-        }
-        continue;
+      if (result.error) {
+        console.error('Error fetching application document URL:', result.error);
+        throw result.error;
       }
       
-      if (!application) {
-        console.log('Application not found in database, retrying...');
-        retries--;
-        if (retries > 0) {
-          console.log(`Waiting ${2500}ms before retry...`);
-          await delay(2500);
-        }
-        continue;
+      if (!result.data) {
+        console.log('Application not found in database');
+        return null;
       }
       
-      if (!application.application_document_url) {
-        console.log('Application found but URL is missing, retrying...');
-        // Check if we have already waited enough and should verify storage directly
-        if (retries === 2) {
-          console.log('Trying to verify document in storage directly...');
-          const fileExt = file.name.split('.').pop();
-          const fileName = `${applicationUuid}_applicationForm.${fileExt}`;
-          const filePath = `applications/${fileName}`;
+      if (!result.data.application_document_url) {
+        console.log('Application found but URL is missing');
+        
+        // Try to verify document in storage directly
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${applicationUuid}_applicationForm.${fileExt}`;
+        const filePath = `applications/${fileName}`;
+        
+        // Check if the file exists in storage
+        const fileData = supabase.storage
+          .from(STORAGE_CONFIG.BUCKET_NAME)
+          .getPublicUrl(filePath);
           
-          // Check if the file exists in storage
-          const fileData = supabase.storage
-            .from('application_documents')
-            .getPublicUrl(filePath);
+        if (fileData.data) {
+          console.log('Found file in storage, updating application record with URL:', fileData.data.publicUrl);
+          // Update the application record with the URL
+          const { error: updateError } = await supabase
+            .from('applications')
+            .update({ application_document_url: fileData.data.publicUrl.replace('http://', 'https://') })
+            .eq('application_id', applicationUuid);
             
-          if (fileData.data) {
-            console.log('Found file in storage, updating application record with URL:', fileData.data.publicUrl);
-            // Update the application record with the URL
-            const { error: updateError } = await supabase
+          if (updateError) {
+            console.error('Error updating application with URL:', updateError);
+          } else {
+            // Force another query immediately
+            const updatedResult = await supabase
               .from('applications')
-              .update({ application_document_url: fileData.data.publicUrl.replace('http://', 'https://') })
-              .eq('application_id', applicationUuid);
+              .select('application_document_url, status')
+              .eq('application_id', applicationUuid)
+              .maybeSingle();
               
-            if (updateError) {
-              console.error('Error updating application with URL:', updateError);
-            } else {
-              // Try again immediately
-              continue;
-            }
+            return updatedResult.data;
           }
         }
         
-        retries--;
-        if (retries > 0) {
-          console.log(`Waiting ${3000}ms before retry...`);
-          await delay(3000);
-        }
-        continue;
+        return null;
       }
       
-      break; // Success, exit the loop
-    }
+      return result.data;
+    };
     
-    if (fetchError) {
-      throw new Error(`Failed to retrieve application document URL after multiple attempts: ${fetchError.message}`);
-    }
+    // Use the retry operation utility to get the application document URL
+    const application = await retryOperation(
+      getApplicationDocumentUrl, 
+      "retrieve application document URL"
+    );
     
     if (!application || !application.application_document_url) {
       throw new Error('No application document URL found after multiple attempts. Please try again.');
