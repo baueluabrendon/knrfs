@@ -1,16 +1,19 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { FormDataType } from "@/types/loan";
+import { DocumentUploadType } from "@/types/loan";
 import { processApplicationFormOCR } from "../ocr-processor";
 
-export function useOcrProcessor(documents: { applicationForm: { file: File | null } }, applicationUuid: string) {
+export function useOcrProcessor(
+  documents: Record<string, DocumentUploadType>, 
+  applicationUuid: string
+) {
   const [isProcessingOCR, setIsProcessingOCR] = useState(false);
 
-  const processApplicationForm = async (): Promise<void> => {
-    if (!documents.applicationForm.file) {
+  const processApplicationForm = async (): Promise<any> => {
+    if (!documents.applicationForm?.file) {
       toast.error("No application form uploaded");
-      return;
+      return null;
     }
     
     setIsProcessingOCR(true);
