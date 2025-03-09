@@ -109,8 +109,6 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
     console.log('Edge function response:', result);
     
     // Return the extracted data from the edge function response
-    // This is the critical change - we don't update the database with jsonb_data yet
-    // We just return the extracted data to be used to prefill the form
     return result.data || {};
   } catch (error: any) {
     console.error("Error in OCR processing:", error);

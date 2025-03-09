@@ -35,7 +35,13 @@ export function useFormData(applicationUuid: string) {
       },
       financialDetails: {
         ...prevData.financialDetails,
-        ...extractedData.financialDetails
+        ...(extractedData.financialDetails || {}),
+        // Merge loan amount and other financial fields if they exist in loanDetails
+        ...(extractedData.loanDetails ? {
+          loanAmount: extractedData.loanDetails.loanAmount,
+          loanTerm: extractedData.loanDetails.loanTerm,
+          loanPurpose: extractedData.loanDetails.loanPurpose,
+        } : {})
       }
     }));
   };

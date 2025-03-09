@@ -43,25 +43,27 @@ async function processApplicationFormWithVision(imageUrl: string) {
     const extractedText = detections[0].description;
     console.log('Extracted text from application form (first 200 chars):', extractedText.substring(0, 200));
     
-    // Parse the extracted text to get structured data
+    // Parse the extracted text to get structured data that matches our form structure
     const extractedData = {
       personalDetails: {
-        firstName: extractValue(extractedText, 'first name', 20),
-        lastName: extractValue(extractedText, 'last name', 20),
+        firstName: extractValue(extractedText, 'first name|given name', 20),
+        lastName: extractValue(extractedText, 'last name|surname', 20),
         dateOfBirth: extractValue(extractedText, 'date of birth', 10),
         email: extractValue(extractedText, 'email', 30),
-        phone: extractValue(extractedText, 'phone', 15),
+        phone: extractValue(extractedText, 'phone|mobile number', 15),
         gender: extractValue(extractedText, 'gender', 10),
         nationality: extractValue(extractedText, 'nationality', 20),
         maritalStatus: extractValue(extractedText, 'marital status', 15),
       },
       employmentDetails: {
-        employerName: extractValue(extractedText, 'employer', 30),
+        employerName: extractValue(extractedText, 'employer|department|company', 30),
         position: extractValue(extractedText, 'position', 30),
-        employmentDate: extractValue(extractedText, 'employment date', 10),
+        employmentDate: extractValue(extractedText, 'employment date|date employed', 10),
         fileNumber: extractValue(extractedText, 'file number', 20),
         paymaster: extractValue(extractedText, 'paymaster', 30),
         workPhoneNumber: extractValue(extractedText, 'work phone', 15),
+        postalAddress: extractValue(extractedText, 'postal address', 50),
+        fax: extractValue(extractedText, 'fax', 15),
       },
       residentialDetails: {
         address: extractValue(extractedText, 'address', 50),
@@ -70,13 +72,30 @@ async function processApplicationFormWithVision(imageUrl: string) {
         district: extractValue(extractedText, 'district', 20),
         village: extractValue(extractedText, 'village', 20),
         suburb: extractValue(extractedText, 'suburb', 20),
+        lot: extractValue(extractedText, 'lot', 10),
+        section: extractValue(extractedText, 'section', 10),
+        streetName: extractValue(extractedText, 'street name', 30),
+        spouseLastName: extractValue(extractedText, 'spouse last name', 20),
+        spouseFirstName: extractValue(extractedText, 'spouse first name', 20),
+        spouseEmployerName: extractValue(extractedText, 'spouse employer', 30),
+        spouseContactDetails: extractValue(extractedText, 'spouse contact', 30),
       },
       financialDetails: {
-        income: extractValue(extractedText, 'income', 15),
+        bank: extractValue(extractedText, 'bank', 20),
+        bankBranch: extractValue(extractedText, 'bank branch', 20),
+        bsbCode: extractValue(extractedText, 'bsb code', 10),
+        accountName: extractValue(extractedText, 'account name', 30),
+        accountNumber: extractValue(extractedText, 'account number', 20),
+        accountType: extractValue(extractedText, 'account type', 15),
+        income: extractValue(extractedText, 'income|gross salary', 15),
+        netIncome: extractValue(extractedText, 'net income', 15),
+      },
+      loanDetails: {
         loanAmount: extractValue(extractedText, 'loan amount', 15),
         loanTerm: extractValue(extractedText, 'loan term', 10),
-        bank: extractValue(extractedText, 'bank', 20),
-        accountNumber: extractValue(extractedText, 'account number', 20),
+        loanPurpose: extractValue(extractedText, 'purpose of loan', 50),
+        fortnightlyInstallment: extractValue(extractedText, 'bi-weekly installment|fortnightly installment', 15),
+        totalRepayable: extractValue(extractedText, 'total repayable', 15),
       }
     };
     
@@ -87,11 +106,22 @@ async function processApplicationFormWithVision(imageUrl: string) {
   }
 }
 
-// Helper function to extract values from text
+// Helper function to extract values from text with support for multiple labels
 function extractValue(text: string, label: string, maxLength: number): string {
-  const regex = new RegExp(`${label}[\\s:\\-]*([^\\n]{1,${maxLength}})`, 'i');
-  const match = text.match(regex);
-  return match ? match[1].trim() : '';
+  // Support multiple label variations separated by |
+  const labelVariations = label.split('|');
+  let value = '';
+  
+  for (const labelVar of labelVariations) {
+    const regex = new RegExp(`${labelVar}[\\s:\\-]*([^\\n]{1,${maxLength}})`, 'i');
+    const match = text.match(regex);
+    if (match) {
+      value = match[1].trim();
+      break;
+    }
+  }
+  
+  return value;
 }
 
 serve(async (req) => {
@@ -131,34 +161,38 @@ serve(async (req) => {
     console.log('Processing application:', record.application_id);
     console.log('Document URL:', record.application_document_url);
     
-    // Check if the application has already processed data
-    let applicationData = record.jsonb_data;
-    
-    if (!applicationData) {
-      console.log('Processing document with Google Vision');
-      try {
-        applicationData = await processApplicationFormWithVision(record.application_document_url);
-        
-        // Important change: Do NOT update the application with the OCR data
-        // The data will only be used to prefill the form, not saved to database yet
-        console.log('Successfully processed document with Google Vision');
-      } catch (error) {
-        console.error('Failed to process document with Google Vision:', error);
-        applicationData = {};
-      }
-    } else {
-      console.log('Using existing data from application record');
+    // Process the document with Google Vision OCR for extraction
+    console.log('Processing document with Google Vision');
+    try {
+      const ocrData = await processApplicationFormWithVision(record.application_document_url);
+      console.log('OCR extraction successful');
+      
+      // Return success response with the processed data
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: 'Application processed successfully',
+          data: ocrData
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
+    } catch (error) {
+      console.error('Error processing document with Google Vision:', error);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'OCR processing failed, but returning empty data structure',
+          data: {
+            personalDetails: {},
+            employmentDetails: {},
+            residentialDetails: {},
+            financialDetails: {},
+            loanDetails: {}
+          }
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
     }
-    
-    // Return success response with the processed data
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: 'Application processed successfully',
-        data: applicationData
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-    );
   } catch (error) {
     console.error('Error processing application:', error);
     
