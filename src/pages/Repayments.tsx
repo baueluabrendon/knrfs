@@ -25,7 +25,19 @@ const Repayments = () => {
       if (error) {
         console.error('Error fetching repayments:', error);
       } else {
-        setRepayments(data as Repayment[]);
+        // Map database fields to our Repayment type
+        const mappedRepayments: Repayment[] = data.map(item => ({
+          id: item.repayment_id,
+          date: item.payment_date || item.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+          amount: Number(item.amount),
+          loanId: item.loan_id || 'Unknown',
+          borrowerName: 'Loading...', // This would ideally be fetched from relations
+          status: item.status as "pending" | "completed" | "failed" || "pending",
+          payPeriod: "Current", // Default value, ideally this would be from relations
+          receiptUrl: item.receipt_url || undefined
+        }));
+        
+        setRepayments(mappedRepayments);
       }
     } catch (error) {
       console.error('Error in fetchRepayments:', error);

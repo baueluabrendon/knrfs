@@ -11,16 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { supabase } from "@/lib/supabase";
-
-// Define a simplified type for repayments
-interface Repayment {
-  repayment_id: string;
-  amount: number;
-  payment_date: string | null;
-  status: string;
-  created_at: string | null;
-  receipt_url: string | null;
-}
+import { Repayment } from "@/types/repayment";
 
 const ClientRepayments = () => {
   const { user } = useAuth();
@@ -41,7 +32,19 @@ const ClientRepayments = () => {
         if (error) {
           console.error('Error fetching repayments:', error);
         } else {
-          setRepayments(data as Repayment[]);
+          // Map database fields to our Repayment type
+          const mappedRepayments: Repayment[] = data.map(item => ({
+            id: item.repayment_id,
+            date: item.payment_date || item.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+            amount: Number(item.amount),
+            loanId: item.loan_id || 'Unknown',
+            borrowerName: 'Client', // Default for client view
+            status: item.status as "pending" | "completed" | "failed" || "pending",
+            payPeriod: "Current", // Default value
+            receiptUrl: item.receipt_url || undefined
+          }));
+          
+          setRepayments(mappedRepayments);
         }
       } catch (error) {
         console.error('Error in fetchRepayments:', error);
@@ -78,16 +81,16 @@ const ClientRepayments = () => {
               </TableRow>
             ) : repayments && repayments.length > 0 ? (
               repayments.map((repayment) => (
-                <TableRow key={repayment.repayment_id}>
-                  <TableCell>{repayment.repayment_id}</TableCell>
-                  <TableCell>{repayment.payment_date ? new Date(repayment.payment_date).toLocaleDateString() : '-'}</TableCell>
+                <TableRow key={repayment.id}>
+                  <TableCell>{repayment.id}</TableCell>
+                  <TableCell>{new Date(repayment.date).toLocaleDateString()}</TableCell>
                   <TableCell>${repayment.amount.toFixed(2)}</TableCell>
                   <TableCell>{repayment.status}</TableCell>
-                  <TableCell>{repayment.created_at ? new Date(repayment.created_at).toLocaleDateString() : '-'}</TableCell>
+                  <TableCell>{new Date(repayment.date).toLocaleDateString()}</TableCell>
                   <TableCell>
-                    {repayment.receipt_url && (
+                    {repayment.receiptUrl && (
                       <a 
-                        href={repayment.receipt_url} 
+                        href={repayment.receiptUrl} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="text-blue-500 hover:underline"
