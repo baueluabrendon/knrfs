@@ -143,8 +143,8 @@ const BorrowerForm = ({ onSubmit, onCancel }: BorrowerFormProps) => {
   
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit} className="max-h-[70vh] overflow-y-auto p-1">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <form onSubmit={handleSubmit} className="max-h-[75vh] overflow-y-auto p-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
           <div className="space-y-4">
             <h3 className="text-lg font-medium border-b pb-2">Personal Information</h3>
             
@@ -664,7 +664,7 @@ const BorrowerForm = ({ onSubmit, onCancel }: BorrowerFormProps) => {
           </div>
         </div>
         
-        <div className="flex justify-end space-x-2 mt-6">
+        <div className="flex justify-end space-x-2 mt-8">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancel
