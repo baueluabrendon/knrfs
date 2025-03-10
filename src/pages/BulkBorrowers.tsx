@@ -15,22 +15,28 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+// Updated interface to match borrowers table columns
 interface CSVBorrower {
-  name: string;
+  surname: string;
+  given_name: string;
   email: string;
-  phone: string;
-  address: string;
-  occupation: string;
-  monthlyIncome: string;
+  mobile_number: string;
+  postal_address: string;
+  position: string;
+  department_company: string;
+  work_phone_number: string;
 }
 
+// Match the database structure
 interface BorrowerInsert {
-  given_name: string;
   surname: string;
+  given_name: string;
   email: string;
   mobile_number: string | null;
   postal_address: string | null;
   position: string | null;
+  department_company: string | null;
+  work_phone_number: string | null;
 }
 
 const BulkBorrowers = () => {
@@ -60,12 +66,14 @@ const BulkBorrowers = () => {
         .map(line => {
           const values = line.split(",").map(value => value.trim());
           return {
-            name: values[0] || "",
-            email: values[1] || "",
-            phone: values[2] || "",
-            address: values[3] || "",
-            occupation: values[4] || "",
-            monthlyIncome: values[5] || "0",
+            surname: values[0] || "",
+            given_name: values[1] || "",
+            email: values[2] || "",
+            mobile_number: values[3] || "",
+            postal_address: values[4] || "",
+            position: values[5] || "",
+            department_company: values[6] || "",
+            work_phone_number: values[7] || "",
           };
         });
 
@@ -93,18 +101,15 @@ const BulkBorrowers = () => {
     try {
       // Convert CSV data to the format expected by the borrowers table
       const borrowersToInsert: BorrowerInsert[] = csvData.map(borrower => {
-        // Split the name into given_name and surname (assuming format: "Surname GivenName")
-        const nameParts = borrower.name.split(" ");
-        const surname = nameParts[0] || "";
-        const given_name = nameParts.slice(1).join(" ") || "";
-        
         return {
-          surname,
-          given_name,
+          surname: borrower.surname,
+          given_name: borrower.given_name,
           email: borrower.email,
-          mobile_number: borrower.phone || null,
-          postal_address: borrower.address || null,
-          position: borrower.occupation || null,
+          mobile_number: borrower.mobile_number || null,
+          postal_address: borrower.postal_address || null,
+          position: borrower.position || null,
+          department_company: borrower.department_company || null,
+          work_phone_number: borrower.work_phone_number || null,
         };
       });
 
@@ -156,7 +161,7 @@ const BulkBorrowers = () => {
         <div className="space-y-4">
           <div className="flex flex-col space-y-2">
             <p className="text-muted-foreground mb-2">
-              Upload a CSV file with the following columns: Name, Email, Phone, Address, Occupation, Monthly Income
+              Upload a CSV file with the following columns: Surname, Given Name, Email, Mobile Number, Postal Address, Position, Department/Company, Work Phone Number
             </p>
             <div className="flex items-center space-x-4">
               <Button
@@ -189,23 +194,27 @@ const BulkBorrowers = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
+                      <TableHead>Surname</TableHead>
+                      <TableHead>Given Name</TableHead>
                       <TableHead>Email</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Address</TableHead>
-                      <TableHead>Occupation</TableHead>
-                      <TableHead>Monthly Income</TableHead>
+                      <TableHead>Mobile Number</TableHead>
+                      <TableHead>Postal Address</TableHead>
+                      <TableHead>Position</TableHead>
+                      <TableHead>Department/Company</TableHead>
+                      <TableHead>Work Phone Number</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {csvData.map((borrower, index) => (
                       <TableRow key={index}>
-                        <TableCell>{borrower.name}</TableCell>
+                        <TableCell>{borrower.surname}</TableCell>
+                        <TableCell>{borrower.given_name}</TableCell>
                         <TableCell>{borrower.email}</TableCell>
-                        <TableCell>{borrower.phone}</TableCell>
-                        <TableCell>{borrower.address}</TableCell>
-                        <TableCell>{borrower.occupation}</TableCell>
-                        <TableCell>${borrower.monthlyIncome}</TableCell>
+                        <TableCell>{borrower.mobile_number}</TableCell>
+                        <TableCell>{borrower.postal_address}</TableCell>
+                        <TableCell>{borrower.position}</TableCell>
+                        <TableCell>{borrower.department_company}</TableCell>
+                        <TableCell>{borrower.work_phone_number}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
