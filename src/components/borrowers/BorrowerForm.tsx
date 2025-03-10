@@ -8,9 +8,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// Create a schema that matches all the borrowers table fields
 const borrowerFormSchema = z.object({
-  // Personal Information
   given_name: z.string().min(1, "First name is required"),
   surname: z.string().min(1, "Last name is required"),
   email: z.string().email("Invalid email address"),
@@ -18,8 +16,6 @@ const borrowerFormSchema = z.object({
   date_of_birth: z.string().optional(),
   gender: z.string().optional(),
   nationality: z.string().optional(),
-  
-  // Address Information
   village: z.string().optional(),
   district: z.string().optional(),
   province: z.string().optional(),
@@ -28,8 +24,6 @@ const borrowerFormSchema = z.object({
   section: z.string().optional(),
   suburb: z.string().optional(),
   street_name: z.string().optional(),
-  
-  // Employment Information
   department_company: z.string().optional(),
   position: z.string().optional(),
   date_employed: z.string().optional(),
@@ -38,15 +32,11 @@ const borrowerFormSchema = z.object({
   paymaster: z.string().optional(),
   company_branch: z.string().optional(),
   fax: z.string().optional(),
-  
-  // Marital Status Information
   marital_status: z.string().optional(),
   spouse_last_name: z.string().optional(),
   spouse_first_name: z.string().optional(),
   spouse_employer_name: z.string().optional(),
   spouse_contact_details: z.string().optional(),
-  
-  // Banking Information
   bank: z.string().optional(),
   bank_branch: z.string().optional(),
   bsb_code: z.string().optional(),
@@ -55,11 +45,9 @@ const borrowerFormSchema = z.object({
   account_type: z.string().optional(),
 });
 
-// Export the form data type without borrower_id since it's auto-generated
 export type BorrowerFormData = z.infer<typeof borrowerFormSchema>;
 
-// Create a type that includes borrower_id for database operations
-export type BorrowerInsertData = Partial<BorrowerFormData> & { borrower_id?: string };
+export type BorrowerInsertData = BorrowerFormData;
 
 interface BorrowerFormProps {
   onSubmit: (data: BorrowerFormData) => void;
@@ -116,7 +104,6 @@ const BorrowerForm = ({ onSubmit, onCancel }: BorrowerFormProps) => {
     <Form {...form}>
       <form onSubmit={handleSubmit} className="max-h-[70vh] overflow-y-auto p-1">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Personal Information Section */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium border-b pb-2">Personal Information</h3>
             
@@ -228,7 +215,6 @@ const BorrowerForm = ({ onSubmit, onCancel }: BorrowerFormProps) => {
             />
           </div>
           
-          {/* Employment Information Section */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium border-b pb-2">Employment Information</h3>
             
@@ -345,7 +331,6 @@ const BorrowerForm = ({ onSubmit, onCancel }: BorrowerFormProps) => {
             />
           </div>
           
-          {/* Address Information Section */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium border-b pb-2">Address Information</h3>
             
@@ -462,7 +447,6 @@ const BorrowerForm = ({ onSubmit, onCancel }: BorrowerFormProps) => {
             />
           </div>
           
-          {/* Marital Status Section */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium border-b pb-2">Marital Status</h3>
             
@@ -548,7 +532,6 @@ const BorrowerForm = ({ onSubmit, onCancel }: BorrowerFormProps) => {
             />
           </div>
           
-          {/* Banking Information Section */}
           <div className="space-y-4 md:col-span-2">
             <h3 className="text-lg font-medium border-b pb-2">Banking Information</h3>
             
