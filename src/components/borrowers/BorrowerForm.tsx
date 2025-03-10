@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -477,6 +476,7 @@ const BorrowerForm = ({ onSubmit, onCancel }: BorrowerFormProps) => {
                       <SelectContent>
                         <SelectItem value="single">Single</SelectItem>
                         <SelectItem value="married">Married</SelectItem>
+                        <SelectItem value="defacto">De Facto</SelectItem>
                         <SelectItem value="divorced">Divorced</SelectItem>
                         <SelectItem value="widowed">Widowed</SelectItem>
                       </SelectContent>

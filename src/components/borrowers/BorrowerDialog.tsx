@@ -16,7 +16,7 @@ interface BorrowerDialogProps {
 const BorrowerDialog = ({ open, onOpenChange, onSubmit }: BorrowerDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden">
+      <DialogContent className="sm:max-w-[950px] max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle>Add New Borrower</DialogTitle>
         </DialogHeader>
