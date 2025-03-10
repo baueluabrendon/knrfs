@@ -76,7 +76,6 @@ export type Database = {
           file_number: string | null
           gender: string | null
           given_name: string
-          loan_repayment_group: string | null
           lot: string | null
           marital_status: string | null
           mobile_number: string | null
@@ -114,7 +113,6 @@ export type Database = {
           file_number?: string | null
           gender?: string | null
           given_name: string
-          loan_repayment_group?: string | null
           lot?: string | null
           marital_status?: string | null
           mobile_number?: string | null
@@ -152,7 +150,6 @@ export type Database = {
           file_number?: string | null
           gender?: string | null
           given_name?: string
-          loan_repayment_group?: string | null
           lot?: string | null
           marital_status?: string | null
           mobile_number?: string | null
@@ -572,7 +569,7 @@ export type Database = {
           created_at: string | null
           loan_id: string | null
           payment_date: string | null
-          receipt: string | null
+          receipt_url: string | null
           repayment_id: string
           status: string | null
         }
@@ -581,7 +578,7 @@ export type Database = {
           created_at?: string | null
           loan_id?: string | null
           payment_date?: string | null
-          receipt?: string | null
+          receipt_url?: string | null
           repayment_id?: string
           status?: string | null
         }
@@ -590,7 +587,7 @@ export type Database = {
           created_at?: string | null
           loan_id?: string | null
           payment_date?: string | null
-          receipt?: string | null
+          receipt_url?: string | null
           repayment_id?: string
           status?: string | null
         }

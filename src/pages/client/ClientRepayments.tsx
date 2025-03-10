@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
 import {
@@ -9,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { supabase } from "@/lib/supabase";
 
 // Define a simplified type for repayments
 interface Repayment {
@@ -17,39 +19,39 @@ interface Repayment {
   payment_date: string | null;
   status: string;
   created_at: string | null;
+  receipt_url: string | null;
 }
-
-// Mock data for repayments
-const mockRepayments: Repayment[] = [
-  {
-    repayment_id: "REP001",
-    amount: 250.00,
-    payment_date: "2023-10-15T00:00:00Z",
-    status: "paid",
-    created_at: "2023-09-15T10:30:00Z"
-  },
-  {
-    repayment_id: "REP002",
-    amount: 250.00,
-    payment_date: "2023-11-15T00:00:00Z",
-    status: "pending",
-    created_at: null
-  },
-  {
-    repayment_id: "REP003",
-    amount: 250.00,
-    payment_date: "2023-12-15T00:00:00Z",
-    status: "overdue",
-    created_at: null
-  }
-];
 
 const ClientRepayments = () => {
   const { user } = useAuth();
+  const [repayments, setRepayments] = useState<Repayment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Use mock data instead of fetching from Supabase
-  const repayments = mockRepayments;
-  const isLoading = false;
+  useEffect(() => {
+    const fetchRepayments = async () => {
+      if (!user) return;
+      
+      try {
+        setIsLoading(true);
+        // In a real application, you would filter by user ID or associated loans
+        const { data, error } = await supabase
+          .from('repayments')
+          .select('*');
+        
+        if (error) {
+          console.error('Error fetching repayments:', error);
+        } else {
+          setRepayments(data as Repayment[]);
+        }
+      } catch (error) {
+        console.error('Error in fetchRepayments:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchRepayments();
+  }, [user]);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -64,10 +66,17 @@ const ClientRepayments = () => {
               <TableHead>Amount</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Payment Date</TableHead>
+              <TableHead>Receipt</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {repayments && repayments.length > 0 ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8">
+                  Loading repayments...
+                </TableCell>
+              </TableRow>
+            ) : repayments && repayments.length > 0 ? (
               repayments.map((repayment) => (
                 <TableRow key={repayment.repayment_id}>
                   <TableCell>{repayment.repayment_id}</TableCell>
@@ -75,11 +84,23 @@ const ClientRepayments = () => {
                   <TableCell>${repayment.amount.toFixed(2)}</TableCell>
                   <TableCell>{repayment.status}</TableCell>
                   <TableCell>{repayment.created_at ? new Date(repayment.created_at).toLocaleDateString() : '-'}</TableCell>
+                  <TableCell>
+                    {repayment.receipt_url && (
+                      <a 
+                        href={repayment.receipt_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline"
+                      >
+                        View
+                      </a>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                   No repayments found
                 </TableCell>
               </TableRow>

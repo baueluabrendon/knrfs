@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card } from "@/components/ui/card";
@@ -7,11 +7,44 @@ import { Link } from "react-router-dom";
 import { Upload } from "lucide-react";
 import RepaymentDialog from "@/components/repayments/RepaymentDialog";
 import RepaymentsTable from "@/components/repayments/RepaymentsTable";
-import { sampleRepayments } from "@/components/repayments/sampleData";
+import { supabase } from "@/lib/supabase";
+import { Repayment } from "@/types/repayment";
 
 const Repayments = () => {
-  const [repayments] = useState(sampleRepayments);
+  const [repayments, setRepayments] = useState<Repayment[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchRepayments = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('repayments')
+        .select('*');
+      
+      if (error) {
+        console.error('Error fetching repayments:', error);
+      } else {
+        setRepayments(data as Repayment[]);
+      }
+    } catch (error) {
+      console.error('Error in fetchRepayments:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRepayments();
+  }, []);
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      // Refresh repayments when dialog is closed
+      fetchRepayments();
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -26,13 +59,17 @@ const Repayments = () => {
           </Button>
           <RepaymentDialog 
             isOpen={isDialogOpen} 
-            onOpenChange={setIsDialogOpen} 
+            onOpenChange={handleDialogOpenChange} 
           />
         </div>
       </div>
 
       <Card className="p-6">
-        <RepaymentsTable repayments={repayments} />
+        {isLoading ? (
+          <div className="text-center py-8">Loading repayments...</div>
+        ) : (
+          <RepaymentsTable repayments={repayments} />
+        )}
       </Card>
     </div>
   );

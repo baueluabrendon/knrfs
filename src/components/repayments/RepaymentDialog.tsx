@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Plus, Upload } from "lucide-react";
 import { toast } from "sonner";
@@ -11,7 +12,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { uploadGroupRepaymentDocument } from "@/contexts/loan-application/document-uploader";
+import { supabase } from "@/lib/supabase";
 
 interface RepaymentDialogProps {
   isOpen: boolean;
@@ -22,27 +23,107 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
   const [isUploading, setIsUploading] = useState(false);
   const [loanId, setLoanId] = useState("");
   const [amount, setAmount] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState("");
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && loanId) {
-      setIsUploading(true);
-      try {
-        const receiptUrl = await uploadGroupRepaymentDocument(file);
-        if (receiptUrl) {
-          toast.success("Receipt uploaded successfully");
-          onOpenChange(false);
-        } else {
-          toast.error("Failed to upload receipt");
-        }
-      } catch (error) {
-        console.error("Error uploading receipt:", error);
-        toast.error("An unexpected error occurred while uploading receipt");
-      } finally {
-        setIsUploading(false);
+  // Check if file is a valid type (PDF or approved image)
+  const isValidFileType = (file: File): boolean => {
+    const validTypes = [
+      'application/pdf', 
+      'image/jpeg', 
+      'image/jpg', 
+      'image/png', 
+      'image/bmp', 
+      'image/tiff'
+    ];
+    return validTypes.includes(file.type);
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
+    setFileError("");
+    
+    if (selectedFile) {
+      if (isValidFileType(selectedFile)) {
+        setFile(selectedFile);
+      } else {
+        setFileError("Invalid file type. Please upload a PDF, JPEG, PNG, BMP, or TIFF file.");
+        event.target.value = '';
       }
-    } else {
-      toast.error("Please select a file and enter a loan ID");
+    }
+  };
+
+  const uploadReceipt = async (file: File): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}_${loanId}.${fileExt}`;
+      const filePath = `receipts/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('repayment_receipts')
+        .upload(filePath, file);
+        
+      if (uploadError) {
+        console.error('Error uploading receipt:', uploadError);
+        throw new Error('Failed to upload receipt');
+      }
+      
+      const { data } = supabase.storage
+        .from('repayment_receipts')
+        .getPublicUrl(filePath);
+        
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error in uploadReceipt:', error);
+      return null;
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!loanId || !amount || !file) {
+      toast.error("Please fill in all fields and select a receipt document.");
+      return;
+    }
+    
+    setIsUploading(true);
+    
+    try {
+      // Upload the receipt file
+      const receiptUrl = await uploadReceipt(file);
+      
+      if (!receiptUrl) {
+        throw new Error("Failed to upload receipt");
+      }
+      
+      // Insert the repayment record
+      const { error } = await supabase
+        .from('repayments')
+        .insert({
+          loan_id: loanId,
+          amount: parseFloat(amount),
+          receipt_url: receiptUrl,
+          status: 'completed',
+          payment_date: new Date().toISOString().split('T')[0]
+        });
+      
+      if (error) {
+        console.error('Error saving repayment:', error);
+        throw new Error('Failed to save repayment');
+      }
+      
+      toast.success("Repayment added successfully");
+      
+      // Reset form and close dialog
+      setLoanId("");
+      setAmount("");
+      setFile(null);
+      onOpenChange(false);
+      
+    } catch (error) {
+      console.error('Error in handleSubmit:', error);
+      toast.error("Failed to add repayment. Please try again.");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -56,7 +137,7 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Upload Repayment Receipt</DialogTitle>
+          <DialogTitle>Add Repayment</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
@@ -83,15 +164,19 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
             <Input
               id="receipt"
               type="file"
-              accept=".pdf,.jpg,.jpeg,.png"
-              onChange={handleFileUpload}
+              accept=".pdf,.jpg,.jpeg,.png,.bmp,.tiff"
+              onChange={handleFileChange}
               disabled={isUploading}
             />
+            {fileError && <p className="text-sm text-red-500">{fileError}</p>}
+            <p className="text-xs text-muted-foreground">
+              Allowed file types: PDF, JPEG, PNG, BMP, TIFF
+            </p>
           </div>
           <Button 
             className="w-full" 
-            onClick={() => onOpenChange(false)}
-            disabled={isUploading}
+            onClick={handleSubmit}
+            disabled={isUploading || !loanId || !amount || !file}
           >
             {isUploading ? (
               <span>Uploading...</span>
