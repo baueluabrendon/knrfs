@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { UserPlus, Search } from "lucide-react";
+import { UserPlus, Search, Pencil, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { 
@@ -31,6 +31,16 @@ import {
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface UserFormData {
   email: string;
@@ -63,6 +73,11 @@ const Users = () => {
     lastName: "",
   });
   const [open, setOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserData | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<UserData | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -212,6 +227,90 @@ const Users = () => {
     }
   };
 
+  const handleEditClick = (user: UserData) => {
+    setEditingUser(user);
+    setFormData({
+      email: user.email,
+      role: user.role,
+      firstName: user.first_name || "",
+      lastName: user.last_name || "",
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleDeleteClick = (user: UserData) => {
+    setUserToDelete(user);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleUpdateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    
+    setIsProcessing(true);
+    
+    try {
+      // Update user_profiles table
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .update({
+          role: formData.role,
+          first_name: formData.firstName,
+          last_name: formData.lastName
+        })
+        .eq('user_id', editingUser.user_id);
+        
+      if (profileError) throw profileError;
+      
+      // Update user metadata in auth.users
+      const { error: metadataError } = await supabase.auth.admin.updateUserById(
+        editingUser.user_id,
+        {
+          user_metadata: {
+            role: formData.role,
+            first_name: formData.firstName,
+            last_name: formData.lastName
+          }
+        }
+      );
+      
+      if (metadataError) throw metadataError;
+      
+      toast.success("User updated successfully");
+      setEditDialogOpen(false);
+      fetchUsers();
+    } catch (error: any) {
+      console.error("Error updating user:", error);
+      toast.error(error.message || "Failed to update user");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+    
+    setIsProcessing(true);
+    
+    try {
+      // Delete user from auth.users (this will cascade to user_profiles due to FK)
+      const { error } = await supabase.auth.admin.deleteUser(
+        userToDelete.user_id
+      );
+      
+      if (error) throw error;
+      
+      toast.success("User deleted successfully");
+      setDeleteDialogOpen(false);
+      fetchUsers();
+    } catch (error: any) {
+      console.error("Error deleting user:", error);
+      toast.error(error.message || "Failed to delete user");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const filteredUsers = users.filter(user => {
     const fullName = `${user.first_name || ''} ${user.last_name || ''}`.toLowerCase();
     const searchLower = searchTerm.toLowerCase();
@@ -329,18 +428,19 @@ const Users = () => {
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8">
+                <TableCell colSpan={5} className="text-center py-8">
                   Loading users...
                 </TableCell>
               </TableRow>
             ) : filteredUsers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8">
+                <TableCell colSpan={5} className="text-center py-8">
                   No users found.
                 </TableCell>
               </TableRow>
@@ -361,12 +461,142 @@ const Users = () => {
                       {user.status}
                     </span>
                   </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditClick(user)}
+                        className="h-8 px-2"
+                      >
+                        <Pencil className="h-4 w-4" />
+                        <span className="sr-only">Edit</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteClick(user)}
+                        className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Delete</span>
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))
             )}
           </TableBody>
         </Table>
       </Card>
+
+      {/* Edit User Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUpdateUser} className="space-y-4 mt-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="editFirstName" className="text-sm font-medium text-gray-700">
+                  First Name *
+                </Label>
+                <Input 
+                  id="firstName" 
+                  placeholder="Enter first name" 
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="editLastName" className="text-sm font-medium text-gray-700">
+                  Last Name *
+                </Label>
+                <Input 
+                  id="lastName" 
+                  placeholder="Enter last name" 
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="editEmail" className="text-sm font-medium text-gray-700">
+                Email
+              </Label>
+              <Input 
+                id="email" 
+                type="email" 
+                value={formData.email}
+                disabled
+                className="bg-gray-100"
+              />
+              <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+            </div>
+            <div>
+              <Label htmlFor="editRole" className="text-sm font-medium text-gray-700">
+                Role *
+              </Label>
+              <Select onValueChange={handleRoleChange} value={formData.role}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="client">Client</SelectItem>
+                  <SelectItem value="administrator">Administrator</SelectItem>
+                  <SelectItem value="sales officer">Sales Officer</SelectItem>
+                  <SelectItem value="accounts officer">Accounts Officer</SelectItem>
+                  <SelectItem value="recoveries officer">Recoveries Officer</SelectItem>
+                  <SelectItem value="administration officer">Administration Officer</SelectItem>
+                  <SelectItem value="super user">Super User</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setEditDialogOpen(false)}
+                disabled={isProcessing}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isProcessing}
+              >
+                {isProcessing ? "Saving..." : "Save Changes"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action will permanently delete the user {userToDelete?.first_name} {userToDelete?.last_name} ({userToDelete?.email}).
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isProcessing}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteUser}
+              disabled={isProcessing}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isProcessing ? "Deleting..." : "Delete User"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
