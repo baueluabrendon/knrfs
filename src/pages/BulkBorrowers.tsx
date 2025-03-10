@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { toast } from "sonner";
 import { Upload, X } from "lucide-react";
@@ -115,40 +116,41 @@ const BulkBorrowers = () => {
         .map(line => {
           const values = line.split(",").map(value => value.trim());
           return {
-            surname: values[1] || "",
-            given_name: values[2] || "",
-            email: values[3] || "",
+            // New order according to the specified requirements
+            surname: values[0] || "",
+            given_name: values[1] || "",
+            date_of_birth: values[2] || "",
+            gender: values[3] || "",
             mobile_number: values[4] || "",
-            date_of_birth: values[5] || "",
-            gender: values[6] || "",
-            nationality: values[7] || "",
-            village: values[8] || "",
-            district: values[9] || "",
-            province: values[10] || "",
-            postal_address: values[11] || "",
-            lot: values[12] || "",
-            section: values[13] || "",
-            suburb: values[14] || "",
-            street_name: values[15] || "",
-            department_company: values[16] || "",
-            position: values[17] || "",
-            date_employed: values[18] || "",
-            work_phone_number: values[19] || "",
-            file_number: values[20] || "",
-            paymaster: values[21] || "",
-            company_branch: values[22] || "",
-            fax: values[23] || "",
-            marital_status: values[24] || "",
-            spouse_last_name: values[25] || "",
-            spouse_first_name: values[26] || "",
-            spouse_employer_name: values[27] || "",
-            spouse_contact_details: values[28] || "",
-            bank: values[29] || "",
-            bank_branch: values[30] || "",
-            bsb_code: values[31] || "",
-            account_name: values[32] || "",
-            account_number: values[33] || "",
-            account_type: values[34] || "",
+            email: values[5] || "",
+            village: values[6] || "",
+            district: values[7] || "",
+            province: values[8] || "",
+            nationality: values[9] || "",
+            department_company: values[10] || "",
+            file_number: values[11] || "",
+            position: values[12] || "",
+            postal_address: values[13] || "",
+            work_phone_number: values[14] || "",
+            fax: values[15] || "",
+            date_employed: values[16] || "",
+            paymaster: values[17] || "",
+            lot: values[18] || "",
+            section: values[19] || "",
+            suburb: values[20] || "",
+            street_name: values[21] || "",
+            marital_status: values[22] || "",
+            spouse_last_name: values[23] || "",
+            spouse_first_name: values[24] || "",
+            spouse_employer_name: values[25] || "",
+            spouse_contact_details: values[26] || "",
+            company_branch: values[27] || "",
+            bank: values[28] || "",
+            bank_branch: values[29] || "",
+            bsb_code: values[30] || "",
+            account_name: values[31] || "",
+            account_number: values[32] || "",
+            account_type: values[33] || "",
           };
         });
 
@@ -264,7 +266,7 @@ const BulkBorrowers = () => {
         <div className="space-y-4">
           <div className="flex flex-col space-y-2">
             <p className="text-muted-foreground mb-2">
-              Upload a CSV file with the following columns in this order: borrower_id (auto-generated), Surname, Given Name, Email, Mobile Number, Date of Birth, Gender, Nationality, Village, District, Province, Postal Address, Lot, Section, Suburb, Street Name, Department/Company, Position, Date Employed, Work Phone Number, File Number, Paymaster, Company Branch, Fax, Marital Status, Spouse Last Name, Spouse First Name, Spouse Employer Name, Spouse Contact Details, Bank, Bank Branch, BSB Code, Account Name, Account Number, Account Type
+              Upload a CSV file with the following columns in this order: Surname, Given Name, Date of Birth, Gender, Mobile Number, Email, Village, District, Province, Nationality, Department/Company, File Number, Position, Postal Address, Work Phone Number, Fax, Date Employed, Paymaster, Lot, Section, Suburb, Street Name, Marital Status, Spouse Last Name, Spouse First Name, Spouse Employer Name, Spouse Contact Details, Company Branch, Bank, Bank Branch, BSB Code, Account Name, Account Number, Account Type
             </p>
             <div className="flex items-center space-x-4">
               <Button
@@ -307,32 +309,32 @@ const BulkBorrowers = () => {
                     <TableRow>
                       <TableHead>Surname</TableHead>
                       <TableHead>Given Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Mobile Number</TableHead>
                       <TableHead>Date of Birth</TableHead>
                       <TableHead>Gender</TableHead>
-                      <TableHead>Nationality</TableHead>
+                      <TableHead>Mobile Number</TableHead>
+                      <TableHead>Email</TableHead>
                       <TableHead>Village</TableHead>
                       <TableHead>District</TableHead>
                       <TableHead>Province</TableHead>
+                      <TableHead>Nationality</TableHead>
+                      <TableHead>Department/Company</TableHead>
+                      <TableHead>File Number</TableHead>
+                      <TableHead>Position</TableHead>
                       <TableHead>Postal Address</TableHead>
+                      <TableHead>Work Phone Number</TableHead>
+                      <TableHead>Fax</TableHead>
+                      <TableHead>Date Employed</TableHead>
+                      <TableHead>Paymaster</TableHead>
                       <TableHead>Lot</TableHead>
                       <TableHead>Section</TableHead>
                       <TableHead>Suburb</TableHead>
                       <TableHead>Street Name</TableHead>
-                      <TableHead>Department/Company</TableHead>
-                      <TableHead>Position</TableHead>
-                      <TableHead>Date Employed</TableHead>
-                      <TableHead>Work Phone Number</TableHead>
-                      <TableHead>File Number</TableHead>
-                      <TableHead>Paymaster</TableHead>
-                      <TableHead>Company Branch</TableHead>
-                      <TableHead>Fax</TableHead>
                       <TableHead>Marital Status</TableHead>
                       <TableHead>Spouse Last Name</TableHead>
                       <TableHead>Spouse First Name</TableHead>
                       <TableHead>Spouse Employer Name</TableHead>
                       <TableHead>Spouse Contact Details</TableHead>
+                      <TableHead>Company Branch</TableHead>
                       <TableHead>Bank</TableHead>
                       <TableHead>Bank Branch</TableHead>
                       <TableHead>BSB Code</TableHead>
@@ -346,32 +348,32 @@ const BulkBorrowers = () => {
                       <TableRow key={index}>
                         <TableCell>{borrower.surname}</TableCell>
                         <TableCell>{borrower.given_name}</TableCell>
-                        <TableCell>{borrower.email}</TableCell>
-                        <TableCell>{borrower.mobile_number}</TableCell>
                         <TableCell>{borrower.date_of_birth}</TableCell>
                         <TableCell>{borrower.gender}</TableCell>
-                        <TableCell>{borrower.nationality}</TableCell>
+                        <TableCell>{borrower.mobile_number}</TableCell>
+                        <TableCell>{borrower.email}</TableCell>
                         <TableCell>{borrower.village}</TableCell>
                         <TableCell>{borrower.district}</TableCell>
                         <TableCell>{borrower.province}</TableCell>
+                        <TableCell>{borrower.nationality}</TableCell>
+                        <TableCell>{borrower.department_company}</TableCell>
+                        <TableCell>{borrower.file_number}</TableCell>
+                        <TableCell>{borrower.position}</TableCell>
                         <TableCell>{borrower.postal_address}</TableCell>
+                        <TableCell>{borrower.work_phone_number}</TableCell>
+                        <TableCell>{borrower.fax}</TableCell>
+                        <TableCell>{borrower.date_employed}</TableCell>
+                        <TableCell>{borrower.paymaster}</TableCell>
                         <TableCell>{borrower.lot}</TableCell>
                         <TableCell>{borrower.section}</TableCell>
                         <TableCell>{borrower.suburb}</TableCell>
                         <TableCell>{borrower.street_name}</TableCell>
-                        <TableCell>{borrower.department_company}</TableCell>
-                        <TableCell>{borrower.position}</TableCell>
-                        <TableCell>{borrower.date_employed}</TableCell>
-                        <TableCell>{borrower.work_phone_number}</TableCell>
-                        <TableCell>{borrower.file_number}</TableCell>
-                        <TableCell>{borrower.paymaster}</TableCell>
-                        <TableCell>{borrower.company_branch}</TableCell>
-                        <TableCell>{borrower.fax}</TableCell>
                         <TableCell>{borrower.marital_status}</TableCell>
                         <TableCell>{borrower.spouse_last_name}</TableCell>
                         <TableCell>{borrower.spouse_first_name}</TableCell>
                         <TableCell>{borrower.spouse_employer_name}</TableCell>
                         <TableCell>{borrower.spouse_contact_details}</TableCell>
+                        <TableCell>{borrower.company_branch}</TableCell>
                         <TableCell>{borrower.bank}</TableCell>
                         <TableCell>{borrower.bank_branch}</TableCell>
                         <TableCell>{borrower.bsb_code}</TableCell>
