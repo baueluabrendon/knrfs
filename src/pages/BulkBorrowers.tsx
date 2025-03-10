@@ -1,6 +1,8 @@
+
 import { useState } from "react";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,6 +22,15 @@ interface CSVBorrower {
   address: string;
   occupation: string;
   monthlyIncome: string;
+}
+
+interface BorrowerInsert {
+  given_name: string;
+  surname: string;
+  email: string;
+  mobile_number: string | null;
+  postal_address: string | null;
+  position: string | null;
 }
 
 const BulkBorrowers = () => {
@@ -78,10 +89,61 @@ const BulkBorrowers = () => {
     }
 
     setIsLoading(true);
-    // Here you would typically send the data to your backend
-    console.log("Borrowers to be created:", csvData);
-    toast.success("Bulk borrowers uploaded successfully");
-    setIsLoading(false);
+    
+    try {
+      // Convert CSV data to the format expected by the borrowers table
+      const borrowersToInsert: BorrowerInsert[] = csvData.map(borrower => {
+        // Split the name into given_name and surname (assuming format: "Surname GivenName")
+        const nameParts = borrower.name.split(" ");
+        const surname = nameParts[0] || "";
+        const given_name = nameParts.slice(1).join(" ") || "";
+        
+        return {
+          surname,
+          given_name,
+          email: borrower.email,
+          mobile_number: borrower.phone || null,
+          postal_address: borrower.address || null,
+          position: borrower.occupation || null,
+        };
+      });
+
+      // Insert the borrowers into the database in batches
+      const batchSize = 20;
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (let i = 0; i < borrowersToInsert.length; i += batchSize) {
+        const batch = borrowersToInsert.slice(i, i + batchSize);
+        
+        const { data, error } = await supabase
+          .from('borrowers')
+          .insert(batch)
+          .select();
+        
+        if (error) {
+          console.error("Error inserting borrowers:", error);
+          errorCount += batch.length;
+        } else {
+          console.log("Successfully inserted borrowers:", data);
+          successCount += data.length;
+        }
+      }
+
+      if (errorCount > 0) {
+        toast.warning(`Added ${successCount} borrowers with ${errorCount} errors`);
+      } else {
+        toast.success(`Successfully added ${successCount} borrowers`);
+      }
+      
+      // Clear the data after successful insertion
+      setCSVData([]);
+    } catch (error) {
+      console.error("Error in bulk upload:", error);
+      toast.error("Failed to upload borrowers");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -92,32 +154,37 @@ const BulkBorrowers = () => {
 
       <Card className="p-6">
         <div className="space-y-4">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="outline"
-              className="relative"
-              disabled={isLoading}
-            >
-              <input
-                type="file"
-                accept=".csv"
-                onChange={handleFileUpload}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
-              <Upload className="mr-2 h-4 w-4" />
-              Select CSV File
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={csvData.length === 0 || isLoading}
-            >
-              Upload Borrowers
-            </Button>
+          <div className="flex flex-col space-y-2">
+            <p className="text-muted-foreground mb-2">
+              Upload a CSV file with the following columns: Name, Email, Phone, Address, Occupation, Monthly Income
+            </p>
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="outline"
+                className="relative"
+                disabled={isLoading}
+              >
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileUpload}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <Upload className="mr-2 h-4 w-4" />
+                Select CSV File
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                disabled={csvData.length === 0 || isLoading}
+              >
+                {isLoading ? "Uploading..." : "Upload Borrowers"}
+              </Button>
+            </div>
           </div>
 
           {csvData.length > 0 && (
             <div className="mt-6">
-              <h2 className="text-lg font-semibold mb-4">Preview</h2>
+              <h2 className="text-lg font-semibold mb-4">Preview ({csvData.length} borrowers)</h2>
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
