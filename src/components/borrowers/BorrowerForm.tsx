@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,8 +48,10 @@ const borrowerFormSchema = z.object({
 
 export type BorrowerFormData = z.infer<typeof borrowerFormSchema>;
 
-// Use the generated insert type from the Database type
-export type BorrowerInsertData = Database["public"]["Tables"]["borrowers"]["Insert"];
+// Define the BorrowerInsertData type to make borrower_id optional
+export type BorrowerInsertData = Omit<Database["public"]["Tables"]["borrowers"]["Insert"], "borrower_id"> & {
+  borrower_id?: string;
+};
 
 interface BorrowerFormProps {
   onSubmit: (data: BorrowerFormData) => void;

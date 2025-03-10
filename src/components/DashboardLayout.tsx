@@ -7,7 +7,7 @@ import DashboardHeader from "./DashboardHeader";
 import SidebarHeader from "./SidebarHeader";
 import BorrowerDialog from "./borrowers/BorrowerDialog";
 import { menuItems as defaultMenuItems } from "@/config/menuItems";
-import { BorrowerFormData, BorrowerInsertData } from "./borrowers/BorrowerForm";
+import { BorrowerFormData } from "./borrowers/BorrowerForm";
 import { supabase } from "@/lib/supabase";
 
 interface DashboardLayoutProps {
