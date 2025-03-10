@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,9 +49,43 @@ const borrowerFormSchema = z.object({
 
 export type BorrowerFormData = z.infer<typeof borrowerFormSchema>;
 
-// Define the BorrowerInsertData type to make borrower_id optional
-export type BorrowerInsertData = Omit<Database["public"]["Tables"]["borrowers"]["Insert"], "borrower_id"> & {
-  borrower_id?: string;
+// Create a type that represents what we actually send to the database
+// This type is compatible with the form data and what Supabase expects
+export type BorrowerInsertData = {
+  given_name: string;
+  surname: string;
+  email: string;
+  mobile_number?: string | null;
+  date_of_birth?: string | null;
+  gender?: string | null;
+  nationality?: string | null;
+  village?: string | null;
+  district?: string | null;
+  province?: string | null;
+  postal_address?: string | null;
+  lot?: string | null;
+  section?: string | null;
+  suburb?: string | null;
+  street_name?: string | null;
+  department_company?: string | null;
+  position?: string | null;
+  date_employed?: string | null;
+  work_phone_number?: string | null;
+  file_number?: string | null;
+  paymaster?: string | null;
+  company_branch?: string | null;
+  fax?: string | null;
+  marital_status?: string | null;
+  spouse_last_name?: string | null;
+  spouse_first_name?: string | null;
+  spouse_employer_name?: string | null;
+  spouse_contact_details?: string | null;
+  bank?: string | null;
+  bank_branch?: string | null;
+  bsb_code?: string | null;
+  account_name?: string | null;
+  account_number?: string | null;
+  account_type?: string | null;
 };
 
 interface BorrowerFormProps {
