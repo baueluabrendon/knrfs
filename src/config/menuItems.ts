@@ -61,11 +61,8 @@ export const menuItems = [
   { 
     icon: RefreshCcw, 
     label: "Repayments", 
-    path: "#", // Changed to "#"
-    subItems: [
-      { icon: Eye, label: "View All Repayments", path: "/admin/repayments" },
-      // Removed the "Add Bulk Repayment" option
-    ]
+    path: "/admin/repayments", // Changed from "#" to direct link
+    subItems: [] // Removed the "View All Repayments" suboption
   },
   { 
     icon: PiggyBank, 

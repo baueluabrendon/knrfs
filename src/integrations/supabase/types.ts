@@ -645,10 +645,6 @@ export type Database = {
         }
         Returns: string
       }
-      get_auth_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
     }
     Enums: {
       accounts_enum: "Revenue" | "Expense" | "Asset" | "Liability" | "Equity"
