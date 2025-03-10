@@ -36,29 +36,7 @@ interface Loan {
 }
 
 const Borrowers = () => {
-  const [borrowers, setBorrowers] = useState<Borrower[]>([
-    {
-      id: "B001",
-      name: "John Doe",
-      email: "john@example.com",
-      phone: "+1234567890",
-      address: "123 Main St, City",
-      occupation: "Software Engineer",
-      monthlyIncome: 5000,
-      activeLoanId: "L001"
-    },
-    {
-      id: "B002",
-      name: "Jane Smith",
-      email: "jane@example.com",
-      phone: "+1987654321",
-      address: "456 Oak Ave, Town",
-      occupation: "Teacher",
-      monthlyIncome: 4000,
-      activeLoanId: null
-    },
-  ]);
-
+  const [borrowers, setBorrowers] = useState<Borrower[]>([]);
   const [selectedBorrower, setSelectedBorrower] = useState<Borrower | null>(null);
   const [showBorrowerDetails, setShowBorrowerDetails] = useState(false);
   const [showAddBorrower, setShowAddBorrower] = useState(false);
@@ -93,6 +71,7 @@ const Borrowers = () => {
         return;
       }
 
+      // Map the database structure to our UI structure
       const mappedBorrowers: Borrower[] = data.map(b => ({
         id: b.borrower_id,
         name: `${b.given_name} ${b.surname}`,
@@ -102,8 +81,8 @@ const Borrowers = () => {
           .filter(Boolean)
           .join(', ') || b.postal_address || '',
         occupation: b.position || '',
-        monthlyIncome: 0,
-        activeLoanId: null
+        monthlyIncome: 0, // We don't have this field in our database
+        activeLoanId: null // This would come from a join with the loans table
       }));
 
       setBorrowers(mappedBorrowers);
