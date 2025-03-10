@@ -11,22 +11,9 @@ import { clientRoutes } from "./routes/clientRoutes";
 import LoanApplicationSteps from "@/components/loan/LoanApplicationSteps";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import SetPassword from "./pages/SetPassword";
-import { useEffect } from "react";
-import { useAuth } from "./contexts/AuthContext";
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
-
-// Component to handle the redirect
-const RedirectToLogin = () => {
-  const { redirectToLogin } = useAuth();
-  
-  useEffect(() => {
-    redirectToLogin();
-  }, [redirectToLogin]);
-  
-  return null;
-};
 
 const App = () => {
   return (
@@ -37,15 +24,11 @@ const App = () => {
             <Toaster />
             <Sonner />
             <Routes>
-              {/* Redirect root to login page */}
-              <Route path="/" element={<Navigate to="/login" replace />} />
               {/* Authentication & Verification */}
+              <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="/login" element={<AuthForm />} />
               <Route path="/set-password" element={<SetPassword />} />
               <Route path="/apply" element={<LoanApplicationSteps />} />
-              
-              {/* Force redirect to login */}
-              <Route path="/reload-to-login" element={<RedirectToLogin />} />
 
               {/* Client Routes - Protected */}
               <Route
