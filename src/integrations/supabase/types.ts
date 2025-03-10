@@ -101,7 +101,7 @@ export type Database = {
           account_type?: string | null
           bank?: string | null
           bank_branch?: string | null
-          borrower_id: string
+          borrower_id?: string
           bsb_code?: string | null
           company_branch?: string | null
           date_employed?: string | null
@@ -324,7 +324,7 @@ export type Database = {
         Insert: {
           application_id?: string | null
           arrears?: number | null
-          borrower_id: string
+          borrower_id?: string
           created_at?: string | null
           default_fees_accumulated?: number | null
           description?: string | null
@@ -340,7 +340,7 @@ export type Database = {
           interest_rate?:
             | Database["public"]["Enums"]["interest_rate_enum"]
             | null
-          loan_id: string
+          loan_id?: string
           loan_repayment_status?:
             | Database["public"]["Enums"]["repayment_status_enum"]
             | null

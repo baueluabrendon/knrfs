@@ -30,7 +30,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       // The database trigger will generate it
       const { data, error } = await supabase
         .from('borrowers')
-        .insert(formData as BorrowerInsertData)
+        .insert([formData as unknown as BorrowerInsertData])
         .select();
       
       if (error) {
