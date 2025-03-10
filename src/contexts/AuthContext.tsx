@@ -16,6 +16,7 @@ interface AuthContextType extends AuthState {
   sendPasswordResetEmail: (email: string) => Promise<void>;
   sendVerificationEmail: (email: string) => Promise<void>;
   updateUserProfile: (userData: Partial<UserProfile>) => void;
+  redirectToLogin: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -173,6 +174,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+  const redirectToLogin = () => {
+    setAuthState({ user: null, loading: false, error: null });
+    navigate('/login', { replace: true });
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -183,7 +189,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signOut,
         sendPasswordResetEmail,
         sendVerificationEmail,
-        updateUserProfile
+        updateUserProfile,
+        redirectToLogin
       }}
     >
       {children}
