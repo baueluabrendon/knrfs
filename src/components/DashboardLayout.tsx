@@ -8,6 +8,7 @@ import SidebarHeader from "./SidebarHeader";
 import BorrowerDialog from "./borrowers/BorrowerDialog";
 import { menuItems as defaultMenuItems } from "@/config/menuItems";
 import { BorrowerFormData } from "./borrowers/BorrowerForm";
+import { supabase } from "@/lib/supabase";
 
 interface DashboardLayoutProps {
   children?: ReactNode;
@@ -23,10 +24,25 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     console.log("Current Route:", location.pathname);
   }, [location.pathname]);
 
-  const handleAddBorrower = (formData: BorrowerFormData) => {
-    console.log("New borrower data:", formData);
-    setShowAddBorrower(false);
-    toast.success("Borrower added successfully");
+  const handleAddBorrower = async (formData: BorrowerFormData) => {
+    try {
+      // Insert the borrower data into the database
+      const { data, error } = await supabase
+        .from('borrowers')
+        .insert([formData])
+        .select();
+      
+      if (error) {
+        toast.error('Failed to add borrower: ' + error.message);
+        return;
+      }
+      
+      setShowAddBorrower(false);
+      toast.success("Borrower added successfully");
+    } catch (error) {
+      console.error('Error adding borrower:', error);
+      toast.error('Failed to add borrower');
+    }
   };
 
   const toggleSidebar = () => {

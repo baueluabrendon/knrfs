@@ -1,3 +1,4 @@
+
 import {
   Dialog,
   DialogContent,
@@ -15,7 +16,7 @@ interface BorrowerDialogProps {
 const BorrowerDialog = ({ open, onOpenChange, onSubmit }: BorrowerDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Add New Borrower</DialogTitle>
         </DialogHeader>

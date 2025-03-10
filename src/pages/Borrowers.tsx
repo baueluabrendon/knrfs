@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,7 +13,9 @@ import {
 import BorrowerForm, { BorrowerFormData } from "@/components/borrowers/BorrowerForm";
 import BorrowerDetails from "@/components/borrowers/BorrowerDetails";
 import BorrowersTable from "@/components/borrowers/BorrowersTable";
+import BorrowerDialog from "@/components/borrowers/BorrowerDialog";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 interface Borrower {
   id: string;
@@ -61,6 +63,7 @@ const Borrowers = () => {
   const [selectedBorrower, setSelectedBorrower] = useState<Borrower | null>(null);
   const [showBorrowerDetails, setShowBorrowerDetails] = useState(false);
   const [showAddBorrower, setShowAddBorrower] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Sample loan history data
   const loanHistory: Loan[] = [
@@ -80,15 +83,71 @@ const Borrowers = () => {
     }
   ];
 
-  const handleAddBorrower = (formData: BorrowerFormData) => {
-    const newBorrower: Borrower = {
-      ...formData,
-      id: `B${(borrowers.length + 1).toString().padStart(3, '0')}`,
-      activeLoanId: null,
-    };
-    setBorrowers((prev) => [...prev, newBorrower]);
-    setShowAddBorrower(false);
-    toast.success("Borrower added successfully");
+  const fetchBorrowers = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('borrowers')
+        .select('*');
+      
+      if (error) {
+        toast.error('Failed to fetch borrowers: ' + error.message);
+        return;
+      }
+
+      // Map the database structure to our UI structure
+      const mappedBorrowers: Borrower[] = data.map(b => ({
+        id: b.borrower_id,
+        name: `${b.given_name} ${b.surname}`,
+        email: b.email,
+        phone: b.mobile_number || '',
+        address: [b.lot, b.section, b.street_name, b.suburb, b.district, b.province]
+          .filter(Boolean)
+          .join(', ') || b.postal_address || '',
+        occupation: b.position || '',
+        monthlyIncome: 0, // We don't have this in the DB structure
+        activeLoanId: null // This would need to be fetched from loans table
+      }));
+
+      setBorrowers(mappedBorrowers);
+    } catch (error) {
+      console.error('Error fetching borrowers:', error);
+      toast.error('Failed to load borrowers');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBorrowers();
+  }, []);
+
+  const handleAddBorrower = async (formData: BorrowerFormData) => {
+    try {
+      setIsLoading(true);
+      
+      // Insert the borrower data into the database
+      const { data, error } = await supabase
+        .from('borrowers')
+        .insert([formData])
+        .select();
+      
+      if (error) {
+        toast.error('Failed to add borrower: ' + error.message);
+        return;
+      }
+      
+      setShowAddBorrower(false);
+      toast.success("Borrower added successfully");
+      
+      // Refresh the borrowers list
+      fetchBorrowers();
+    } catch (error) {
+      console.error('Error adding borrower:', error);
+      toast.error('Failed to add borrower');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleBorrowerClick = (borrower: Borrower) => {
@@ -109,30 +168,26 @@ const Borrowers = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Borrowers Management</h1>
-        <Dialog open={showAddBorrower} onOpenChange={setShowAddBorrower}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Borrower
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Add New Borrower</DialogTitle>
-            </DialogHeader>
-            <BorrowerForm 
-              onSubmit={handleAddBorrower}
-              onCancel={() => setShowAddBorrower(false)}
-            />
-          </DialogContent>
-        </Dialog>
+        <BorrowerDialog
+          open={showAddBorrower}
+          onOpenChange={setShowAddBorrower}
+          onSubmit={handleAddBorrower}
+        />
+        <Button onClick={() => setShowAddBorrower(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Borrower
+        </Button>
       </div>
 
       <Card className="p-6">
-        <BorrowersTable 
-          borrowers={borrowers}
-          onBorrowerClick={handleBorrowerClick}
-        />
+        {isLoading ? (
+          <div className="text-center py-10">Loading borrowers...</div>
+        ) : (
+          <BorrowersTable 
+            borrowers={borrowers}
+            onBorrowerClick={handleBorrowerClick}
+          />
+        )}
       </Card>
 
       <Dialog open={showBorrowerDetails} onOpenChange={setShowBorrowerDetails}>
