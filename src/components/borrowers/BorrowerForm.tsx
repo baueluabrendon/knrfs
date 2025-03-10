@@ -55,7 +55,11 @@ const borrowerFormSchema = z.object({
   account_type: z.string().optional(),
 });
 
+// Export the form data type without borrower_id since it's auto-generated
 export type BorrowerFormData = z.infer<typeof borrowerFormSchema>;
+
+// Create a type that includes borrower_id for database operations
+export type BorrowerInsertData = Partial<BorrowerFormData> & { borrower_id?: string };
 
 interface BorrowerFormProps {
   onSubmit: (data: BorrowerFormData) => void;
