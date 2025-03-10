@@ -1,7 +1,6 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
-import { Upload } from "lucide-react";
+import { Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-// Updated interface to match all borrowers table columns
 interface CSVBorrower {
   surname: string;
   given_name: string;
@@ -53,7 +51,6 @@ interface CSVBorrower {
   account_type: string;
 }
 
-// Match the database structure
 interface BorrowerInsert {
   surname: string;
   given_name: string;
@@ -177,7 +174,6 @@ const BulkBorrowers = () => {
     setIsLoading(true);
     
     try {
-      // Convert CSV data to the format expected by the borrowers table
       const borrowersToInsert: BorrowerInsert[] = csvData.map(borrower => {
         return {
           surname: borrower.surname,
@@ -217,7 +213,6 @@ const BulkBorrowers = () => {
         };
       });
 
-      // Insert the borrowers into the database in batches
       const batchSize = 20;
       let successCount = 0;
       let errorCount = 0;
@@ -245,7 +240,6 @@ const BulkBorrowers = () => {
         toast.success(`Successfully added ${successCount} borrowers`);
       }
       
-      // Clear the data after successful insertion
       setCSVData([]);
     } catch (error) {
       console.error("Error in bulk upload:", error);
@@ -253,6 +247,11 @@ const BulkBorrowers = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCancel = () => {
+    setCSVData([]);
+    setIsLoading(false);
   };
 
   return (
@@ -287,6 +286,14 @@ const BulkBorrowers = () => {
                 disabled={csvData.length === 0 || isLoading}
               >
                 {isLoading ? "Uploading..." : "Upload Borrowers"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleCancel}
+                disabled={csvData.length === 0 || isLoading}
+              >
+                <X className="mr-2 h-4 w-4" />
+                Cancel
               </Button>
             </div>
           </div>
