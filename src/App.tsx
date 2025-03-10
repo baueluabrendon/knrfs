@@ -47,10 +47,11 @@ const App = () => {
                   <ProtectedRoute
                     allowedRoles={[
                       "administrator",
-                      "super_user",
-                      "sales_officer",
-                      "accounts_officer",
-                      "recoveries_officer",
+                      "super user",
+                      "sales officer",
+                      "accounts officer",
+                      "recoveries officer",
+                      "administration officer",
                     ]}
                   >
                     {adminRoutes}
