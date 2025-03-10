@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tables } from "@/integrations/supabase/types";
 
 const borrowerFormSchema = z.object({
   given_name: z.string().min(1, "First name is required"),
@@ -47,7 +49,8 @@ const borrowerFormSchema = z.object({
 
 export type BorrowerFormData = z.infer<typeof borrowerFormSchema>;
 
-export type BorrowerInsertData = BorrowerFormData;
+// Define a type for inserting a borrower without requiring borrower_id
+export type BorrowerInsertData = Omit<Tables<"borrowers">, "borrower_id">;
 
 interface BorrowerFormProps {
   onSubmit: (data: BorrowerFormData) => void;
