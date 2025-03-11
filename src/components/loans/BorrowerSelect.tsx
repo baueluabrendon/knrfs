@@ -92,7 +92,7 @@ const BorrowerSelect = ({ name }: BorrowerSelectProps) => {
             </Button>
           </FormControl>
         </PopoverTrigger>
-        <PopoverContent className="w-[300px] p-0">
+        <PopoverContent className="w-[--popover-width] p-0" style={{ "--popover-width": "var(--radix-popover-trigger-width)" } as React.CSSProperties}>
           <Command>
             <CommandInput 
               placeholder="Search borrower..." 
