@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Upload, X } from "lucide-react";
+import Papa from "papaparse";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -93,7 +94,7 @@ const BulkBorrowers = () => {
   const [csvData, setCSVData] = useState<CSVBorrower[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -103,68 +104,71 @@ const BulkBorrowers = () => {
     }
 
     setIsLoading(true);
-    const reader = new FileReader();
 
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
-      const lines = text.split("\n");
-      const headers = lines[0].split(",").map(header => header.trim());
-      
-      const parsedData: CSVBorrower[] = lines
-        .slice(1)
-        .filter(line => line.trim() !== "")
-        .map(line => {
-          const values = line.split(",").map(value => value.trim());
-          return {
-            // New order according to the specified requirements
-            surname: values[0] || "",
-            given_name: values[1] || "",
-            date_of_birth: values[2] || "",
-            gender: values[3] || "",
-            mobile_number: values[4] || "",
-            email: values[5] || "",
-            village: values[6] || "",
-            district: values[7] || "",
-            province: values[8] || "",
-            nationality: values[9] || "",
-            department_company: values[10] || "",
-            file_number: values[11] || "",
-            position: values[12] || "",
-            postal_address: values[13] || "",
-            work_phone_number: values[14] || "",
-            fax: values[15] || "",
-            date_employed: values[16] || "",
-            paymaster: values[17] || "",
-            lot: values[18] || "",
-            section: values[19] || "",
-            suburb: values[20] || "",
-            street_name: values[21] || "",
-            marital_status: values[22] || "",
-            spouse_last_name: values[23] || "",
-            spouse_first_name: values[24] || "",
-            spouse_employer_name: values[25] || "",
-            spouse_contact_details: values[26] || "",
-            company_branch: values[27] || "",
-            bank: values[28] || "",
-            bank_branch: values[29] || "",
-            bsb_code: values[30] || "",
-            account_name: values[31] || "",
-            account_number: values[32] || "",
-            account_type: values[33] || "",
-          };
-        });
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        if (results.errors.length > 0) {
+          console.error("Papa Parse errors:", results.errors);
+          toast.error("Error parsing CSV file");
+          setIsLoading(false);
+          return;
+        }
 
-      setCSVData(parsedData);
-      setIsLoading(false);
-      toast.success(`Successfully parsed ${parsedData.length} borrowers`);
-    };
+        try {
+          const parsedData = results.data.map((row: any) => ({
+            surname: row.surname || "",
+            given_name: row.given_name || "",
+            date_of_birth: row.date_of_birth || "",
+            gender: row.gender || "",
+            mobile_number: row.mobile_number || "",
+            email: row.email || "",
+            village: row.village || "",
+            district: row.district || "",
+            province: row.province || "",
+            nationality: row.nationality || "",
+            department_company: row.department_company || "",
+            file_number: row.file_number || "",
+            position: row.position || "",
+            postal_address: row.postal_address || "",
+            work_phone_number: row.work_phone_number || "",
+            fax: row.fax || "",
+            date_employed: row.date_employed || "",
+            paymaster: row.paymaster || "",
+            lot: row.lot || "",
+            section: row.section || "",
+            suburb: row.suburb || "",
+            street_name: row.street_name || "",
+            marital_status: row.marital_status || "",
+            spouse_last_name: row.spouse_last_name || "",
+            spouse_first_name: row.spouse_first_name || "",
+            spouse_employer_name: row.spouse_employer_name || "",
+            spouse_contact_details: row.spouse_contact_details || "",
+            company_branch: row.company_branch || "",
+            bank: row.bank || "",
+            bank_branch: row.bank_branch || "",
+            bsb_code: row.bsb_code || "",
+            account_name: row.account_name || "",
+            account_number: row.account_number || "",
+            account_type: row.account_type || "",
+          }));
 
-    reader.onerror = () => {
-      setIsLoading(false);
-      toast.error("Error reading file");
-    };
-
-    reader.readAsText(file);
+          setCSVData(parsedData);
+          toast.success(`Successfully parsed ${parsedData.length} borrowers`);
+        } catch (error) {
+          console.error("Error processing CSV data:", error);
+          toast.error("Error processing CSV data");
+        } finally {
+          setIsLoading(false);
+        }
+      },
+      error: (error) => {
+        console.error("Papa Parse error:", error);
+        toast.error("Failed to parse CSV file");
+        setIsLoading(false);
+      }
+    });
   };
 
   const handleSubmit = async () => {
@@ -292,7 +296,7 @@ const BulkBorrowers = () => {
               <Button
                 variant="outline"
                 onClick={handleCancel}
-                disabled={csvData.length === 0 || isLoading}
+                disabled={isLoading}
               >
                 <X className="mr-2 h-4 w-4" />
                 Cancel
