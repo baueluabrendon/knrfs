@@ -62,7 +62,7 @@ const ClientLoans = () => {
                   <TableCell>{loan.disbursement_date}</TableCell>
                   <TableCell>{loan.maturity_date}</TableCell>
                   <TableCell>{loan.loan_status}</TableCell>
-                  <TableCell>{loan.due_date || '-'}</TableCell>
+                  <TableCell>{loan.start_repayment_date || '-'}</TableCell>
                 </TableRow>
               ))
             ) : (

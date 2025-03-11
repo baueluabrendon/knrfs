@@ -62,7 +62,7 @@ const ClientDashboard = () => {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">
-              {loans?.find(loan => loan.due_date)?.due_date || '-'}
+              {loans?.find(loan => loan.start_repayment_date)?.start_repayment_date || '-'}
             </p>
           </CardContent>
         </Card>
