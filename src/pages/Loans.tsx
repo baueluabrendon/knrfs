@@ -28,7 +28,7 @@ interface Loan {
   fortnightly_installment: number;
   disbursement_date?: string;
   maturity_date?: string;
-  due_date?: string;
+  start_repayment_date?: string;
   loan_repayment_status?: string;
   total_repayment?: number;
   outstanding_balance?: number;
@@ -172,13 +172,17 @@ const Loans = () => {
                   <TableHead>Loan ID</TableHead>
                   <TableHead>Borrower</TableHead>
                   <TableHead>Loan Amount</TableHead>
-                  <TableHead>Interest Rate</TableHead>
                   <TableHead>Interest</TableHead>
-                  <TableHead>LRI</TableHead>
-                  <TableHead>Doc Fee</TableHead>
                   <TableHead>Gross Loan</TableHead>
                   <TableHead>Balance</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Loan Status</TableHead>
+                  <TableHead>Repayment Status</TableHead>
+                  <TableHead>Disbursement Date</TableHead>
+                  <TableHead>Start Repayment Date</TableHead>
+                  <TableHead>Maturity Date</TableHead>
+                  <TableHead>Arrears</TableHead>
+                  <TableHead>Default Fees</TableHead>
+                  <TableHead>Repayments</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -197,10 +201,7 @@ const Loans = () => {
                     </TableCell>
                     <TableCell>{getBorrowerFullName(loan)}</TableCell>
                     <TableCell>${loan.principal?.toLocaleString() || 'N/A'}</TableCell>
-                    <TableCell>{getInterestRateValue(loan)}</TableCell>
                     <TableCell>${loan.interest?.toLocaleString() || 'N/A'}</TableCell>
-                    <TableCell>${loan.loan_risk_insurance?.toLocaleString() || '0'}</TableCell>
-                    <TableCell>${loan.documentation_fee?.toLocaleString() || '0'}</TableCell>
                     <TableCell>${loan.gross_loan?.toLocaleString() || 'N/A'}</TableCell>
                     <TableCell>${loan.outstanding_balance?.toLocaleString() || '0'}</TableCell>
                     <TableCell>
@@ -210,6 +211,19 @@ const Loans = () => {
                         {loan.loan_status?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'N/A'}
                       </span>
                     </TableCell>
+                    <TableCell>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        getStatusBadgeClass(loan.loan_repayment_status)
+                      }`}>
+                        {loan.loan_repayment_status?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'N/A'}
+                      </span>
+                    </TableCell>
+                    <TableCell>{formatDate(loan.disbursement_date)}</TableCell>
+                    <TableCell>{formatDate(loan.start_repayment_date)}</TableCell>
+                    <TableCell>{formatDate(loan.maturity_date)}</TableCell>
+                    <TableCell>${loan.arrears?.toLocaleString() || '0'}</TableCell>
+                    <TableCell>${loan.default_fees_accumulated?.toLocaleString() || '0'}</TableCell>
+                    <TableCell>${loan.total_repayment?.toLocaleString() || '0'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
