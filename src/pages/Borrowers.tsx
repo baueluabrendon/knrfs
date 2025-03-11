@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,40 @@ interface Borrower {
   organization: string;
   monthlyIncome: number;
   activeLoanId: string | null;
+  // Additional fields from borrowers table
+  givenName?: string;
+  surname?: string;
+  dateOfBirth?: string;
+  gender?: string;
+  mobileNumber?: string;
+  village?: string;
+  district?: string;
+  province?: string;
+  nationality?: string;
+  departmentCompany?: string;
+  fileNumber?: string;
+  position?: string;
+  postalAddress?: string;
+  workPhoneNumber?: string;
+  fax?: string;
+  dateEmployed?: string;
+  paymaster?: string;
+  lot?: string;
+  section?: string;
+  suburb?: string;
+  streetName?: string;
+  maritalStatus?: string;
+  spouseLastName?: string;
+  spouseFirstName?: string;
+  spouseEmployerName?: string;
+  spouseContactDetails?: string;
+  companyBranch?: string;
+  bank?: string;
+  bankBranch?: string;
+  bsbCode?: string;
+  accountName?: string;
+  accountNumber?: string;
+  accountType?: string;
 }
 
 interface Loan {
@@ -84,7 +119,41 @@ const Borrowers = () => {
         occupation: b.position || '',
         organization: b.department_company || '',
         monthlyIncome: 0,
-        activeLoanId: null
+        activeLoanId: null,
+        // Map additional fields
+        givenName: b.given_name,
+        surname: b.surname,
+        dateOfBirth: b.date_of_birth,
+        gender: b.gender,
+        mobileNumber: b.mobile_number,
+        village: b.village,
+        district: b.district,
+        province: b.province,
+        nationality: b.nationality,
+        departmentCompany: b.department_company,
+        fileNumber: b.file_number,
+        position: b.position,
+        postalAddress: b.postal_address,
+        workPhoneNumber: b.work_phone_number,
+        fax: b.fax,
+        dateEmployed: b.date_employed,
+        paymaster: b.paymaster,
+        lot: b.lot,
+        section: b.section,
+        suburb: b.suburb,
+        streetName: b.street_name,
+        maritalStatus: b.marital_status,
+        spouseLastName: b.spouse_last_name,
+        spouseFirstName: b.spouse_first_name,
+        spouseEmployerName: b.spouse_employer_name,
+        spouseContactDetails: b.spouse_contact_details,
+        companyBranch: b.company_branch,
+        bank: b.bank,
+        bankBranch: b.bank_branch,
+        bsbCode: b.bsb_code,
+        accountName: b.account_name,
+        accountNumber: b.account_number,
+        accountType: b.account_type
       }));
 
       setBorrowers(mappedBorrowers);
