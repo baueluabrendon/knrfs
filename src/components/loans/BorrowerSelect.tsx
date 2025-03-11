@@ -83,16 +83,21 @@ const BorrowerSelect = ({ name }: BorrowerSelectProps) => {
             >
               {isLoading ? "Loading borrowers..." : (
                 form.watch(name)
-                  ? borrowers.find((borrower) => borrower.borrower_id === form.watch(name))
-                    ? `${borrowers.find((borrower) => borrower.borrower_id === form.watch(name))?.given_name} ${borrowers.find((borrower) => borrower.borrower_id === form.watch(name))?.surname}`
-                    : "Select borrower"
+                  ? (() => {
+                      const selected = borrowers.find(
+                        (borrower) => borrower.borrower_id === form.watch(name)
+                      );
+                      return selected
+                        ? `${selected.given_name} ${selected.surname}`
+                        : "Select borrower";
+                    })()
                   : "Select borrower"
               )}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </FormControl>
         </PopoverTrigger>
-        <PopoverContent className="w-[--popover-width] p-0" style={{ "--popover-width": "var(--radix-popover-trigger-width)" } as React.CSSProperties}>
+        <PopoverContent className="w-full p-0" align="start">
           <Command>
             <CommandInput 
               placeholder="Search borrower..." 

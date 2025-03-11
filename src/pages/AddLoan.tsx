@@ -2,11 +2,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import * as z from "zod";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import LoanFormFields from "@/components/loans/LoanFormFields";
@@ -53,40 +52,40 @@ const AddLoan = () => {
   const onSubmit = async (values: LoanFormValues) => {
     setIsLoading(true);
     try {
-      // Calculate all required loan values to ensure consistency.
+      // Calculate all required loan values.
       const {
         grossLoan,
         interest,
         interestRate,
         loanRiskInsurance,
         fortnightlyInstallment,
-        documentationFee
+        documentationFee,
       } = calculateLoanValues(values.principal, values.loanTerm);
-      
-      // Determine the loan term enum value based on the numeric term.
+
+      // Determine the loan term enum value.
       const loanTermEnum = `TERM_${values.loanTerm}`;
-      
-      // Calculate maturity date by adding (loanTerm * 14) days to the current date.
+
+      // Calculate maturity date by adding (loanTerm * 14) days.
       const maturityDate = new Date();
       maturityDate.setDate(maturityDate.getDate() + (values.loanTerm * 14));
-      
-      // Generate a unique loan ID (this will be replaced by a DB trigger).
+
+      // Generate a unique loan ID (will be replaced by DB trigger).
       const dummyLoanId = `temp_${Date.now()}`;
 
-      // Create the loan record with all required fields.
+      // Create the loan record.
       const { error } = await supabase.from("loans").insert({
-        loan_id: dummyLoanId, // Will be overwritten by the DB trigger.
+        loan_id: dummyLoanId,
         borrower_id: values.borrowerId,
         principal: values.principal,
-        loan_term: loanTermEnum as any, // Type assertion since this is a valid enum value.
+        loan_term: loanTermEnum as any,
         fortnightly_installment: fortnightlyInstallment,
         gross_loan: grossLoan,
         interest: interest,
-        interest_rate: `RATE_${Math.round(interestRate * 100)}` as any, // Convert to enum format.
+        interest_rate: `RATE_${Math.round(interestRate * 100)}` as any,
         loan_risk_insurance: loanRiskInsurance,
         documentation_fee: documentationFee,
-        loan_status: 'active', // Default status.
-        maturity_date: maturityDate.toISOString().split('T')[0] // Format for PostgreSQL.
+        loan_status: 'active',
+        maturity_date: maturityDate.toISOString().split('T')[0],
       });
 
       if (error) {
@@ -109,15 +108,12 @@ const AddLoan = () => {
         <h1 className="text-2xl font-bold">Add New Loan</h1>
       </div>
       <Card className="p-6">
-        <Form {...form}>
+        {/* Wrap the form in FormProvider so nested components can access the form context */}
+        <FormProvider {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <LoanFormFields />
             <div className="flex justify-end space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate("/admin/loans/view")}
-              >
+              <Button type="button" variant="outline" onClick={() => navigate("/admin/loans/view")}>
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading}>
@@ -125,7 +121,7 @@ const AddLoan = () => {
               </Button>
             </div>
           </form>
-        </Form>
+        </FormProvider>
       </Card>
     </div>
   );
