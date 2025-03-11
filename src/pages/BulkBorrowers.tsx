@@ -270,7 +270,7 @@ const BulkBorrowers = () => {
         <div className="space-y-4">
           <div className="flex flex-col space-y-2">
             <p className="text-muted-foreground mb-2">
-              Upload a CSV file with the following columns in this order: Surname, Given Name, Date of Birth, Gender, Mobile Number, Email, Village, District, Province, Nationality, Department/Company, File Number, Position, Postal Address, Work Phone Number, Fax, Date Employed, Paymaster, Lot, Section, Suburb, Street Name, Marital Status, Spouse Last Name, Spouse First Name, Spouse Employer Name, Spouse Contact Details, Company Branch, Bank, Bank Branch, BSB Code, Account Name, Account Number, Account Type
+              Upload a CSV file with the following columns: Surname, Given Name, Date of Birth, Gender, Mobile Number, Email, Village, District, Province, Nationality, Department/Company, File Number, Position, Postal Address, Work Phone Number, Fax, Date Employed, Paymaster, Lot, Section, Suburb, Street Name, Marital Status, Spouse Last Name, Spouse First Name, Spouse Employer Name, Spouse Contact Details, Company Branch, Bank, Bank Branch, BSB Code, Account Name, Account Number, Account Type
             </p>
             <div className="flex items-center space-x-4">
               <Button
