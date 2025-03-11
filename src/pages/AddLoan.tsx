@@ -12,13 +12,14 @@ import { supabase } from "@/integrations/supabase/client";
 import LoanFormFields from "@/components/loans/LoanFormFields";
 import { calculateLoanValues, VALID_LOAN_TERMS } from "@/utils/loanCalculations";
 
-// Validation schema for loan form
+// Validation schema for the loan form.
 const loanFormSchema = z.object({
   borrowerId: z.string().min(1, { message: "Please select a borrower" }),
   principal: z.coerce.number().positive({ message: "Loan amount must be positive" }),
-  loanTerm: z.coerce.number().refine(value => VALID_LOAN_TERMS.includes(value), {
-    message: "Please select a valid loan term"
-  }),
+  loanTerm: z.coerce.number().refine(
+    (value) => VALID_LOAN_TERMS.includes(value),
+    { message: "Please select a valid loan term" }
+  ),
   fortnightlyInstallment: z.number().nullable(),
   interest: z.number().nullable(),
   interestRate: z.number().nullable(),
@@ -33,7 +34,7 @@ const AddLoan = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Initialize the form with react-hook-form
+  // Initialize the form with react-hook-form.
   const form = useForm<LoanFormValues>({
     resolver: zodResolver(loanFormSchema),
     defaultValues: {
@@ -52,7 +53,7 @@ const AddLoan = () => {
   const onSubmit = async (values: LoanFormValues) => {
     setIsLoading(true);
     try {
-      // Calculate all required loan values to ensure consistency
+      // Calculate all required loan values to ensure consistency.
       const {
         grossLoan,
         interest,
@@ -62,32 +63,30 @@ const AddLoan = () => {
         documentationFee
       } = calculateLoanValues(values.principal, values.loanTerm);
       
-      // Determine the loan term enum value based on the numeric term
+      // Determine the loan term enum value based on the numeric term.
       const loanTermEnum = `TERM_${values.loanTerm}`;
       
-      // Calculate maturity date
+      // Calculate maturity date by adding (loanTerm * 14) days to the current date.
       const maturityDate = new Date();
       maturityDate.setDate(maturityDate.getDate() + (values.loanTerm * 14));
       
-      // Generate a unique loan ID (this will be handled by server-side trigger)
-      const dummyLoanId = `temp_${Date.now()}`; // This will be replaced by the DB trigger
+      // Generate a unique loan ID (this will be replaced by a DB trigger).
+      const dummyLoanId = `temp_${Date.now()}`;
 
-      // Create the loan record with all required fields
+      // Create the loan record with all required fields.
       const { error } = await supabase.from("loans").insert({
-        loan_id: dummyLoanId, // Required field, will be overwritten by the DB trigger
+        loan_id: dummyLoanId, // Will be overwritten by the DB trigger.
         borrower_id: values.borrowerId,
         principal: values.principal,
-        loan_term: loanTermEnum as any, // Type assertion since we know this is a valid enum value
+        loan_term: loanTermEnum as any, // Type assertion since this is a valid enum value.
         fortnightly_installment: fortnightlyInstallment,
         gross_loan: grossLoan,
         interest: interest,
-        interest_rate: `RATE_${Math.round(interestRate*100)}` as any, // Convert to enum format
+        interest_rate: `RATE_${Math.round(interestRate * 100)}` as any, // Convert to enum format.
         loan_risk_insurance: loanRiskInsurance,
         documentation_fee: documentationFee,
-        // Set default values for required fields that aren't in the form
-        loan_status: 'active',
-        // Convert maturity date to ISO string for PostgreSQL
-        maturity_date: maturityDate.toISOString().split('T')[0]
+        loan_status: 'active', // Default status.
+        maturity_date: maturityDate.toISOString().split('T')[0] // Format for PostgreSQL.
       });
 
       if (error) {
@@ -113,7 +112,6 @@ const AddLoan = () => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <LoanFormFields />
-
             <div className="flex justify-end space-x-2">
               <Button
                 type="button"

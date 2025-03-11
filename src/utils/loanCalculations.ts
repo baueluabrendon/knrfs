@@ -27,7 +27,7 @@ export const LOAN_TERM_INTEREST_RATE_MAP: Record<number, number> = {
 export const VALID_LOAN_TERMS = Object.keys(LOAN_TERM_INTEREST_RATE_MAP).map(Number);
 
 /**
- * Calculates the fortnightly installment amount based on gross loan and loan term
+ * Calculates the fortnightly installment amount based on gross loan and loan term.
  * Formula: Bi-Weekly Repayment = Gross Loan divided by Loan Term
  */
 export const calculateFortnightlyInstallment = (
@@ -44,7 +44,13 @@ export const calculateFortnightlyInstallment = (
 };
 
 /**
- * Calculates various loan values based on principal and loan term
+ * Calculates various loan values based on principal and loan term.
+ * 
+ * Formulas:
+ * - Interest = (principal * interestRate) / 100
+ * - Loan Risk Insurance = 2% of principal
+ * - Gross Loan = Principal + Interest + Loan Risk Insurance + Documentation Fee
+ * - Fortnightly Installment = Gross Loan / Loan Term
  */
 export const calculateLoanValues = (
   principal: number,
@@ -61,21 +67,21 @@ export const calculateLoanValues = (
     };
   }
   
-  // Get interest rate from the mapping based on loan term
+  // Get interest rate from the mapping based on loan term.
   const interestRate = LOAN_TERM_INTEREST_RATE_MAP[loanTerm] || 0;
   
-  // Calculate interest amount based on formula: Interest = Loan Amount * Interest Rate
+  // Calculate interest amount based on formula: Interest = principal * interestRate / 100
   const interest = (principal * interestRate) / 100;
   
   // Calculate loan risk insurance (2% of principal)
-  const loanRiskInsurance = (principal * 0.02);
+  const loanRiskInsurance = principal * 0.02;
   
   // Fixed documentation fee
   const documentationFee = 50;
   
-  // Calculate gross loan based on formula: 
-  // Gross Loan = (principal) + (interest) + (loanRiskInsurance) + (documentationFee)
-  const grossLoan = (principal) + (interest) + (loanRiskInsurance) + (documentationFee);
+  // Calculate gross loan based on formula:
+  // Gross Loan = Principal + Interest + Loan Risk Insurance + Documentation Fee
+  const grossLoan = principal + interest + loanRiskInsurance + documentationFee;
   
   // Calculate fortnightly installment using the formula: Bi-Weekly Repayment = Gross Loan divided by Loan Term
   const fortnightlyInstallment = calculateFortnightlyInstallment(grossLoan, loanTerm);
