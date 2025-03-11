@@ -103,20 +103,29 @@ const AddLoan = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 max-w-6xl mx-auto">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Add New Loan</h1>
+        <h1 className="text-3xl font-bold">Add New Loan</h1>
       </div>
-      <Card className="p-6">
+      <Card className="p-8">
         {/* Wrap the form in FormProvider so nested components can access the form context */}
         <FormProvider {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <LoanFormFields />
-            <div className="flex justify-end space-x-2">
-              <Button type="button" variant="outline" onClick={() => navigate("/admin/loans/view")}>
+            <div className="flex justify-end space-x-4 pt-4 border-t">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => navigate("/admin/loans/view")}
+                className="px-6"
+              >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                disabled={isLoading}
+                className="px-6"
+              >
                 {isLoading ? "Adding..." : "Add Loan"}
               </Button>
             </div>

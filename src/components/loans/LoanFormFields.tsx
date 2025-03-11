@@ -34,152 +34,161 @@ const LoanFormFields = () => {
   }, [form.watch("principal"), form.watch("loanTerm"), form]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <FormField
-        control={form.control}
-        name="borrowerId"
-        render={({ field }) => (
-          <BorrowerSelect name={field.name} />
-        )}
-      />
+    <div className="grid grid-cols-1 gap-8">
+      {/* Primary Loan Information */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <FormField
+          control={form.control}
+          name="borrowerId"
+          render={({ field }) => (
+            <BorrowerSelect name={field.name} />
+          )}
+        />
 
-      <FormField
-        control={form.control}
-        name="principal"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Loan Amount</FormLabel>
-            <FormControl>
-              <Input type="number" step="0.01" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="loanTerm"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Loan Term (bi-weekly periods)</FormLabel>
-            <Select 
-              onValueChange={(value) => field.onChange(Number(value))}
-              value={field.value?.toString() || ""}
-            >
+        <FormField
+          control={form.control}
+          name="principal"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base">Loan Amount</FormLabel>
               <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select loan term" />
-                </SelectTrigger>
+                <Input type="number" step="0.01" placeholder="Enter loan amount" {...field} className="h-12" />
               </FormControl>
-              <SelectContent>
-                {VALID_LOAN_TERMS.map((term) => (
-                  <SelectItem key={term} value={term.toString()}>
-                    {term} periods ({LOAN_TERM_INTEREST_RATE_MAP[term]}% interest)
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      <FormField
-        control={form.control}
-        name="fortnightlyInstallment"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Bi-weekly Repayment (Calculated)</FormLabel>
-            <Input 
-              type="number" 
-              value={field.value || ""} 
-              readOnly 
-              disabled 
-              className="bg-gray-50"
-              onChange={field.onChange}
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              This value is calculated based on loan amount and term
-            </p>
-          </FormItem>
-        )}
-      />
+        <FormField
+          control={form.control}
+          name="loanTerm"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base">Loan Term (bi-weekly periods)</FormLabel>
+              <Select 
+                onValueChange={(value) => field.onChange(Number(value))}
+                value={field.value?.toString() || ""}
+              >
+                <FormControl>
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder="Select loan term" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {VALID_LOAN_TERMS.map((term) => (
+                    <SelectItem key={term} value={term.toString()}>
+                      {term} periods ({LOAN_TERM_INTEREST_RATE_MAP[term]}% interest)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      <FormField
-        control={form.control}
-        name="interest"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Interest (Calculated)</FormLabel>
-            <Input 
-              type="number" 
-              value={field.value || ""} 
-              readOnly 
-              disabled 
-              className="bg-gray-50"
-              onChange={field.onChange}
-            />
-          </FormItem>
-        )}
-      />
+        <FormField
+          control={form.control}
+          name="fortnightlyInstallment"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base">Bi-weekly Repayment (Calculated)</FormLabel>
+              <Input 
+                type="number" 
+                value={field.value || ""} 
+                readOnly 
+                disabled 
+                className="bg-gray-50 h-12"
+                onChange={field.onChange}
+              />
+              <p className="text-xs text-muted-foreground mt-2">
+                This value is calculated based on loan amount and term
+              </p>
+            </FormItem>
+          )}
+        />
+      </div>
 
-      <FormField
-        control={form.control}
-        name="loanRiskInsurance"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Loan Risk Insurance (2%)</FormLabel>
-            <Input 
-              type="number" 
-              value={field.value || ""} 
-              readOnly 
-              disabled 
-              className="bg-gray-50"
-              onChange={field.onChange}
-            />
-          </FormItem>
-        )}
-      />
+      {/* Additional Loan Details */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <FormField
+          control={form.control}
+          name="interest"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base">Interest (Calculated)</FormLabel>
+              <Input 
+                type="number" 
+                value={field.value || ""} 
+                readOnly 
+                disabled 
+                className="bg-gray-50 h-12"
+                onChange={field.onChange}
+              />
+            </FormItem>
+          )}
+        />
 
-      <FormField
-        control={form.control}
-        name="documentationFee"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Documentation Fee</FormLabel>
-            <Input 
-              type="number" 
-              value={field.value || 50} 
-              readOnly 
-              disabled 
-              className="bg-gray-50"
-              onChange={field.onChange}
-            />
-          </FormItem>
-        )}
-      />
+        <FormField
+          control={form.control}
+          name="loanRiskInsurance"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base">Loan Risk Insurance (2%)</FormLabel>
+              <Input 
+                type="number" 
+                value={field.value || ""} 
+                readOnly 
+                disabled 
+                className="bg-gray-50 h-12"
+                onChange={field.onChange}
+              />
+            </FormItem>
+          )}
+        />
 
-      <FormField
-        control={form.control}
-        name="grossLoan"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Gross Loan (Calculated)</FormLabel>
-            <Input 
-              type="number" 
-              value={field.value || ""} 
-              readOnly 
-              disabled 
-              className="bg-gray-50"
-              onChange={field.onChange}
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Principal + Interest + Insurance + Documentation Fee
-            </p>
-          </FormItem>
-        )}
-      />
+        <FormField
+          control={form.control}
+          name="documentationFee"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base">Documentation Fee</FormLabel>
+              <Input 
+                type="number" 
+                value={field.value || 50} 
+                readOnly 
+                disabled 
+                className="bg-gray-50 h-12"
+                onChange={field.onChange}
+              />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      {/* Summary Section */}
+      <div className="border-t pt-6 mt-2">
+        <FormField
+          control={form.control}
+          name="grossLoan"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base font-semibold">Gross Loan (Calculated)</FormLabel>
+              <Input 
+                type="number" 
+                value={field.value || ""} 
+                readOnly 
+                disabled 
+                className="bg-gray-50 h-12 text-lg font-medium"
+                onChange={field.onChange}
+              />
+              <p className="text-sm text-muted-foreground mt-2">
+                Principal + Interest + Insurance + Documentation Fee
+              </p>
+            </FormItem>
+          )}
+        />
+      </div>
     </div>
   );
 };
