@@ -288,12 +288,10 @@ export type Database = {
           default_fees_accumulated: number | null
           disbursement_date: string | null
           documentation_fee: number | null
-          due_date: string | null
           fortnightly_installment: number
           gross_loan: number
           gross_salary: number | null
           gst_amount: number | null
-          gst_rate: number | null
           interest: number
           interest_rate:
             | Database["public"]["Enums"]["interest_rate_enum"]
@@ -310,6 +308,7 @@ export type Database = {
           maturity_date: string | null
           missed_payments_count: number | null
           net_income: number | null
+          net_repayable: number | null
           outstanding_balance: number | null
           partial_payments_count: number | null
           principal: number
@@ -317,6 +316,7 @@ export type Database = {
           refinanced_by: string | null
           repayment_completion_percentage: number | null
           repayment_count: number | null
+          start_repayment_date: string | null
           total_repayment: number | null
           updated_at: string | null
         }
@@ -328,12 +328,10 @@ export type Database = {
           default_fees_accumulated?: number | null
           disbursement_date?: string | null
           documentation_fee?: number | null
-          due_date?: string | null
           fortnightly_installment: number
           gross_loan: number
           gross_salary?: number | null
           gst_amount?: number | null
-          gst_rate?: number | null
           interest?: number
           interest_rate?:
             | Database["public"]["Enums"]["interest_rate_enum"]
@@ -350,6 +348,7 @@ export type Database = {
           maturity_date?: string | null
           missed_payments_count?: number | null
           net_income?: number | null
+          net_repayable?: number | null
           outstanding_balance?: number | null
           partial_payments_count?: number | null
           principal: number
@@ -357,6 +356,7 @@ export type Database = {
           refinanced_by?: string | null
           repayment_completion_percentage?: number | null
           repayment_count?: number | null
+          start_repayment_date?: string | null
           total_repayment?: number | null
           updated_at?: string | null
         }
@@ -368,12 +368,10 @@ export type Database = {
           default_fees_accumulated?: number | null
           disbursement_date?: string | null
           documentation_fee?: number | null
-          due_date?: string | null
           fortnightly_installment?: number
           gross_loan?: number
           gross_salary?: number | null
           gst_amount?: number | null
-          gst_rate?: number | null
           interest?: number
           interest_rate?:
             | Database["public"]["Enums"]["interest_rate_enum"]
@@ -390,6 +388,7 @@ export type Database = {
           maturity_date?: string | null
           missed_payments_count?: number | null
           net_income?: number | null
+          net_repayable?: number | null
           outstanding_balance?: number | null
           partial_payments_count?: number | null
           principal?: number
@@ -397,6 +396,7 @@ export type Database = {
           refinanced_by?: string | null
           repayment_completion_percentage?: number | null
           repayment_count?: number | null
+          start_repayment_date?: string | null
           total_repayment?: number | null
           updated_at?: string | null
         }
