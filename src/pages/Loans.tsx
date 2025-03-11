@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -38,6 +39,9 @@ interface Loan {
   partial_payments_count?: number;
   loan_status?: string;
   refinanced_by?: string;
+  application_id?: string;
+  loan_risk_insurance: number;
+  documentation_fee: number;
   borrower?: {
     given_name: string;
     surname: string;
@@ -164,26 +168,17 @@ const Loans = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>App ID</TableHead>
                   <TableHead>Loan ID</TableHead>
-                  <TableHead>Borrower Name</TableHead>
-                  <TableHead>Principal</TableHead>
-                  <TableHead>Interest</TableHead>
+                  <TableHead>Borrower</TableHead>
+                  <TableHead>Loan Amount</TableHead>
                   <TableHead>Interest Rate</TableHead>
-                  <TableHead>Loan Term</TableHead>
-                  <TableHead>Total Repayable</TableHead>
-                  <TableHead>PVA</TableHead>
-                  <TableHead>Disbursement Date</TableHead>
-                  <TableHead>Maturity Date</TableHead>
-                  <TableHead>Start Repayment Date</TableHead>
-                  <TableHead>Repayment Status</TableHead>
-                  <TableHead>Repayments</TableHead>
-                  <TableHead>Outstanding Balance</TableHead>
-                  <TableHead>Completion %</TableHead>
-                  <TableHead>Default Fees</TableHead>
-                  <TableHead>Missed Payments</TableHead>
-                  <TableHead>Partial Payments</TableHead>
-                  <TableHead>Loan Status</TableHead>
-                  <TableHead>Refinanced By</TableHead>
+                  <TableHead>Interest</TableHead>
+                  <TableHead>LRI</TableHead>
+                  <TableHead>Doc Fee</TableHead>
+                  <TableHead>Gross Loan</TableHead>
+                  <TableHead>Balance</TableHead>
+                  <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -196,32 +191,18 @@ const Loans = () => {
                       setIsDetailsOpen(true);
                     }}
                   >
+                    <TableCell>{loan.application_id || 'N/A'}</TableCell>
                     <TableCell className="font-medium text-blue-600 hover:underline">
                       {loan.loan_id}
                     </TableCell>
                     <TableCell>{getBorrowerFullName(loan)}</TableCell>
                     <TableCell>${loan.principal?.toLocaleString() || 'N/A'}</TableCell>
-                    <TableCell>${loan.interest?.toLocaleString() || 'N/A'}</TableCell>
                     <TableCell>{getInterestRateValue(loan)}</TableCell>
-                    <TableCell>{getLoanTermValue(loan)}</TableCell>
+                    <TableCell>${loan.interest?.toLocaleString() || 'N/A'}</TableCell>
+                    <TableCell>${loan.loan_risk_insurance?.toLocaleString() || '0'}</TableCell>
+                    <TableCell>${loan.documentation_fee?.toLocaleString() || '0'}</TableCell>
                     <TableCell>${loan.gross_loan?.toLocaleString() || 'N/A'}</TableCell>
-                    <TableCell>${loan.fortnightly_installment?.toLocaleString() || 'N/A'}</TableCell>
-                    <TableCell>{formatDate(loan.disbursement_date)}</TableCell>
-                    <TableCell>{formatDate(loan.maturity_date)}</TableCell>
-                    <TableCell>{formatDate(loan.due_date)}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        getStatusBadgeClass(loan.loan_repayment_status)
-                      }`}>
-                        {loan.loan_repayment_status?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'N/A'}
-                      </span>
-                    </TableCell>
-                    <TableCell>${loan.total_repayment?.toLocaleString() || '0'}</TableCell>
-                    <TableCell>${loan.outstanding_balance?.toLocaleString() || 'N/A'}</TableCell>
-                    <TableCell>{loan.repayment_completion_percentage?.toFixed(2) || '0'}%</TableCell>
-                    <TableCell>${loan.default_fees_accumulated?.toLocaleString() || '0'}</TableCell>
-                    <TableCell>{loan.missed_payments_count || '0'}</TableCell>
-                    <TableCell>{loan.partial_payments_count || '0'}</TableCell>
+                    <TableCell>${loan.outstanding_balance?.toLocaleString() || '0'}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         getStatusBadgeClass(loan.loan_status)
@@ -229,7 +210,6 @@ const Loans = () => {
                         {loan.loan_status?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'N/A'}
                       </span>
                     </TableCell>
-                    <TableCell>{loan.refinanced_by || 'N/A'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

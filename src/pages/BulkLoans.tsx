@@ -23,19 +23,30 @@ interface CSVLoan {
   disbursement_date?: string;
 }
 
+// Updated to match the database enum types
+type InterestRateEnum = 
+  | "RATE_20" | "RATE_22" | "RATE_24" | "RATE_26" | "RATE_28" | "RATE_30" 
+  | "RATE_34" | "RATE_38" | "RATE_42" | "RATE_46" | "RATE_50" | "RATE_54" 
+  | "RATE_58" | "RATE_62" | "RATE_66" | "RATE_70";
+
+type BiWeeklyLoanTermEnum = 
+  | "TERM_5" | "TERM_6" | "TERM_7" | "TERM_8" | "TERM_9" | "TERM_10" 
+  | "TERM_12" | "TERM_14" | "TERM_16" | "TERM_18" | "TERM_20" | "TERM_22" 
+  | "TERM_24" | "TERM_26" | "TERM_28" | "TERM_30";
+
 interface LoanInsert {
   borrower_id: string;
   principal: number;
-  loan_term: string;
+  loan_term: BiWeeklyLoanTermEnum;
   interest: number;
-  interest_rate: string;
+  interest_rate: InterestRateEnum;
   fortnightly_installment: number;
   loan_risk_insurance: number;
   documentation_fee: number;
   gross_loan: number;
   disbursement_date?: string;
   maturity_date?: string;
-  loan_status: string;
+  loan_status: 'active';
 }
 
 const BulkLoans = () => {
@@ -89,6 +100,35 @@ const BulkLoans = () => {
     });
   };
 
+  // Helper function to convert loan term to enum value
+  const getLoanTermEnum = (term: string): BiWeeklyLoanTermEnum => {
+    const termNumber = parseInt(term, 10);
+    return `TERM_${termNumber}` as BiWeeklyLoanTermEnum;
+  };
+
+  // Helper function to get interest rate enum value based on loan term
+  const getInterestRateEnum = (loanTerm: BiWeeklyLoanTermEnum): InterestRateEnum => {
+    const rateMap: Record<BiWeeklyLoanTermEnum, InterestRateEnum> = {
+      'TERM_5': 'RATE_20',
+      'TERM_6': 'RATE_22',
+      'TERM_7': 'RATE_24',
+      'TERM_8': 'RATE_26',
+      'TERM_9': 'RATE_28',
+      'TERM_10': 'RATE_30',
+      'TERM_12': 'RATE_34',
+      'TERM_14': 'RATE_38',
+      'TERM_16': 'RATE_42',
+      'TERM_18': 'RATE_46',
+      'TERM_20': 'RATE_50',
+      'TERM_22': 'RATE_54',
+      'TERM_24': 'RATE_58',
+      'TERM_26': 'RATE_62',
+      'TERM_28': 'RATE_66',
+      'TERM_30': 'RATE_70'
+    };
+    return rateMap[loanTerm];
+  };
+
   const handleSubmit = async () => {
     if (csvData.length === 0) {
       toast.error("Please upload a CSV file first");
@@ -106,7 +146,8 @@ const BulkLoans = () => {
         const loanValues = calculateLoanValues(principal, loanTerm);
         
         // Determine the loan term enum value
-        const loanTermEnum = `TERM_${loanTerm}`;
+        const loanTermEnum = getLoanTermEnum(loan.loan_term);
+        const interestRateEnum = getInterestRateEnum(loanTermEnum);
         
         // Calculate maturity date by adding (loanTerm * 14) days from disbursement date or today
         const startDate = loan.disbursement_date ? new Date(loan.disbursement_date) : new Date();
@@ -116,10 +157,10 @@ const BulkLoans = () => {
         return {
           borrower_id: loan.borrower_id,
           principal: principal,
-          loan_term: loanTermEnum as any,
+          loan_term: loanTermEnum,
           fortnightly_installment: loanValues.fortnightlyInstallment,
           interest: loanValues.interest,
-          interest_rate: `RATE_${Math.round(loanValues.interestRate * 100)}` as any,
+          interest_rate: interestRateEnum,
           loan_risk_insurance: loanValues.loanRiskInsurance,
           documentation_fee: loanValues.documentationFee,
           gross_loan: loanValues.grossLoan,
