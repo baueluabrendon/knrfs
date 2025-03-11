@@ -24,7 +24,7 @@ export const menuItems = [
   { 
     icon: LayoutDashboard, 
     label: "Dashboard", 
-    path: "/admin",  // Changed from "/" to "/admin"
+    path: "/admin",
     subItems: [] 
   },
   { 
@@ -36,10 +36,10 @@ export const menuItems = [
   { 
     icon: User, 
     label: "Borrowers", 
-    path: "#",  // Changed to "#" to prevent navigation
+    path: "#",
     subItems: [
       { icon: Users, label: "View All Borrowers", path: "/admin/borrowers" },
-      { icon: UserPlus, label: "Add Borrower", path: "#" }, // Handled in DashboardLayout
+      { icon: UserPlus, label: "Add Borrower", path: "#" },
       { icon: Upload, label: "Add Bulk Borrowers", path: "/admin/borrowers/bulk" },
     ]
   },
@@ -52,32 +52,29 @@ export const menuItems = [
   { 
     icon: Wallet, 
     label: "Loans", 
-    path: "#", // Changed to "#"
-    subItems: [
-      { icon: Eye, label: "View Loans", path: "/admin/loans/view" }, // Updated to match route
-      { icon: Upload, label: "Add Bulk Loans", path: "/admin/loans/bulk" },
-    ]
+    path: "/admin/loans/view", // Changed to direct link to Loans page
+    subItems: [] // Removed dropdown items
   },
   { 
     icon: RefreshCcw, 
     label: "Repayments", 
-    path: "/admin/repayments", // Changed from "#" to direct link
-    subItems: [] // Removed the "View All Repayments" suboption
+    path: "/admin/repayments",
+    subItems: [] 
   },
   { 
     icon: PiggyBank, 
     label: "Recoveries", 
-    path: "#", // Changed to "#"
+    path: "#",
     subItems: [
-      { icon: AlertOctagon, label: "Loans In Arrears", path: "/admin/recoveries/loans-in-arrears" }, // Fixed path
-      { icon: AlertIcon, label: "Missed Payments", path: "/admin/recoveries/missed-payments" }, // Fixed path
-      { icon: MoneyIcon, label: "Partial Payments", path: "/admin/recoveries/partial-payments" }, // Fixed path
+      { icon: AlertOctagon, label: "Loans In Arrears", path: "/admin/recoveries/loans-in-arrears" },
+      { icon: AlertIcon, label: "Missed Payments", path: "/admin/recoveries/missed-payments" },
+      { icon: MoneyIcon, label: "Partial Payments", path: "/admin/recoveries/partial-payments" },
     ]
   },
   { 
     icon: Receipt, 
     label: "Accounting", 
-    path: "#", // Changed to "#"
+    path: "#",
     subItems: [
       { icon: FileText, label: "Chart of Accounts", path: "/admin/accounting/chart-of-accounts" },
       { icon: FileSpreadsheet, label: "Balance Sheet", path: "/admin/accounting/balance-sheet" },

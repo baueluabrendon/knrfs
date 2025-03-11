@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import LoanDetails from "@/components/loans/LoanDetails";
 import { toast } from "sonner";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Loan {
@@ -150,10 +150,16 @@ const Loans = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Loans Management</h1>
-        <Button onClick={() => navigate("/admin/loans/add")}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Loan
-        </Button>
+        <div className="flex gap-3">
+          <Button onClick={() => navigate("/admin/loans/bulk")} variant="outline">
+            <Upload className="h-4 w-4 mr-2" />
+            Add Bulk Loans
+          </Button>
+          <Button onClick={() => navigate("/admin/loans/add")}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Loan
+          </Button>
+        </div>
       </div>
       
       <Card className="p-6">
