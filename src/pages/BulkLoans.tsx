@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Upload, X } from "lucide-react";
+import { Upload, X, Download } from "lucide-react";
 import Papa from "papaparse";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,12 +16,23 @@ import {
 } from "@/components/ui/table";
 import { calculateLoanValues } from "@/utils/loanCalculations";
 
+// CSV expected structure
 interface CSVLoan {
   borrower_id: string;
   principal: string;
   loan_term: string;
   disbursement_date?: string;
+  start_repayment_date?: string;
 }
+
+// Expected CSV headers mapping
+const CSV_HEADERS = {
+  borrower_id: "borrower_id",
+  principal: "principal",
+  loan_term: "loan_term",
+  disbursement_date: "disbursement_date",
+  start_repayment_date: "start_repayment_date"
+};
 
 // Updated to match the database enum types
 type InterestRateEnum = 
@@ -45,6 +56,7 @@ interface LoanInsert {
   documentation_fee: number;
   gross_loan: number;
   disbursement_date?: string;
+  start_repayment_date?: string;
   maturity_date?: string;
   loan_status: 'active';
 }
@@ -52,6 +64,7 @@ interface LoanInsert {
 const BulkLoans = () => {
   const [csvData, setCSVData] = useState<CSVLoan[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [missingHeaders, setMissingHeaders] = useState<string[]>([]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -63,6 +76,7 @@ const BulkLoans = () => {
     }
 
     setIsLoading(true);
+    setMissingHeaders([]);
 
     Papa.parse(file, {
       header: true,
@@ -76,11 +90,24 @@ const BulkLoans = () => {
         }
 
         try {
+          // Check for required headers
+          const headers = results.meta.fields || [];
+          const requiredHeaders = ["borrower_id", "principal", "loan_term"];
+          const missingRequiredHeaders = requiredHeaders.filter(h => !headers.includes(h));
+          
+          if (missingRequiredHeaders.length > 0) {
+            setMissingHeaders(missingRequiredHeaders);
+            toast.error(`Missing required headers: ${missingRequiredHeaders.join(", ")}`);
+            setIsLoading(false);
+            return;
+          }
+
           const parsedData = results.data.map((row: any) => ({
-            borrower_id: row.borrower_id || "",
-            principal: row.principal || "",
-            loan_term: row.loan_term || "",
-            disbursement_date: row.disbursement_date || "",
+            borrower_id: row[CSV_HEADERS.borrower_id] || "",
+            principal: row[CSV_HEADERS.principal] || "",
+            loan_term: row[CSV_HEADERS.loan_term] || "",
+            disbursement_date: row[CSV_HEADERS.disbursement_date] || "",
+            start_repayment_date: row[CSV_HEADERS.start_repayment_date] || "",
           }));
 
           setCSVData(parsedData);
@@ -165,6 +192,7 @@ const BulkLoans = () => {
           documentation_fee: loanValues.documentationFee,
           gross_loan: loanValues.grossLoan,
           disbursement_date: loan.disbursement_date || new Date().toISOString().split('T')[0],
+          start_repayment_date: loan.start_repayment_date || loan.disbursement_date || new Date().toISOString().split('T')[0],
           maturity_date: maturityDate.toISOString().split('T')[0],
           loan_status: 'active',
         };
@@ -208,7 +236,22 @@ const BulkLoans = () => {
 
   const handleCancel = () => {
     setCSVData([]);
+    setMissingHeaders([]);
     setIsLoading(false);
+  };
+
+  const downloadTemplateCSV = () => {
+    const headers = Object.values(CSV_HEADERS).join(',');
+    const csvContent = `${headers}\n`;
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'loan_template.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -220,10 +263,36 @@ const BulkLoans = () => {
       <Card className="p-6">
         <div className="space-y-4">
           <div className="flex flex-col space-y-2">
-            <p className="text-muted-foreground mb-2">
-              Upload a CSV file with the following columns: borrower_id, principal, loan_term, disbursement_date (optional)
-            </p>
-            <div className="flex items-center space-x-4">
+            <div className="flex justify-between items-center">
+              <p className="text-muted-foreground">
+                Upload a CSV file with the following columns: 
+                <span className="font-semibold"> borrower_id</span>*, 
+                <span className="font-semibold"> principal</span>*, 
+                <span className="font-semibold"> loan_term</span>*,
+                disbursement_date, start_repayment_date
+              </p>
+              <Button
+                variant="outline"
+                onClick={downloadTemplateCSV}
+                className="ml-2"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Download Template
+              </Button>
+            </div>
+            
+            {missingHeaders.length > 0 && (
+              <div className="bg-red-50 text-red-700 p-3 rounded-md my-2">
+                <p className="font-semibold">Missing required CSV headers:</p>
+                <ul className="list-disc list-inside">
+                  {missingHeaders.map(header => (
+                    <li key={header}>{header}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            <div className="flex items-center space-x-4 mt-4">
               <Button
                 variant="outline"
                 className="relative"
@@ -266,6 +335,7 @@ const BulkLoans = () => {
                       <TableHead>Principal</TableHead>
                       <TableHead>Loan Term</TableHead>
                       <TableHead>Disbursement Date</TableHead>
+                      <TableHead>Start Repayment Date</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -275,6 +345,7 @@ const BulkLoans = () => {
                         <TableCell>${parseFloat(loan.principal).toFixed(2)}</TableCell>
                         <TableCell>{loan.loan_term} periods</TableCell>
                         <TableCell>{loan.disbursement_date || 'Today'}</TableCell>
+                        <TableCell>{loan.start_repayment_date || loan.disbursement_date || 'Today'}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
