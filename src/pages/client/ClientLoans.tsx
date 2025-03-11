@@ -54,7 +54,13 @@ const ClientLoans = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loans && loans.length > 0 ? (
+            {!loans || loans.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  No loans found
+                </TableCell>
+              </TableRow>
+            ) : (
               loans.map((loan) => (
                 <TableRow key={loan.loan_id}>
                   <TableCell>{loan.loan_id}</TableCell>
@@ -65,12 +71,6 @@ const ClientLoans = () => {
                   <TableCell>{loan.start_repayment_date || '-'}</TableCell>
                 </TableRow>
               ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                  No loans found
-                </TableCell>
-              </TableRow>
             )}
           </TableBody>
         </Table>

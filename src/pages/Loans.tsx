@@ -161,8 +161,6 @@ const Loans = () => {
           <div className="flex justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
           </div>
-        ) : loans.length === 0 ? (
-          <p className="text-center py-8 text-gray-500">No loans found</p>
         ) : (
           <div className="overflow-x-auto">
             <Table>
@@ -186,46 +184,52 @@ const Loans = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loans.map((loan) => (
-                  <TableRow 
-                    key={loan.loan_id}
-                    className="cursor-pointer hover:bg-gray-50"
-                    onClick={() => {
-                      setSelectedLoan(loan);
-                      setIsDetailsOpen(true);
-                    }}
-                  >
-                    <TableCell>{loan.application_id || 'N/A'}</TableCell>
-                    <TableCell className="font-medium text-blue-600 hover:underline">
-                      {loan.loan_id}
-                    </TableCell>
-                    <TableCell>{getBorrowerFullName(loan)}</TableCell>
-                    <TableCell>${loan.principal?.toLocaleString() || 'N/A'}</TableCell>
-                    <TableCell>${loan.interest?.toLocaleString() || 'N/A'}</TableCell>
-                    <TableCell>${loan.gross_loan?.toLocaleString() || 'N/A'}</TableCell>
-                    <TableCell>${loan.outstanding_balance?.toLocaleString() || '0'}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        getStatusBadgeClass(loan.loan_status)
-                      }`}>
-                        {loan.loan_status?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'N/A'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        getStatusBadgeClass(loan.loan_repayment_status)
-                      }`}>
-                        {loan.loan_repayment_status?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'N/A'}
-                      </span>
-                    </TableCell>
-                    <TableCell>{formatDate(loan.disbursement_date)}</TableCell>
-                    <TableCell>{formatDate(loan.start_repayment_date)}</TableCell>
-                    <TableCell>{formatDate(loan.maturity_date)}</TableCell>
-                    <TableCell>${loan.arrears?.toLocaleString() || '0'}</TableCell>
-                    <TableCell>${loan.default_fees_accumulated?.toLocaleString() || '0'}</TableCell>
-                    <TableCell>${loan.total_repayment?.toLocaleString() || '0'}</TableCell>
+                {loans.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={15} className="text-center py-8 text-gray-500">No loans found</TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  loans.map((loan) => (
+                    <TableRow 
+                      key={loan.loan_id}
+                      className="cursor-pointer hover:bg-gray-50"
+                      onClick={() => {
+                        setSelectedLoan(loan);
+                        setIsDetailsOpen(true);
+                      }}
+                    >
+                      <TableCell>{loan.application_id || 'N/A'}</TableCell>
+                      <TableCell className="font-medium text-blue-600 hover:underline">
+                        {loan.loan_id}
+                      </TableCell>
+                      <TableCell>{getBorrowerFullName(loan)}</TableCell>
+                      <TableCell>${loan.principal?.toLocaleString() || 'N/A'}</TableCell>
+                      <TableCell>${loan.interest?.toLocaleString() || 'N/A'}</TableCell>
+                      <TableCell>${loan.gross_loan?.toLocaleString() || 'N/A'}</TableCell>
+                      <TableCell>${loan.outstanding_balance?.toLocaleString() || '0'}</TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          getStatusBadgeClass(loan.loan_status)
+                        }`}>
+                          {loan.loan_status?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'N/A'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          getStatusBadgeClass(loan.loan_repayment_status)
+                        }`}>
+                          {loan.loan_repayment_status?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'N/A'}
+                        </span>
+                      </TableCell>
+                      <TableCell>{formatDate(loan.disbursement_date)}</TableCell>
+                      <TableCell>{formatDate(loan.start_repayment_date)}</TableCell>
+                      <TableCell>{formatDate(loan.maturity_date)}</TableCell>
+                      <TableCell>${loan.arrears?.toLocaleString() || '0'}</TableCell>
+                      <TableCell>${loan.default_fees_accumulated?.toLocaleString() || '0'}</TableCell>
+                      <TableCell>${loan.total_repayment?.toLocaleString() || '0'}</TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
