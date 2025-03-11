@@ -79,9 +79,12 @@ export const calculateLoanValues = (
   // Fixed documentation fee
   const documentationFee = 50;
   
-  // Calculate gross loan based on formula:
-  // Gross Loan = Principal + Interest + Loan Risk Insurance + Documentation Fee
-  const grossLoan = principal + interest + loanRiskInsurance + documentationFee;
+  // Calculate gross loan as a number
+  const grossLoan =
+    Number(principal) +
+    Number(interest) +
+    Number(loanRiskInsurance) +
+    Number(documentationFee);
   
   // Calculate fortnightly installment using the formula: Bi-Weekly Repayment = Gross Loan divided by Loan Term
   const fortnightlyInstallment = calculateFortnightlyInstallment(grossLoan, loanTerm);
