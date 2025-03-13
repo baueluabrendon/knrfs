@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -5,21 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Upload, FileText, Loader2, Upload as UploadIcon } from "lucide-react";
+import { Upload, FileText, Loader2, Upload as UploadIcon, Table as TableIcon } from "lucide-react";
 import { uploadGroupRepaymentDocument } from "@/contexts/loan-application/document-uploader";
-import { Repayment } from "@/types/repayment";
-
-interface RepaymentData {
-  date: string;
-  amount: number;
-  loanId: string;
-  borrowerName: string;
-  payPeriod: string;
-}
+import { Repayment, BulkRepaymentData } from "@/types/repayment";
+import Papa from "papaparse";
 
 const BulkRepayments = () => {
-  const [parsedData, setParsedData] = useState<RepaymentData[]>([]);
+  const [parsedData, setParsedData] = useState<BulkRepaymentData[]>([]);
+  const [csvFile, setCsvFile] = useState<File | null>(null);
   const [isUploadingCSV, setIsUploadingCSV] = useState(false);
+  const [isParsingCSV, setIsParsingCSV] = useState(false);
   const [isUploadingDocument, setIsUploadingDocument] = useState(false);
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [documentUrl, setDocumentUrl] = useState<string | null>(null);
@@ -28,33 +24,46 @@ const BulkRepayments = () => {
   const csvFileInputRef = useRef<HTMLInputElement>(null);
   const documentFileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleCSVUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCSVSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
-    setIsUploadingCSV(true);
     
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const text = e.target?.result as string;
-        const result = parseCSV(text);
-        setParsedData(result);
-        toast.success("CSV file parsed successfully");
-      } catch (error) {
-        console.error("Error parsing CSV:", error);
-        toast.error("Failed to parse CSV file. Please check the format.");
-      } finally {
-        setIsUploadingCSV(false);
+    setCsvFile(file);
+    setIsParsingCSV(true);
+    
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        try {
+          validateCSVHeaders(results.meta.fields || []);
+          const parsedResults = results.data as BulkRepaymentData[];
+          setParsedData(parsedResults);
+          toast.success("CSV file parsed successfully");
+        } catch (error: any) {
+          console.error("Error parsing CSV:", error);
+          toast.error(error.message || "Failed to parse CSV file. Please check the format.");
+          setCsvFile(null);
+        } finally {
+          setIsParsingCSV(false);
+        }
+      },
+      error: (error) => {
+        console.error("PapaParse error:", error);
+        toast.error("Error reading CSV file");
+        setIsParsingCSV(false);
+        setCsvFile(null);
       }
-    };
+    });
+  };
+
+  const validateCSVHeaders = (headers: string[]) => {
+    const requiredHeaders = ['date', 'amount', 'loanId', 'borrowerName', 'payPeriod'];
+    const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
     
-    reader.onerror = () => {
-      toast.error("Error reading file");
-      setIsUploadingCSV(false);
-    };
-    
-    reader.readAsText(file);
+    if (missingHeaders.length > 0) {
+      throw new Error(`Missing required headers: ${missingHeaders.join(', ')}`);
+    }
   };
 
   const handleDocumentUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,38 +90,9 @@ const BulkRepayments = () => {
     }
   };
 
-  const parseCSV = (text: string): RepaymentData[] => {
-    const lines = text.split('\n');
-    const headers = lines[0].split(',').map(header => header.trim());
-    
-    const requiredHeaders = ['date', 'amount', 'loanId', 'borrowerName', 'payPeriod'];
-    const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
-    
-    if (missingHeaders.length > 0) {
-      throw new Error(`Missing required headers: ${missingHeaders.join(', ')}`);
-    }
-    
-    return lines.slice(1)
-      .filter(line => line.trim() !== '')
-      .map(line => {
-        const values = line.split(',').map(value => value.trim());
-        const data: any = {};
-        
-        headers.forEach((header, index) => {
-          if (header === 'amount') {
-            data[header] = parseFloat(values[index]);
-          } else {
-            data[header] = values[index];
-          }
-        });
-        
-        return data as RepaymentData;
-      });
-  };
-
   const handleUploadRepayments = () => {
     if (!parsedData.length) {
-      toast.error("Please upload and parse CSV data first");
+      toast.error("Please select and parse CSV data first");
       return;
     }
     
@@ -142,6 +122,7 @@ const BulkRepayments = () => {
       
       toast.success(`Successfully processed ${parsedData.length} repayments`);
       setParsedData([]);
+      setCsvFile(null);
       setDocumentFile(null);
       setDocumentUrl(null);
       
@@ -181,27 +162,34 @@ const BulkRepayments = () => {
                   accept=".csv"
                   className="hidden"
                   ref={csvFileInputRef}
-                  onChange={handleCSVUpload}
-                  disabled={isUploadingCSV}
+                  onChange={handleCSVSelect}
+                  disabled={isParsingCSV}
                 />
                 <Button 
                   variant="outline"
                   onClick={handleCSVUploadClick} 
-                  disabled={isUploadingCSV}
+                  disabled={isParsingCSV}
                   className="flex-shrink-0 w-auto"
                 >
-                  {isUploadingCSV ? (
+                  {isParsingCSV ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing...
+                      Parsing...
                     </>
                   ) : (
                     <>
-                      <Upload className="mr-2 h-4 w-4" />
-                      Upload CSV
+                      <TableIcon className="mr-2 h-4 w-4" />
+                      Select CSV
                     </>
                   )}
                 </Button>
+                
+                {csvFile && (
+                  <div className="text-sm text-green-600 flex items-center gap-1 ml-2">
+                    <FileText className="h-4 w-4" />
+                    {csvFile.name}
+                  </div>
+                )}
                 
                 <Button
                   variant="outline"
@@ -279,7 +267,7 @@ const BulkRepayments = () => {
                     {parsedData.map((repayment, index) => (
                       <TableRow key={index}>
                         <TableCell>{repayment.date}</TableCell>
-                        <TableCell>${repayment.amount.toFixed(2)}</TableCell>
+                        <TableCell>${Number(repayment.amount).toFixed(2)}</TableCell>
                         <TableCell>{repayment.loanId}</TableCell>
                         <TableCell>{repayment.borrowerName}</TableCell>
                         <TableCell>{repayment.payPeriod}</TableCell>
