@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Dialog,
@@ -164,60 +163,40 @@ const Users = () => {
         return;
       }
       
-      const role = formData.role;
+      const tempPassword = Math.random().toString(36).slice(-8);
       
-      if (role === 'client') {
-        const { data, error } = await supabase.auth.signInWithOtp({
+      const { data, error } = await supabase.auth.admin.createUser({
+        email: formData.email,
+        password: tempPassword,
+        email_confirm: true,
+        user_metadata: {
+          role: formData.role,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+        },
+      });
+      
+      if (error) throw error;
+      
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .insert({
+          user_id: data.user.id,
           email: formData.email,
-          options: {
-            emailRedirectTo: `${window.location.origin}/login`,
-            data: {
-              role: role,
-              first_name: formData.firstName,
-              last_name: formData.lastName,
-            }
-          }
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          role: formData.role,
+          is_password_changed: false
         });
         
-        if (error) throw error;
-        
-        toast.success(`Verification email sent to ${formData.email}`);
-      } else {
-        const tempPassword = Math.random().toString(36).slice(-8);
-        
-        const { data, error } = await supabase.auth.admin.createUser({
-          email: formData.email,
-          password: tempPassword,
-          email_confirm: true,
-          user_metadata: {
-            role: role,
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-          },
-        });
-        
-        if (error) throw error;
-        
-        const { error: profileError } = await supabase
-          .from('user_profiles')
-          .insert({
-            user_id: data.user.id,
-            email: formData.email,
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            role: role,
-            is_password_changed: false
-          });
-          
-        if (profileError) {
-          console.error("Error creating user profile:", profileError);
-        }
-        
-        toast.success(`User ${formData.email} created with temporary password: ${tempPassword}`);
+      if (profileError) {
+        console.error("Error creating user profile:", profileError);
+        throw profileError;
       }
       
-      resetForm();
+      toast.success(`User ${formData.email} created with temporary password: ${tempPassword}`);
       
+      resetForm();
       fetchUsers();
     } catch (error: any) {
       console.error("Error creating user:", error);
@@ -250,7 +229,6 @@ const Users = () => {
     setIsProcessing(true);
     
     try {
-      // Update user_profiles table
       const { error: profileError } = await supabase
         .from('user_profiles')
         .update({
@@ -262,7 +240,6 @@ const Users = () => {
         
       if (profileError) throw profileError;
       
-      // Update user metadata in auth.users
       const { error: metadataError } = await supabase.auth.admin.updateUserById(
         editingUser.user_id,
         {
@@ -293,7 +270,6 @@ const Users = () => {
     setIsProcessing(true);
     
     try {
-      // Delete user from auth.users (this will cascade to user_profiles due to FK)
       const { error } = await supabase.auth.admin.deleteUser(
         userToDelete.user_id
       );
@@ -490,7 +466,6 @@ const Users = () => {
         </Table>
       </Card>
 
-      {/* Edit User Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -575,7 +550,6 @@ const Users = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete User Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

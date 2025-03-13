@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DialogFooter, DialogClose } from "@/components/ui/dialog";
@@ -13,26 +12,13 @@ interface VerificationEmailFormProps {
 export const VerificationEmailForm = ({ onSuccess }: VerificationEmailFormProps) => {
   const [verificationEmail, setVerificationEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { sendVerificationEmail } = useAuth();
   
   const handleVerificationRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!verificationEmail) {
-      toast.error("Please enter an email address");
-      return;
-    }
-    
-    setIsSubmitting(true);
-    try {
-      await sendVerificationEmail(verificationEmail);
-      onSuccess();
-      toast.success("Verification email sent successfully");
-    } catch (error) {
-      toast.error("Failed to send verification email");
-    } finally {
-      setIsSubmitting(false);
-    }
+    // This feature has been disabled
+    toast.info("Email verification has been disabled. Please contact an administrator to create your account.");
+    onSuccess();
   };
   
   return (
@@ -49,6 +35,9 @@ export const VerificationEmailForm = ({ onSuccess }: VerificationEmailFormProps)
           placeholder="Enter your email address" 
           required 
         />
+      </div>
+      <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded border border-amber-200">
+        <p>Email verification has been disabled. Please contact an administrator to create your account.</p>
       </div>
       <DialogFooter>
         <DialogClose asChild>

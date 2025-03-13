@@ -600,6 +600,7 @@ export type Database = {
       }
       user_profiles: {
         Row: {
+          borrower_id: string | null
           created_at: string | null
           email: string
           first_name: string | null
@@ -609,15 +610,17 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          borrower_id?: string | null
           created_at?: string | null
-          email: string
+          email?: string
           first_name?: string | null
           is_password_changed?: boolean | null
           last_name?: string | null
-          role: string
+          role?: string
           user_id: string
         }
         Update: {
+          borrower_id?: string | null
           created_at?: string | null
           email?: string
           first_name?: string | null
