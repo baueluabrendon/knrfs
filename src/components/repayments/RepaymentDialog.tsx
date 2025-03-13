@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import BorrowerSelect from "./BorrowerSelect";
+import RepaymentBorrowerSelect from "./RepaymentBorrowerSelect";
 
 interface RepaymentDialogProps {
   isOpen: boolean;
@@ -194,7 +194,7 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="borrower">Borrower</Label>
-            <BorrowerSelect onBorrowerSelect={handleBorrowerSelect} />
+            <RepaymentBorrowerSelect onBorrowerSelect={handleBorrowerSelect} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="loanId">Loan ID</Label>

@@ -24,11 +24,11 @@ interface Borrower {
   surname: string;
 }
 
-interface BorrowerSelectProps {
+interface RepaymentBorrowerSelectProps {
   onBorrowerSelect: (borrowerId: string, borrowerName: string) => void;
 }
 
-const BorrowerSelect = ({ onBorrowerSelect }: BorrowerSelectProps) => {
+const RepaymentBorrowerSelect = ({ onBorrowerSelect }: RepaymentBorrowerSelectProps) => {
   const [open, setOpen] = useState(false);
   const [borrowers, setBorrowers] = useState<Borrower[]>([]);
   const [selectedBorrower, setSelectedBorrower] = useState<string>("");
@@ -124,4 +124,4 @@ const BorrowerSelect = ({ onBorrowerSelect }: BorrowerSelectProps) => {
   );
 };
 
-export default BorrowerSelect;
+export default RepaymentBorrowerSelect;
