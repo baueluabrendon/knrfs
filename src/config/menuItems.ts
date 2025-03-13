@@ -12,6 +12,10 @@ import {
   AlertOctagon,
   AlertTriangle as AlertIcon,
   DollarSign as MoneyIcon,
+  ReceiptText, // Changed from Receipt
+  Table, // Changed from FileSpreadsheet
+  TrendingUp, // Changed from LineChart
+  ArrowUpDown, // Changed from ArrowDownUp
 } from "lucide-react";
 
 export const menuItems = [
@@ -62,14 +66,14 @@ export const menuItems = [
     ]
   },
   { 
-    icon: Receipt, 
+    icon: ReceiptText, // Changed from Receipt
     label: "Accounting", 
     path: "#",
     subItems: [
       { icon: FileText, label: "Chart of Accounts", path: "/admin/accounting/chart-of-accounts" },
-      { icon: FileSpreadsheet, label: "Balance Sheet", path: "/admin/accounting/balance-sheet" },
-      { icon: LineChart, label: "Profit & Loss", path: "/admin/accounting/profit-loss" },
-      { icon: ArrowDownUp, label: "Statement of Cashflow", path: "/admin/accounting/cashflow" },
+      { icon: Table, label: "Balance Sheet", path: "/admin/accounting/balance-sheet" }, // Changed from FileSpreadsheet
+      { icon: TrendingUp, label: "Profit & Loss", path: "/admin/accounting/profit-loss" }, // Changed from LineChart
+      { icon: ArrowUpDown, label: "Statement of Cashflow", path: "/admin/accounting/cashflow" }, // Changed from ArrowDownUp
     ]
   },
   { 
