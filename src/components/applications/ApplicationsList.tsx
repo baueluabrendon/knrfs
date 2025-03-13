@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -134,76 +133,92 @@ const ApplicationsList = ({ onViewApplication }: ApplicationsListProps) => {
     return 'Pending';
   };
 
+  const renderTableContent = () => {
+    if (loading) {
+      return (
+        <TableRow>
+          <TableCell colSpan={16} className="h-24 text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-gray-500 mx-auto" />
+          </TableCell>
+        </TableRow>
+      );
+    }
+    
+    if (applications.length === 0) {
+      return (
+        <TableRow>
+          <TableCell colSpan={16} className="h-24 text-center text-gray-500">
+            No applications found
+          </TableCell>
+        </TableRow>
+      );
+    }
+    
+    return applications.map((application) => (
+      <TableRow key={application.application_id}>
+        <TableCell>{application.application_id}</TableCell>
+        <TableCell>{getBorrowerFullName(application)}</TableCell>
+        <TableCell>{getPhoneNumber(application)}</TableCell>
+        <TableCell>{getEmail(application)}</TableCell>
+        <TableCell>{getCompany(application)}</TableCell>
+        <TableCell>{getPosition(application)}</TableCell>
+        <TableCell>${formatAmount(getPrincipal(application))}</TableCell>
+        <TableCell>${formatAmount(getInterest(application))}</TableCell>
+        <TableCell>${formatAmount(getGrossLoan(application))}</TableCell>
+        <TableCell>{getSubmissionDate(application)}</TableCell>
+        <TableCell>{getReviewStatus(application)}</TableCell>
+        <TableCell>{getReviewedBy(application)}</TableCell>
+        <TableCell>{getDocumentChecklist(application)}</TableCell>
+        <TableCell>{getCreditRiskAnalysis(application)}</TableCell>
+        <TableCell>
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(application.status)}`}>
+            {application.status?.charAt(0).toUpperCase() + application.status?.slice(1) || 'N/A'}
+          </span>
+        </TableCell>
+        <TableCell>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => onViewApplication(application)} 
+            className="flex items-center gap-1"
+          >
+            <Eye className="h-4 w-4" />
+            View
+          </Button>
+        </TableCell>
+      </TableRow>
+    ));
+  };
+
   return (
     <Card className="p-6">
-      {loading ? (
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-        </div>
-      ) : applications.length === 0 ? (
-        <p className="text-center py-8 text-gray-500">No applications found</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Application ID</TableHead>
-                <TableHead>Borrower</TableHead>
-                <TableHead>Phone Number</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Department/Company</TableHead>
-                <TableHead>Position</TableHead>
-                <TableHead>Loan Amount</TableHead>
-                <TableHead>Interest</TableHead>
-                <TableHead>Gross Loan</TableHead>
-                <TableHead>Submission Date</TableHead>
-                <TableHead>Review Status</TableHead>
-                <TableHead>Reviewed By</TableHead>
-                <TableHead>Document Checklist</TableHead>
-                <TableHead>Credit Risk Analysis</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {applications.map((application) => (
-                <TableRow key={application.application_id}>
-                  <TableCell>{application.application_id}</TableCell>
-                  <TableCell>{getBorrowerFullName(application)}</TableCell>
-                  <TableCell>{getPhoneNumber(application)}</TableCell>
-                  <TableCell>{getEmail(application)}</TableCell>
-                  <TableCell>{getCompany(application)}</TableCell>
-                  <TableCell>{getPosition(application)}</TableCell>
-                  <TableCell>${formatAmount(getPrincipal(application))}</TableCell>
-                  <TableCell>${formatAmount(getInterest(application))}</TableCell>
-                  <TableCell>${formatAmount(getGrossLoan(application))}</TableCell>
-                  <TableCell>{getSubmissionDate(application)}</TableCell>
-                  <TableCell>{getReviewStatus(application)}</TableCell>
-                  <TableCell>{getReviewedBy(application)}</TableCell>
-                  <TableCell>{getDocumentChecklist(application)}</TableCell>
-                  <TableCell>{getCreditRiskAnalysis(application)}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(application.status)}`}>
-                      {application.status?.charAt(0).toUpperCase() + application.status?.slice(1) || 'N/A'}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => onViewApplication(application)} 
-                      className="flex items-center gap-1"
-                    >
-                      <Eye className="h-4 w-4" />
-                      View
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Application ID</TableHead>
+              <TableHead>Borrower</TableHead>
+              <TableHead>Phone Number</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Department/Company</TableHead>
+              <TableHead>Position</TableHead>
+              <TableHead>Loan Amount</TableHead>
+              <TableHead>Interest</TableHead>
+              <TableHead>Gross Loan</TableHead>
+              <TableHead>Submission Date</TableHead>
+              <TableHead>Review Status</TableHead>
+              <TableHead>Reviewed By</TableHead>
+              <TableHead>Document Checklist</TableHead>
+              <TableHead>Credit Risk Analysis</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {renderTableContent()}
+          </TableBody>
+        </Table>
+      </div>
     </Card>
   );
 };
