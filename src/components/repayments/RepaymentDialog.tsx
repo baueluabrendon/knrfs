@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Plus, Upload } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -12,7 +12,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
+import BorrowerSelect from "./BorrowerSelect";
 
 interface RepaymentDialogProps {
   isOpen: boolean;
@@ -21,10 +22,59 @@ interface RepaymentDialogProps {
 
 const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange }) => {
   const [isUploading, setIsUploading] = useState(false);
+  const [borrowerId, setBorrowerId] = useState("");
+  const [borrowerName, setBorrowerName] = useState("");
   const [loanId, setLoanId] = useState("");
+  const [availableLoans, setAvailableLoans] = useState<{ id: string; status: string }[]>([]);
   const [amount, setAmount] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState("");
+
+  useEffect(() => {
+    // When borrower is selected, fetch their active loans
+    if (borrowerId) {
+      fetchBorrowerLoans(borrowerId);
+    } else {
+      setLoanId("");
+      setAvailableLoans([]);
+    }
+  }, [borrowerId]);
+
+  const fetchBorrowerLoans = async (id: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("loans")
+        .select("loan_id, loan_status")
+        .eq("borrower_id", id)
+        .eq("loan_status", "active");
+
+      if (error) {
+        throw error;
+      }
+
+      if (data && data.length > 0) {
+        setAvailableLoans(data.map(loan => ({ 
+          id: loan.loan_id, 
+          status: loan.loan_status 
+        })));
+        
+        // Auto-select the first active loan
+        setLoanId(data[0].loan_id);
+      } else {
+        setAvailableLoans([]);
+        setLoanId("");
+        toast.info("No active loans found for this borrower");
+      }
+    } catch (error) {
+      console.error("Error fetching borrower loans:", error);
+      toast.error("Failed to load borrower loans");
+    }
+  };
+
+  const handleBorrowerSelect = (id: string, name: string) => {
+    setBorrowerId(id);
+    setBorrowerName(name);
+  };
 
   // Check if file is a valid type (PDF or approved image)
   const isValidFileType = (file: File): boolean => {
@@ -114,6 +164,8 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
       toast.success("Repayment added successfully");
       
       // Reset form and close dialog
+      setBorrowerId("");
+      setBorrowerName("");
       setLoanId("");
       setAmount("");
       setFile(null);
@@ -141,13 +193,21 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
+            <Label htmlFor="borrower">Borrower</Label>
+            <BorrowerSelect onBorrowerSelect={handleBorrowerSelect} />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="loanId">Loan ID</Label>
             <Input 
               id="loanId" 
-              placeholder="Enter loan ID"
+              placeholder="Loan ID will appear here"
               value={loanId}
-              onChange={(e) => setLoanId(e.target.value)}
+              readOnly
+              className="bg-gray-100"
             />
+            {availableLoans.length === 0 && borrowerId && (
+              <p className="text-sm text-amber-600">No active loans found for this borrower</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="amount">Amount</Label>
