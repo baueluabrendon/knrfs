@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -15,6 +15,7 @@ import BorrowersTable from "@/components/borrowers/BorrowersTable";
 import BorrowerDialog from "@/components/borrowers/BorrowerDialog";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useNavigate } from "react-router-dom";
 
 interface Borrower {
   id: string;
@@ -71,6 +72,7 @@ interface Loan {
 }
 
 const Borrowers = () => {
+  const navigate = useNavigate();
   const [borrowers, setBorrowers] = useState<Borrower[]>([]);
   const [filteredBorrowers, setFilteredBorrowers] = useState<Borrower[]>([]);
   const [selectedBorrower, setSelectedBorrower] = useState<Borrower | null>(null);
@@ -231,19 +233,29 @@ const Borrowers = () => {
     toast.info("Email feature coming soon");
   };
 
+  const handleBulkUpload = () => {
+    navigate("/admin/borrowers/bulk");
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Borrowers Management</h1>
-        <BorrowerDialog
-          open={showAddBorrower}
-          onOpenChange={setShowAddBorrower}
-          onSubmit={handleAddBorrower}
-        />
-        <Button onClick={() => setShowAddBorrower(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Borrower
-        </Button>
+        <div className="flex space-x-3">
+          <Button variant="outline" onClick={handleBulkUpload}>
+            <Upload className="mr-2 h-4 w-4" />
+            Bulk Borrowers
+          </Button>
+          <BorrowerDialog
+            open={showAddBorrower}
+            onOpenChange={setShowAddBorrower}
+            onSubmit={handleAddBorrower}
+          />
+          <Button onClick={() => setShowAddBorrower(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Borrower
+          </Button>
+        </div>
       </div>
 
       <Card className="p-6">

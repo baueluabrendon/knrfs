@@ -8,13 +8,7 @@ import {
   PiggyBank,
   BarChart3,
   User,
-  UserPlus,
-  Upload,
-  Eye,
-  Receipt,
-  FileSpreadsheet,
-  LineChart,
-  ArrowDownUp,
+  Users as UsersIcon,
   AlertOctagon,
   AlertTriangle as AlertIcon,
   DollarSign as MoneyIcon,
@@ -36,12 +30,8 @@ export const menuItems = [
   { 
     icon: User, 
     label: "Borrowers", 
-    path: "#",
-    subItems: [
-      { icon: Users, label: "View All Borrowers", path: "/admin/borrowers" },
-      { icon: UserPlus, label: "Add Borrower", path: "#" },
-      { icon: Upload, label: "Add Bulk Borrowers", path: "/admin/borrowers/bulk" },
-    ]
+    path: "/admin/borrowers",
+    subItems: [] 
   },
   { 
     icon: FileText, 
@@ -52,8 +42,8 @@ export const menuItems = [
   { 
     icon: Wallet, 
     label: "Loans", 
-    path: "/admin/loans/view", // Changed to direct link to Loans page
-    subItems: [] // Removed dropdown items
+    path: "/admin/loans/view",
+    subItems: [] 
   },
   { 
     icon: RefreshCcw, 

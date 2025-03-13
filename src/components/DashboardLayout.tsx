@@ -50,19 +50,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     setIsSidebarOpen((prev) => !prev);
   };
 
-  const menuItems = defaultMenuItems.map((item) => {
-    if (item.label === "Borrowers") {
-      return {
-        ...item,
-        subItems: item.subItems.map((subItem) =>
-          subItem.label === "Add Borrower"
-            ? { ...subItem, onClick: () => setShowAddBorrower(true) }
-            : subItem
-        ),
-      };
-    }
-    return item;
-  });
+  // No need to modify menuItems since we removed the subItems from config
 
   return (
     <div className="flex h-screen">
@@ -74,7 +62,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         <div className="flex flex-col h-full">
           <SidebarHeader isOpen={isSidebarOpen} />
           <SidebarNav
-            menuItems={menuItems}
+            menuItems={defaultMenuItems}
             hoveredItem={hoveredItem}
             setHoveredItem={setHoveredItem}
             onCloseSidebar={() => setIsSidebarOpen(false)}
