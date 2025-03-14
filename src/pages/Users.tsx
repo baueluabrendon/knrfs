@@ -163,39 +163,21 @@ const Users = () => {
         return;
       }
       
-      // Using a fixed password for all users
       const defaultPassword = "password123";
       
-      // Create user with email and default password
       const { data, error } = await supabase.auth.admin.createUser({
         email: formData.email,
         password: defaultPassword,
         email_confirm: true,
         user_metadata: {
-          role: formData.role,
           first_name: formData.firstName,
           last_name: formData.lastName,
         },
+        role: formData.role,
+        roles: [formData.role],
       });
       
       if (error) throw error;
-      
-      // Create user profile
-      const { error: profileError } = await supabase
-        .from('user_profiles')
-        .insert({
-          user_id: data.user.id,
-          email: formData.email,
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          role: formData.role,
-          is_password_changed: false
-        });
-        
-      if (profileError) {
-        console.error("Error creating user profile:", profileError);
-        throw profileError;
-      }
       
       toast.success(`User ${formData.email} created with default password`);
       
@@ -232,31 +214,18 @@ const Users = () => {
     setIsProcessing(true);
     
     try {
-      // Update user_profiles table
-      const { error: profileError } = await supabase
-        .from('user_profiles')
-        .update({
-          role: formData.role,
-          first_name: formData.firstName,
-          last_name: formData.lastName
-        })
-        .eq('user_id', editingUser.user_id);
-        
-      if (profileError) throw profileError;
-      
-      // Update user metadata in auth.users
-      const { error: metadataError } = await supabase.auth.admin.updateUserById(
+      const { error: rolesError } = await supabase.auth.admin.updateUserById(
         editingUser.user_id,
         {
+          roles: [formData.role],
           user_metadata: {
-            role: formData.role,
             first_name: formData.firstName,
             last_name: formData.lastName
           }
         }
       );
       
-      if (metadataError) throw metadataError;
+      if (rolesError) throw rolesError;
       
       toast.success("User updated successfully");
       setEditDialogOpen(false);
@@ -275,7 +244,6 @@ const Users = () => {
     setIsProcessing(true);
     
     try {
-      // Delete user from auth.users (this will cascade to user_profiles due to FK)
       const { error } = await supabase.auth.admin.deleteUser(
         userToDelete.user_id
       );
