@@ -314,7 +314,7 @@ export async function createUserWithAdmin(email: string, password: string, userD
     const supabaseAdmin = supabase.auth.admin;
     
     // Create user with admin client
-    const { data: userData, error: createError } = await supabaseAdmin.createUser({
+    const { data: authData, error: createError } = await supabaseAdmin.createUser({
       email,
       password,
       email_confirm: true
@@ -325,7 +325,7 @@ export async function createUserWithAdmin(email: string, password: string, userD
       return { user: null, error: createError };
     }
 
-    if (!userData.user) {
+    if (!authData.user) {
       return { user: null, error: new Error("No user data returned") };
     }
 
@@ -333,11 +333,11 @@ export async function createUserWithAdmin(email: string, password: string, userD
     const { data: profileData, error: profileError } = await supabase
       .from('user_profiles')
       .insert({
-        user_id: userData.user.id,
+        user_id: authData.user.id,
         email: email,
-        first_name: userData.first_name,
-        last_name: userData.last_name,
-        role: userData.role,
+        first_name: userData.first_name, // Use userData parameter, not authData
+        last_name: userData.last_name,   // Use userData parameter, not authData
+        role: userData.role,             // Use userData parameter, not authData
         is_password_changed: false
       });
 
@@ -347,7 +347,7 @@ export async function createUserWithAdmin(email: string, password: string, userD
     }
 
     console.log("AuthService: Successfully created user and profile");
-    return { user: userData.user, error: null };
+    return { user: authData.user, error: null };
   } catch (error) {
     console.error("AuthService: Error in createUserWithAdmin:", error);
     return { user: null, error };
