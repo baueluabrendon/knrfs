@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import {
   Dialog,
@@ -173,8 +174,7 @@ const Users = () => {
           first_name: formData.firstName,
           last_name: formData.lastName,
         },
-        role: formData.role,
-        roles: [formData.role],
+        role: formData.role, // Correctly use role property (not roles array)
       });
       
       if (error) throw error;
@@ -217,7 +217,7 @@ const Users = () => {
       const { error: rolesError } = await supabase.auth.admin.updateUserById(
         editingUser.user_id,
         {
-          roles: [formData.role],
+          role: formData.role, // Correctly use role property (not roles array)
           user_metadata: {
             first_name: formData.firstName,
             last_name: formData.lastName
