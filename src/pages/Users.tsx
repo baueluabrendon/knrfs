@@ -174,7 +174,7 @@ const Users = () => {
           first_name: formData.firstName,
           last_name: formData.lastName,
         },
-        role: formData.role, // Correctly use role property (not roles array)
+        roles: [formData.role], // Use roles array instead of single role property
       });
       
       if (error) throw error;
@@ -217,7 +217,7 @@ const Users = () => {
       const { error: rolesError } = await supabase.auth.admin.updateUserById(
         editingUser.user_id,
         {
-          role: formData.role, // Correctly use role property (not roles array)
+          roles: [formData.role], // Use roles array instead of single role property
           user_metadata: {
             first_name: formData.firstName,
             last_name: formData.lastName
