@@ -1,10 +1,10 @@
 
 import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { AlertCircle } from "lucide-react";
 
 interface VerificationEmailFormProps {
   onSuccess: () => void;
@@ -12,52 +12,25 @@ interface VerificationEmailFormProps {
 
 export const VerificationEmailForm = ({ onSuccess }: VerificationEmailFormProps) => {
   const [verificationEmail, setVerificationEmail] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { sendVerificationEmail } = useAuth();
-  
-  const handleVerificationRequest = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!verificationEmail) {
-      toast.error("Please enter an email address");
-      return;
-    }
-    
-    setIsSubmitting(true);
-    try {
-      await sendVerificationEmail(verificationEmail);
-      onSuccess();
-      toast.success("Verification email sent successfully");
-    } catch (error) {
-      toast.error("Failed to send verification email");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
   
   return (
-    <form onSubmit={handleVerificationRequest} className="space-y-4 mt-4">
-      <div className="space-y-2">
-        <label htmlFor="verification-email" className="text-sm font-medium text-gray-700">
-          Email Address
-        </label>
-        <Input 
-          id="verification-email" 
-          type="email" 
-          value={verificationEmail}
-          onChange={(e) => setVerificationEmail(e.target.value)}
-          placeholder="Enter your email address" 
-          required 
-        />
+    <div className="space-y-4 mt-4">
+      <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 flex items-start">
+        <AlertCircle className="h-5 w-5 text-yellow-500 mt-0.5 mr-3" />
+        <div>
+          <h3 className="text-sm font-medium text-yellow-800">Email Verification Disabled</h3>
+          <p className="text-sm text-yellow-700 mt-1">
+            Email verification has been disabled. New users are created with default credentials.
+            Please contact an administrator if you need account assistance.
+          </p>
+        </div>
       </div>
+      
       <DialogFooter>
         <DialogClose asChild>
-          <Button type="button" variant="outline">Cancel</Button>
+          <Button type="button">Close</Button>
         </DialogClose>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Sending..." : "Send Verification Email"}
-        </Button>
       </DialogFooter>
-    </form>
+    </div>
   );
 };

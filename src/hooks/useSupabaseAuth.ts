@@ -1,3 +1,4 @@
+
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { UserProfile } from '@/types/auth';
@@ -22,7 +23,14 @@ export async function fetchUserProfile(userId: string) {
       return null;
     }
 
-    return profile as UserProfile;
+    // Convert role string to valid UserProfile role
+    const userRole = profile.role as UserProfile["role"];
+
+    return {
+      ...profile,
+      id: profile.user_id, // Add id property matching user_id
+      role: userRole
+    } as UserProfile;
   } catch (error) {
     console.error('Error in fetchUserProfile:', error);
     toast.error('Error with user profile');

@@ -11,11 +11,9 @@ import {
   DialogTitle, 
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { VerificationEmailForm } from "./VerificationEmailForm";
 import { ForgotPasswordForm } from "./ForgotPasswordForm";
 
 export const LoginForm = () => {
-  const [isVerificationDialogOpen, setIsVerificationDialogOpen] = useState(false);
   const [isForgotPasswordDialogOpen, setIsForgotPasswordDialogOpen] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -112,21 +110,7 @@ export const LoginForm = () => {
           {isSubmitting ? "Signing in..." : "Login"}
         </Button>
         
-        <div className="flex justify-between mt-4 text-sm">
-          <Dialog open={isVerificationDialogOpen} onOpenChange={setIsVerificationDialogOpen}>
-            <DialogTrigger asChild>
-              <button type="button" className="text-[#22C55E] hover:underline">
-                Need Verification Email?
-              </button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Request Verification Email</DialogTitle>
-              </DialogHeader>
-              <VerificationEmailForm onSuccess={() => setIsVerificationDialogOpen(false)} />
-            </DialogContent>
-          </Dialog>
-          
+        <div className="flex justify-center mt-4 text-sm">
           <Dialog open={isForgotPasswordDialogOpen} onOpenChange={setIsForgotPasswordDialogOpen}>
             <DialogTrigger asChild>
               <button type="button" className="text-[#22C55E] hover:underline">

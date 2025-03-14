@@ -610,11 +610,11 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
-          email: string
+          email?: string
           first_name?: string | null
           is_password_changed?: boolean | null
           last_name?: string | null
-          role: string
+          role?: string
           user_id: string
         }
         Update: {
