@@ -600,6 +600,7 @@ export type Database = {
       }
       user_profiles: {
         Row: {
+          borrower_id: string | null
           created_at: string | null
           email: string
           first_name: string | null
@@ -609,6 +610,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          borrower_id?: string | null
           created_at?: string | null
           email?: string
           first_name?: string | null
@@ -618,6 +620,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          borrower_id?: string | null
           created_at?: string | null
           email?: string
           first_name?: string | null
@@ -626,7 +629,15 @@ export type Database = {
           role?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_borrower"
+            columns: ["borrower_id"]
+            isOneToOne: false
+            referencedRelation: "borrowers"
+            referencedColumns: ["borrower_id"]
+          },
+        ]
       }
     }
     Views: {

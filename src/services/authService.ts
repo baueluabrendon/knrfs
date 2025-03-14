@@ -1,95 +1,42 @@
 
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { UserProfile as AuthUserProfile } from "@/types/auth";
-
-// Local service interface that will be transformed to match the app's UserProfile type
-export interface UserProfile {
-  user_id: string;
-  email: string;
-  role: string;
-  first_name: string | null;
-  last_name: string | null;
-  is_password_changed?: boolean | null;
-}
+import { UserProfile } from "@/types/auth";
 
 /**
- * Fetches a user profile from Supabase
+ * Fetches a user profile from the database
  */
 export async function fetchUserProfile(userId: string): Promise<UserProfile | null> {
   try {
-    console.log("Fetching user profile for ID:", userId);
+    console.log("AuthService: Fetching user profile for:", userId);
     
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile, error } = await supabase
       .from('user_profiles')
-      .select('*')
+      .select('user_id, email, role, first_name, last_name, is_password_changed')
       .eq('user_id', userId)
       .single();
       
-    if (!profileError && profile) {
-      console.log("User profile found:", profile);
-      
-      return {
-        user_id: userId,
-        email: profile.email || '',
-        role: profile.role || 'client',
-        first_name: profile.first_name || null,
-        last_name: profile.last_name || null,
-        is_password_changed: profile.is_password_changed
-      };
-    } else {
-      console.error("Error fetching user profile:", profileError);
+    if (error) {
+      console.error("AuthService: Error fetching profile:", error);
       return null;
     }
-  } catch (error) {
-    console.error("Profile fetch error:", error);
-    return null;
-  }
-}
-
-/**
- * Creates a new user profile in Supabase
- */
-export async function createUserProfile(
-  userId: string,
-  email: string | undefined,
-  role: string = 'administrator',
-  firstName: string = 'Test',
-  lastName: string = 'User'
-): Promise<UserProfile | null> {
-  try {
-    console.log("Creating new user profile for:", userId);
     
-    const { data: newProfile, error: createError } = await supabase
-      .from('user_profiles')
-      .insert([
-        { 
-          user_id: userId,
-          email: email,
-          role: role,
-          first_name: firstName,
-          last_name: lastName
-        }
-      ])
-      .select()
-      .single();
-      
-    if (!createError && newProfile) {
-      console.log("Created new user profile:", newProfile);
-      
-      return {
-        user_id: userId,
-        email: email || '',
-        role: newProfile.role,
-        first_name: newProfile.first_name || null,
-        last_name: newProfile.last_name || null
-      };
-    } else {
-      console.error("Failed to create user profile:", createError);
+    if (!profile) {
+      console.error("AuthService: No profile found for user");
       return null;
     }
+    
+    // Convert role string to valid UserProfile role
+    const userRole = profile.role as UserProfile["role"];
+    
+    return {
+      ...profile,
+      id: profile.user_id, // Add id property matching user_id
+      role: userRole,
+      created_at: new Date().toISOString(),
+    } as UserProfile;
   } catch (error) {
-    console.error("Profile creation error:", error);
+    console.error("AuthService: Error in fetchUserProfile:", error);
     return null;
   }
 }
@@ -97,36 +44,37 @@ export async function createUserProfile(
 /**
  * Signs in a user with email and password
  */
-export async function signInWithEmailAndPassword(
-  email: string,
-  password: string
-): Promise<UserProfile | null> {
+export async function signIn(email: string, password: string): Promise<UserProfile | null> {
   try {
-    console.log("Attempting login with:", email);
+    console.log("AuthService: Attempting to sign in with email:", email);
     
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
     
-    if (error) {
-      console.error("Supabase auth error:", error);
-      throw error;
+    if (authError) {
+      console.error("AuthService: Auth error:", authError);
+      throw authError;
     }
-
-    console.log("Supabase auth successful:", data);
     
-    // Fetch user profile
-    let profile = await fetchUserProfile(data.user.id);
+    if (!authData.user) {
+      console.error("AuthService: No user data returned");
+      throw new Error("No user data returned");
+    }
     
-    // If profile doesn't exist, create one
+    console.log("AuthService: Auth successful, fetching profile for user:", authData.user.id);
+    
+    const profile = await fetchUserProfile(authData.user.id);
     if (!profile) {
-      profile = await createUserProfile(data.user.id, data.user.email);
+      throw new Error("Failed to fetch user profile");
     }
     
+    console.log("AuthService: Successfully fetched profile:", profile);
+    toast.success("Successfully signed in");
     return profile;
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("AuthService: Error signing in:", error);
     throw error;
   }
 }
@@ -134,12 +82,15 @@ export async function signInWithEmailAndPassword(
 /**
  * Signs out the current user
  */
-export async function signOut(): Promise<void> {
-  const { error } = await supabase.auth.signOut();
-  if (error) {
-    console.error("Logout error:", error);
-    toast.error(error.message || "Failed to sign out");
-    throw error;
+export async function signOut(): Promise<boolean> {
+  try {
+    await supabase.auth.signOut();
+    toast.success("Successfully signed out");
+    return true;
+  } catch (error) {
+    console.error("AuthService: Error signing out:", error);
+    toast.error("Error signing out");
+    return false;
   }
 }
 
@@ -148,18 +99,99 @@ export async function signOut(): Promise<void> {
  */
 export async function getCurrentSession() {
   try {
-    console.log("Checking existing session...");
-    const { data } = await supabase.auth.getSession();
+    console.log("AuthService: Checking current session");
     
-    if (data.session) {
-      console.log("Existing session found:", data.session.user.id);
-      return data.session;
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session) {
+      console.log("AuthService: Found existing session", session.user.id);
+      return session;
     }
     
-    console.log("No existing session found");
+    console.log("AuthService: No session found");
     return null;
   } catch (error) {
-    console.error("Session check error:", error);
+    console.error("AuthService: Session check error:", error);
     return null;
   }
+}
+
+/**
+ * Sends a password reset email
+ */
+export async function sendPasswordResetEmail(email: string): Promise<boolean> {
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/set-password`,
+    });
+    
+    if (error) {
+      throw error;
+    }
+    
+    toast.success("Password reset email sent. Please check your inbox.");
+    return true;
+  } catch (error: any) {
+    console.error("AuthService: Password reset error:", error);
+    toast.error(error.message || "Failed to send password reset email");
+    return false;
+  }
+}
+
+/**
+ * Updates a user's password
+ */
+export async function updatePassword(password: string): Promise<boolean> {
+  try {
+    // Update the user's password
+    const { error: passwordError } = await supabase.auth.updateUser({
+      password: password,
+    });
+    
+    if (passwordError) throw passwordError;
+    
+    // Get current user to ensure we have the latest session
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    
+    if (!currentUser) {
+      throw new Error("User session not found after password update");
+    }
+    
+    // Update the user's profile to mark password as changed
+    const { error: profileError } = await supabase
+      .from('user_profiles')
+      .update({ is_password_changed: true })
+      .eq('user_id', currentUser.id);
+    
+    if (profileError) {
+      throw profileError;
+    }
+    
+    toast.success("Password updated successfully!");
+    return true;
+  } catch (error: any) {
+    console.error("AuthService: Password update error:", error);
+    toast.error(error.message || "Failed to update password");
+    return false;
+  }
+}
+
+/**
+ * Sets up an auth state change listener
+ */
+export function setupAuthListener(callback: (user: UserProfile | null) => void): { unsubscribe: () => void } {
+  const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    async (event, session) => {
+      console.log("AuthService: Auth state changed:", event);
+      
+      if (event === 'SIGNED_IN' && session?.user) {
+        const profile = await fetchUserProfile(session.user.id);
+        callback(profile);
+      } else if (event === 'SIGNED_OUT') {
+        callback(null);
+      }
+    }
+  );
+  
+  return subscription;
 }

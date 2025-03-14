@@ -1,9 +1,6 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { DialogFooter, DialogClose } from "@/components/ui/dialog";
-import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
 
 interface VerificationEmailFormProps {
@@ -11,8 +8,6 @@ interface VerificationEmailFormProps {
 }
 
 export const VerificationEmailForm = ({ onSuccess }: VerificationEmailFormProps) => {
-  const [verificationEmail, setVerificationEmail] = useState("");
-  
   return (
     <div className="space-y-4 mt-4">
       <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 flex items-start">
