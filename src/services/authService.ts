@@ -1,4 +1,3 @@
-
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { UserProfile } from "@/types/auth";
@@ -310,11 +309,11 @@ export async function createUserWithAdmin(email: string, password: string, userD
   try {
     console.log("AuthService: Creating new user with admin rights");
     
-    // Initialize a new Supabase client with the service role key
-    const supabaseAdmin = supabase.auth.admin;
+    // Import and use the supabaseAdmin client for admin operations
+    const { supabaseAdmin } = await import('@/integrations/supabase/adminClient');
     
     // Create user with admin client
-    const { data: authData, error: createError } = await supabaseAdmin.createUser({
+    const { data: authData, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
       email_confirm: true

@@ -31,6 +31,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import * as authService from "@/services/authService";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -164,42 +165,20 @@ const Users = () => {
         return;
       }
       
-      // Step 1: Create the user in Supabase Auth
-      const defaultPassword = "password123";
-      
-      // Create user in auth system
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: formData.email,
-        password: defaultPassword,
-        email_confirm: true,
-        user_metadata: {
+      const { user, error } = await authService.createUserWithAdmin(
+        formData.email,
+        "password123",
+        {
           first_name: formData.firstName,
           last_name: formData.lastName,
+          role: formData.role
         }
-      });
+      );
       
-      if (authError) throw authError;
+      if (error) throw error;
       
-      if (!authData.user) {
+      if (!user) {
         throw new Error("Failed to create user account");
-      }
-      
-      // Step 2: Create user profile in the user_profiles table
-      const { error: profileError } = await supabase
-        .from('user_profiles')
-        .insert({
-          user_id: authData.user.id,
-          email: formData.email,
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          role: formData.role,
-          is_password_changed: false
-        });
-      
-      if (profileError) {
-        // If profile creation fails, attempt to clean up the auth user
-        await supabase.auth.admin.deleteUser(authData.user.id);
-        throw profileError;
       }
       
       toast.success(`User ${formData.email} created with default password`);
@@ -237,7 +216,6 @@ const Users = () => {
     setIsProcessing(true);
     
     try {
-      // Update user metadata in auth system
       const { error: metadataError } = await supabase.auth.admin.updateUserById(
         editingUser.user_id,
         {
@@ -250,7 +228,6 @@ const Users = () => {
       
       if (metadataError) throw metadataError;
       
-      // Update user profile in the user_profiles table
       const { error: profileError } = await supabase
         .from('user_profiles')
         .update({
@@ -279,8 +256,6 @@ const Users = () => {
     setIsProcessing(true);
     
     try {
-      // Delete user from auth system - this should cascade to user_profiles
-      // if the foreign key relationship is properly set up
       const { error } = await supabase.auth.admin.deleteUser(
         userToDelete.user_id
       );
