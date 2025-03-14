@@ -298,3 +298,58 @@ export async function createUserProfile(userId: string, email: string | null): P
     return null;
   }
 }
+
+/**
+ * Create a new user with admin operations
+ */
+export async function createUserWithAdmin(email: string, password: string, userData: { 
+  first_name: string, 
+  last_name: string, 
+  role: string 
+}): Promise<{ user: any; error: any }> {
+  try {
+    console.log("AuthService: Creating new user with admin rights");
+    
+    // Initialize a new Supabase client with the service role key
+    const supabaseAdmin = supabase.auth.admin;
+    
+    // Create user with admin client
+    const { data: userData, error: createError } = await supabaseAdmin.createUser({
+      email,
+      password,
+      email_confirm: true
+    });
+
+    if (createError) {
+      console.error("AuthService: Error creating user:", createError);
+      return { user: null, error: createError };
+    }
+
+    if (!userData.user) {
+      return { user: null, error: new Error("No user data returned") };
+    }
+
+    // Create user profile
+    const { data: profileData, error: profileError } = await supabase
+      .from('user_profiles')
+      .insert({
+        user_id: userData.user.id,
+        email: email,
+        first_name: userData.first_name,
+        last_name: userData.last_name,
+        role: userData.role,
+        is_password_changed: false
+      });
+
+    if (profileError) {
+      console.error("AuthService: Error creating user profile:", profileError);
+      return { user: null, error: profileError };
+    }
+
+    console.log("AuthService: Successfully created user and profile");
+    return { user: userData.user, error: null };
+  } catch (error) {
+    console.error("AuthService: Error in createUserWithAdmin:", error);
+    return { user: null, error };
+  }
+}
