@@ -195,3 +195,106 @@ export function setupAuthListener(callback: (user: UserProfile | null) => void):
   
   return subscription;
 }
+
+/**
+ * Checks for an existing session and returns the user profile
+ */
+export async function checkExistingSession() {
+  try {
+    console.log("SessionService: Checking for existing session...");
+    
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session) {
+      console.log("SessionService: Found existing session", session.user.id);
+      
+      const profile = await fetchUserProfile(session.user.id);
+      
+      if (profile) {
+        console.log("SessionService: Found user profile", profile);
+        console.log("SessionService: User role is", profile.role);
+        
+        return { 
+          userProfile: profile,
+          needsPasswordChange: profile.is_password_changed === false 
+        };
+      }
+    }
+    
+    console.log("SessionService: No valid session found");
+    return null;
+  } catch (error) {
+    console.error("SessionService: Session check error:", error);
+    return null;
+  }
+}
+
+/**
+ * Setup auth state change listener with user profile handling
+ */
+export async function setupAuthStateChangeListener(
+  callback: (event: string, session: any, profile: UserProfile | null) => void
+) {
+  const { data } = await supabase.auth.onAuthStateChange(
+    async (event, session) => {
+      console.log("AuthService: Auth state changed:", event);
+      
+      if (event === 'SIGNED_IN' && session?.user) {
+        console.log("AuthService: User signed in with ID:", session.user.id);
+        
+        const profile = await fetchUserProfile(session.user.id);
+          
+        if (profile) {
+          console.log("AuthService: Profile after auth change:", profile);
+          callback(event, session, profile);
+        } else {
+          console.log("AuthService: No profile found after auth change");
+          callback(event, session, null);
+        }
+      } else {
+        callback(event, session, null);
+      }
+    }
+  );
+  
+  return data.subscription;
+}
+
+/**
+ * Create a user profile
+ */
+export async function createUserProfile(userId: string, email: string | null): Promise<UserProfile | null> {
+  try {
+    if (!email) {
+      console.error("AuthService: Cannot create profile without email");
+      return null;
+    }
+    
+    const newProfile = {
+      user_id: userId,
+      email,
+      role: 'client', // Default role
+      first_name: '',
+      last_name: '',
+      is_password_changed: false
+    };
+    
+    const { error } = await supabase
+      .from('user_profiles')
+      .insert(newProfile);
+      
+    if (error) {
+      console.error("AuthService: Error creating profile:", error);
+      return null;
+    }
+    
+    return {
+      ...newProfile,
+      id: userId,
+      created_at: new Date().toISOString(),
+    } as UserProfile;
+  } catch (error) {
+    console.error("AuthService: Error creating user profile:", error);
+    return null;
+  }
+}

@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { UserProfile } from "@/types/auth";
-import { checkExistingSession, setupAuthStateChangeListener } from "@/services/sessionService";
+import { checkExistingSession, setupAuthStateChangeListener } from "@/services/authService";
 
 export function useSessionManager(
   setUser: (user: UserProfile | null) => void,
