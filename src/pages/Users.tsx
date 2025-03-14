@@ -165,33 +165,24 @@ const Users = () => {
       
       const tempPassword = Math.random().toString(36).slice(-8);
       
-      const { data, error } = await supabase.auth.admin.createUser({
-        email: formData.email,
-        password: tempPassword,
-        email_confirm: true,
-        user_metadata: {
-          role: formData.role,
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-        },
+      const { data, error } = await supabase.functions.invoke('create-user', {
+        body: {
+          email: formData.email,
+          password: tempPassword,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          role: formData.role
+        }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error creating user:", error);
+        throw new Error(error.message || "Failed to create user");
+      }
       
-      const { error: profileError } = await supabase
-        .from('user_profiles')
-        .insert({
-          user_id: data.user.id,
-          email: formData.email,
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          role: formData.role,
-          is_password_changed: false
-        });
-        
-      if (profileError) {
-        console.error("Error creating user profile:", profileError);
-        throw profileError;
+      if (data.error) {
+        console.error("Error from edge function:", data.error);
+        throw new Error(data.error);
       }
       
       toast.success(`User ${formData.email} created with temporary password: ${tempPassword}`);
