@@ -60,19 +60,6 @@ interface UserData {
   status: string;
 }
 
-// Extending AdminUserAttributes to support roles array
-interface ExtendedAdminUserAttributes {
-  email?: string;
-  phone?: string;
-  password?: string;
-  email_confirm?: boolean;
-  phone_confirm?: boolean;
-  role?: string;
-  user_metadata?: Record<string, any>;
-  app_metadata?: Record<string, any>;
-  roles?: string[];
-}
-
 const Users = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddingUser, setIsAddingUser] = useState(false);
@@ -177,21 +164,43 @@ const Users = () => {
         return;
       }
       
+      // Step 1: Create the user in Supabase Auth
       const defaultPassword = "password123";
       
-      // Use type assertion to work around the TypeScript limitation
-      const { data, error } = await supabase.auth.admin.createUser({
+      // Create user in auth system
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: formData.email,
         password: defaultPassword,
         email_confirm: true,
         user_metadata: {
           first_name: formData.firstName,
           last_name: formData.lastName,
-        },
-        role: formData.role // Keep the role property for backward compatibility
-      } as ExtendedAdminUserAttributes);
+        }
+      });
       
-      if (error) throw error;
+      if (authError) throw authError;
+      
+      if (!authData.user) {
+        throw new Error("Failed to create user account");
+      }
+      
+      // Step 2: Create user profile in the user_profiles table
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .insert({
+          user_id: authData.user.id,
+          email: formData.email,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          role: formData.role,
+          is_password_changed: false
+        });
+      
+      if (profileError) {
+        // If profile creation fails, attempt to clean up the auth user
+        await supabase.auth.admin.deleteUser(authData.user.id);
+        throw profileError;
+      }
       
       toast.success(`User ${formData.email} created with default password`);
       
@@ -228,19 +237,30 @@ const Users = () => {
     setIsProcessing(true);
     
     try {
-      // Use type assertion to work around the TypeScript limitation
-      const { error: rolesError } = await supabase.auth.admin.updateUserById(
+      // Update user metadata in auth system
+      const { error: metadataError } = await supabase.auth.admin.updateUserById(
         editingUser.user_id,
         {
-          role: formData.role, // Keep the role property for backward compatibility
           user_metadata: {
             first_name: formData.firstName,
             last_name: formData.lastName
           }
-        } as ExtendedAdminUserAttributes
+        }
       );
       
-      if (rolesError) throw rolesError;
+      if (metadataError) throw metadataError;
+      
+      // Update user profile in the user_profiles table
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .update({
+          first_name: formData.firstName, 
+          last_name: formData.lastName,
+          role: formData.role
+        })
+        .eq('user_id', editingUser.user_id);
+      
+      if (profileError) throw profileError;
       
       toast.success("User updated successfully");
       setEditDialogOpen(false);
@@ -259,6 +279,8 @@ const Users = () => {
     setIsProcessing(true);
     
     try {
+      // Delete user from auth system - this should cascade to user_profiles
+      // if the foreign key relationship is properly set up
       const { error } = await supabase.auth.admin.deleteUser(
         userToDelete.user_id
       );

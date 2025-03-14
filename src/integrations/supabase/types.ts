@@ -603,9 +603,9 @@ export type Database = {
           borrower_id: string | null
           created_at: string | null
           email: string
-          first_name: string | null
+          first_name: string
           is_password_changed: boolean | null
-          last_name: string | null
+          last_name: string
           role: string
           user_id: string
         }
@@ -613,9 +613,9 @@ export type Database = {
           borrower_id?: string | null
           created_at?: string | null
           email?: string
-          first_name?: string | null
+          first_name?: string
           is_password_changed?: boolean | null
-          last_name?: string | null
+          last_name?: string
           role?: string
           user_id: string
         }
@@ -623,9 +623,9 @@ export type Database = {
           borrower_id?: string | null
           created_at?: string | null
           email?: string
-          first_name?: string | null
+          first_name?: string
           is_password_changed?: boolean | null
-          last_name?: string | null
+          last_name?: string
           role?: string
           user_id?: string
         }
