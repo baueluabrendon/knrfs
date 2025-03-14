@@ -60,6 +60,19 @@ interface UserData {
   status: string;
 }
 
+// Extending AdminUserAttributes to support roles array
+interface ExtendedAdminUserAttributes {
+  email?: string;
+  phone?: string;
+  password?: string;
+  email_confirm?: boolean;
+  phone_confirm?: boolean;
+  role?: string;
+  user_metadata?: Record<string, any>;
+  app_metadata?: Record<string, any>;
+  roles?: string[];
+}
+
 const Users = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddingUser, setIsAddingUser] = useState(false);
@@ -166,6 +179,7 @@ const Users = () => {
       
       const defaultPassword = "password123";
       
+      // Use type assertion to work around the TypeScript limitation
       const { data, error } = await supabase.auth.admin.createUser({
         email: formData.email,
         password: defaultPassword,
@@ -174,8 +188,8 @@ const Users = () => {
           first_name: formData.firstName,
           last_name: formData.lastName,
         },
-        roles: [formData.role], // Use roles array instead of single role property
-      });
+        role: formData.role // Keep the role property for backward compatibility
+      } as ExtendedAdminUserAttributes);
       
       if (error) throw error;
       
@@ -214,15 +228,16 @@ const Users = () => {
     setIsProcessing(true);
     
     try {
+      // Use type assertion to work around the TypeScript limitation
       const { error: rolesError } = await supabase.auth.admin.updateUserById(
         editingUser.user_id,
         {
-          roles: [formData.role], // Use roles array instead of single role property
+          role: formData.role, // Keep the role property for backward compatibility
           user_metadata: {
             first_name: formData.firstName,
             last_name: formData.lastName
           }
-        }
+        } as ExtendedAdminUserAttributes
       );
       
       if (rolesError) throw rolesError;
