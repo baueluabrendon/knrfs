@@ -1,134 +1,28 @@
-import { useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import {
-  LayoutDashboard,
-  FileText,
-  LogOut,
-  Menu,
-  X,
-  FileSignature,
-  Clock,
-  Wallet,
-  User,
-  HelpCircle,
-} from "lucide-react";
 
-const ClientLayout = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const { signOut } = useAuth();
-  const navigate = useNavigate();
+import React, { ReactNode } from 'react';
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/login");
-  };
+interface ClientLayoutProps {
+  children: ReactNode;
+}
 
-  const menuItems = [
-    {
-      icon: LayoutDashboard,
-      label: "Dashboard",
-      path: "/client",
-    },
-    {
-      icon: FileSignature,
-      label: "Apply for a New Loan",
-      path: "/client/apply",
-    },
-    {
-      icon: Clock,
-      label: "Application Status",
-      path: "/client/status",
-    },
-    {
-      icon: Wallet,
-      label: "Repayments",
-      path: "/client/repayments",
-    },
-    {
-      icon: FileText,
-      label: "My Loans",
-      path: "/client/loans",
-    },
-    {
-      icon: User,
-      label: "Profile",
-      path: "/client/profile",
-    },
-    {
-      icon: HelpCircle,
-      label: "Support",
-      path: "/client/support",
-    },
-  ];
-
+const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
   return (
-    <div className="flex h-screen">
-      {/* Sidebar */}
-      <aside
-        className={`bg-[#32CD32] text-white ${
-          isSidebarOpen ? "w-64" : "w-16"
-        } transition-all duration-300 ease-in-out`}
-      >
-        <div className="flex flex-col h-full">
-          <div className="p-4 flex justify-between items-center">
-            <h1 className={`font-bold ${isSidebarOpen ? "block" : "hidden"}`}>
-              Client Portal
-            </h1>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="text-white hover:bg-white/10"
-            >
-              {isSidebarOpen ? (
-                <X className="h-4 w-4" />
-              ) : (
-                <Menu className="h-4 w-4" />
-              )}
-            </Button>
+    <div className="min-h-screen bg-gray-50">
+      <div className="flex flex-col">
+        <header className="bg-white shadow">
+          <div className="container mx-auto px-6 py-4">
+            <h1 className="text-2xl font-bold text-gray-800">Client Portal</h1>
           </div>
-
-          <nav className="flex-1 p-4">
-            <ul className="space-y-2">
-              {menuItems.map((item) => (
-                <li key={item.path}>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-white hover:bg-white/10"
-                    onClick={() => navigate(item.path)}
-                  >
-                    <item.icon className="mr-2 h-4 w-4" />
-                    {isSidebarOpen && item.label}
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          <div className="p-4">
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-white hover:bg-white/10"
-              onClick={handleSignOut}
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              {isSidebarOpen && "Sign Out"}
-            </Button>
+        </header>
+        <main className="flex-grow">
+          {children}
+        </main>
+        <footer className="bg-white border-t">
+          <div className="container mx-auto px-6 py-4 text-center text-gray-500 text-sm">
+            &copy; {new Date().getFullYear()} Loan Management System. All rights reserved.
           </div>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        <div className="bg-[#FFD700] p-4">
-          <h1 className="text-xl font-bold">Welcome to K&R Financial Services</h1>
-        </div>
-        <div className="p-6">
-          <Outlet />
-        </div>
-      </main>
+        </footer>
+      </div>
     </div>
   );
 };
