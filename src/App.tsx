@@ -9,7 +9,7 @@ import AuthForm from "@/components/auth/AuthForm";
 import { adminRoutes } from "./routes/adminRoutes";
 import { clientRoutes } from "./routes/clientRoutes";
 import LoanApplicationSteps from "@/components/loan/LoanApplicationSteps";
-import ProtectedRoute from "./routes/ProtectedRoute";
+import { ProtectedRoute } from "./routes/ProtectedRoute";
 import SetPassword from "./pages/SetPassword";
 
 // Create a new QueryClient instance
@@ -28,7 +28,16 @@ const App = () => {
               <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="/login" element={<AuthForm />} />
               <Route path="/set-password" element={<SetPassword />} />
-              <Route path="/apply" element={<LoanApplicationSteps />} />
+              
+              {/* Public loan application */}
+              <Route 
+                path="/apply" 
+                element={
+                  <ProtectedRoute allowedRoles={["client"]}>
+                    <LoanApplicationSteps />
+                  </ProtectedRoute>
+                } 
+              />
 
               {/* Client Routes */}
               {clientRoutes}

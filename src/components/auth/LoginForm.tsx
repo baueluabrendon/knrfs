@@ -1,6 +1,6 @@
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -20,7 +20,6 @@ export const LoginForm = () => {
   
   // Only extract the signIn method, not the user state
   const { signIn } = useAuth(); 
-  const navigate = useNavigate();
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -33,18 +32,12 @@ export const LoginForm = () => {
 
     try {
       console.log("LoginForm: Starting sign in process with:", email);
-      const userProfile = await signIn(email, password);
+      await signIn(email, password);
       
       console.log("LoginForm: Sign in successful");
       toast.success("Successfully logged in!");
       
-      // Check if this is a first-time login (password not changed)
-      if (userProfile && userProfile.is_password_changed === false) {
-        console.log("LoginForm: First login detected, redirecting to set-password");
-        navigate('/set-password', { replace: true });
-      }
-      // Otherwise navigation is handled by the AuthForm component or ProtectedRoute
-      
+      // AuthForm component will handle navigation based on user state
     } catch (error: any) {
       console.error("LoginForm: Sign in error:", error);
       

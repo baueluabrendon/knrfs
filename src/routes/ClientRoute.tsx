@@ -20,17 +20,17 @@ export const ClientRoute = ({ children }: ClientRouteProps) => {
   }
 
   if (!user) {
-    console.log("User not authenticated, redirecting to login");
+    console.log("ClientRoute: No user found, redirecting to login");
     return <Navigate to="/login" replace />;
   }
 
   if (user.is_password_changed === false) {
-    console.log("User needs to set password");
+    console.log("ClientRoute: User needs to set password");
     return <Navigate to="/set-password" replace />;
   }
 
   if (user.role !== 'client') {
-    console.log("User is not a client, redirecting to appropriate dashboard");
+    console.log("ClientRoute: User is not a client, redirecting to admin dashboard");
     return <Navigate to="/admin" replace />;
   }
 

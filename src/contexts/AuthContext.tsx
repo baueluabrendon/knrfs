@@ -30,29 +30,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const checkSession = async () => {
-      setAuthState((prev) => ({ ...prev, loading: true }));
-
       try {
-        const session = await authService.getCurrentSession();
+        console.log("AuthProvider: Checking for existing session");
         
-        if (!session) {
+        const sessionData = await authService.checkExistingSession();
+        
+        if (!sessionData) {
           console.log("AuthProvider: No active session");
           setAuthState({ user: null, loading: false, error: null });
           return;
         }
 
-        console.log("AuthProvider: Found session for user:", session.user.id);
+        console.log("AuthProvider: Found session for user profile:", sessionData.userProfile);
         
-        const profile = await authService.fetchUserProfile(session.user.id);
-        
-        if (!profile) {
-          console.error("AuthProvider: Failed to fetch user profile");
-          setAuthState({ user: null, loading: false, error: "Failed to fetch user profile" });
-          return;
-        }
-
+        // Set the user in state
         setAuthState({
-          user: profile,
+          user: sessionData.userProfile,
           loading: false,
           error: null,
         });
@@ -66,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     // Set up auth state change listener
     const subscription = authService.setupAuthListener((user) => {
+      console.log("AuthProvider: Auth state changed, user:", user);
       setAuthState((prev) => ({ 
         ...prev, 
         user,
@@ -89,7 +83,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error("Failed to sign in");
       }
       
+      console.log("AuthProvider: Sign in successful, user profile:", userProfile);
       setAuthState({ user: userProfile, loading: false, error: null });
+      
       return userProfile;
     } catch (error: any) {
       console.error("AuthProvider: Sign in error", error);

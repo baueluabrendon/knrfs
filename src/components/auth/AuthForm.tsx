@@ -1,5 +1,5 @@
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthHeader } from "./AuthHeader";
@@ -9,22 +9,25 @@ import { Loader2 } from "lucide-react";
 const AuthForm = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const redirectAttempted = useRef(false);
 
+  // Handle redirection based on user state
   useEffect(() => {
-    // Only attempt redirection if:
-    // 1. Not currently loading
-    // 2. User is authenticated
-    // 3. Haven't already attempted a redirect
-    if (!loading && user && !redirectAttempted.current) {
-      console.log("AuthForm: User already logged in, redirecting...", user);
-      redirectAttempted.current = true;
+    if (loading) return;
+    
+    if (user) {
+      console.log("AuthForm: User authenticated, checking status...");
       
-      if (user.role === 'client') {
-        navigate('/client', { replace: true });
-      } else {
-        navigate('/admin', { replace: true });
+      // First-time login check
+      if (user.is_password_changed === false) {
+        console.log("AuthForm: First login detected, redirecting to set-password");
+        navigate('/set-password', { replace: true });
+        return;
       }
+      
+      // Direct to appropriate dashboard
+      const redirectPath = user.role === 'client' ? '/client' : '/admin';
+      console.log(`AuthForm: User already logged in, redirecting to ${redirectPath}`);
+      navigate(redirectPath, { replace: true });
     }
   }, [user, navigate, loading]);
 

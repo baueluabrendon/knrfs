@@ -13,11 +13,6 @@ export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) 
   const { user, loading } = useAuth();
   const [redirectPath, setRedirectPath] = useState<string | null>(null);
   
-  console.log("ProtectedRoute: Checking authorization");
-  console.log("ProtectedRoute: User:", user);
-  console.log("ProtectedRoute: User role:", user?.role);
-  console.log("ProtectedRoute: Allowed roles:", allowedRoles);
-
   useEffect(() => {
     if (loading) return;
     
@@ -61,4 +56,5 @@ export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) 
   return children ? <>{children}</> : <Outlet />;
 };
 
-export default ProtectedRoute;
+// Only export as named export, not default
+// (Removing the default export to avoid confusion)
