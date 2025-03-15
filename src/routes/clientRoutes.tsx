@@ -1,5 +1,6 @@
-import { Route } from "react-router-dom";
-import { ClientRoute } from "./ClientRoute";
+
+import { Route, Routes } from "react-router-dom";
+import { ProtectedRoute } from "./ProtectedRoute";
 import ClientLayout from "@/components/client/ClientLayout";
 import ClientDashboard from "@/pages/client/ClientDashboard";
 import ClientLoans from "@/pages/client/ClientLoans";
@@ -9,21 +10,32 @@ import ClientRepayments from "@/pages/client/ClientRepayments";
 import ClientProfile from "@/pages/client/ClientProfile";
 import ClientSupport from "@/pages/client/ClientSupport";
 
-export const clientRoutes = (
-  <Route
-    path="/client"
-    element={
-      <ClientRoute>
-        <ClientLayout />
-      </ClientRoute>
-    }
-  >
-    <Route index element={<ClientDashboard />} />
-    <Route path="loans" element={<ClientLoans />} />
-    <Route path="apply" element={<LoanApplicationSteps />} />
-    <Route path="status" element={<ApplicationStatus />} />
-    <Route path="repayments" element={<ClientRepayments />} />
-    <Route path="profile" element={<ClientProfile />} />
-    <Route path="support" element={<ClientSupport />} />
-  </Route>
-);
+const ClientRoutes = () => {
+  return (
+    <Routes>
+      <Route 
+        element={
+          <ProtectedRoute allowedRoles={["client"]} />
+        }
+      >
+        <Route 
+          path="/client"
+          element={<ClientLayout />}
+        >
+          <Route index element={<ClientDashboard />} />
+          <Route path="loans" element={<ClientLoans />} />
+          <Route path="apply" element={<LoanApplicationSteps />} />
+          <Route path="status" element={<ApplicationStatus />} />
+          <Route path="repayments" element={<ClientRepayments />} />
+          <Route path="profile" element={<ClientProfile />} />
+          <Route path="support" element={<ClientSupport />} />
+        </Route>
+      </Route>
+    </Routes>
+  );
+};
+
+export default ClientRoutes;
+
+// Named export for App.tsx
+export const clientRoutes = <ClientRoutes />;

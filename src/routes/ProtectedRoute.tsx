@@ -1,7 +1,7 @@
 
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { ReactNode, useEffect, useState, useRef } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
@@ -12,19 +12,14 @@ interface ProtectedRouteProps {
 export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
   const [redirectPath, setRedirectPath] = useState<string | null>(null);
-  const checkAttempted = useRef(false);
   
   console.log("ProtectedRoute: Checking authorization");
   console.log("ProtectedRoute: User:", user);
   console.log("ProtectedRoute: User role:", user?.role);
   console.log("ProtectedRoute: Allowed roles:", allowedRoles);
 
-  // Single effect to handle all authorization checks to avoid multiple re-renders
   useEffect(() => {
-    // Skip if still loading, already checked, or redirect already set
-    if (loading || redirectPath !== null || checkAttempted.current) return;
-    
-    checkAttempted.current = true;
+    if (loading) return;
     
     // No user -> redirect to login
     if (!user) {
@@ -48,7 +43,7 @@ export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) 
       setRedirectPath(path);
       return;
     }
-  }, [user, loading, allowedRoles, redirectPath]);
+  }, [user, loading, allowedRoles]);
 
   if (loading) {
     return (

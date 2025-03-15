@@ -30,34 +30,11 @@ const App = () => {
               <Route path="/set-password" element={<SetPassword />} />
               <Route path="/apply" element={<LoanApplicationSteps />} />
 
-              {/* Client Routes - Protected */}
-              <Route
-                path="/client/*"
-                element={
-                  <ProtectedRoute allowedRoles={["client"]}>
-                    {clientRoutes}
-                  </ProtectedRoute>
-                }
-              />
+              {/* Client Routes */}
+              {clientRoutes}
 
-              {/* Admin Routes - Protected */}
-              <Route
-                path="/admin/*"
-                element={
-                  <ProtectedRoute
-                    allowedRoles={[
-                      "administrator",
-                      "super user",
-                      "sales officer",
-                      "accounts officer",
-                      "recoveries officer",
-                      "administration officer",
-                    ]}
-                  >
-                    {adminRoutes}
-                  </ProtectedRoute>
-                }
-              />
+              {/* Admin Routes */}
+              {adminRoutes}
 
               {/* Catch-all: Redirect to login */}
               <Route path="*" element={<Navigate to="/login" replace />} />
