@@ -31,15 +31,8 @@ const App = () => {
               <Route path="/login" element={<AuthForm />} />
               <Route path="/set-password" element={<SetPassword />} />
               
-              {/* Public loan application */}
-              <Route 
-                path="/apply" 
-                element={
-                  <ProtectedRoute allowedRoles={["client"]}>
-                    <LoanApplicationSteps />
-                  </ProtectedRoute>
-                } 
-              />
+              {/* Public loan application - No longer wrapped in ProtectedRoute */}
+              <Route path="/apply" element={<LoanApplicationSteps />} />
 
               {/* Client Routes */}
               {clientRoutes.map((route) => (
