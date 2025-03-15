@@ -1,31 +1,80 @@
 
-import { Route } from "react-router-dom";
+import { RouteProps } from "react-router-dom";
 import { ProtectedRoute } from "./ProtectedRoute";
 import ClientLayout from "@/components/client/ClientLayout";
+
 import ClientDashboard from "@/pages/client/ClientDashboard";
 import ClientLoans from "@/pages/client/ClientLoans";
-import LoanApplicationSteps from "@/components/loan/LoanApplicationSteps";
-import ApplicationStatus from "@/pages/client/ApplicationStatus";
 import ClientRepayments from "@/pages/client/ClientRepayments";
 import ClientProfile from "@/pages/client/ClientProfile";
 import ClientSupport from "@/pages/client/ClientSupport";
+import ApplicationStatus from "@/pages/client/ApplicationStatus";
 
-// Export the client routes as JSX elements to be used directly in App.tsx
-export const clientRoutes = (
-  <Route 
-    element={<ProtectedRoute allowedRoles={["client"]} />}
-  >
-    <Route 
-      path="/client"
-      element={<ClientLayout />}
-    >
-      <Route index element={<ClientDashboard />} />
-      <Route path="loans" element={<ClientLoans />} />
-      <Route path="apply" element={<LoanApplicationSteps />} />
-      <Route path="status" element={<ApplicationStatus />} />
-      <Route path="repayments" element={<ClientRepayments />} />
-      <Route path="profile" element={<ClientProfile />} />
-      <Route path="support" element={<ClientSupport />} />
-    </Route>
-  </Route>
-);
+// Define routes as an array of objects with path and element properties
+interface AppRoute extends Omit<RouteProps, 'element'> {
+  path: string;
+  element: React.ReactNode;
+}
+
+export const clientRoutes: AppRoute[] = [
+  {
+    path: "/client",
+    element: (
+      <ProtectedRoute allowedRoles={["client"]}>
+        <ClientLayout>
+          <ClientDashboard />
+        </ClientLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/client/loans",
+    element: (
+      <ProtectedRoute allowedRoles={["client"]}>
+        <ClientLayout>
+          <ClientLoans />
+        </ClientLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/client/repayments",
+    element: (
+      <ProtectedRoute allowedRoles={["client"]}>
+        <ClientLayout>
+          <ClientRepayments />
+        </ClientLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/client/profile",
+    element: (
+      <ProtectedRoute allowedRoles={["client"]}>
+        <ClientLayout>
+          <ClientProfile />
+        </ClientLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/client/support",
+    element: (
+      <ProtectedRoute allowedRoles={["client"]}>
+        <ClientLayout>
+          <ClientSupport />
+        </ClientLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/client/applications",
+    element: (
+      <ProtectedRoute allowedRoles={["client"]}>
+        <ClientLayout>
+          <ApplicationStatus />
+        </ClientLayout>
+      </ProtectedRoute>
+    ),
+  },
+];

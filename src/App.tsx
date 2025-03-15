@@ -6,11 +6,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import AuthForm from "@/components/auth/AuthForm";
-import { adminRoutes } from "./routes/adminRoutes";
-import { clientRoutes } from "./routes/clientRoutes";
-import LoanApplicationSteps from "@/components/loan/LoanApplicationSteps";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import SetPassword from "./pages/SetPassword";
+import LoanApplicationSteps from "@/components/loan/LoanApplicationSteps";
+
+// Import the routes, not the components
+import { adminRoutes } from "./routes/adminRoutes";
+import { clientRoutes } from "./routes/clientRoutes";
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
@@ -39,11 +41,15 @@ const App = () => {
                 } 
               />
 
-              {/* Client Routes - already using ProtectedRoute internally */}
-              {clientRoutes}
+              {/* Client Routes */}
+              {clientRoutes.map((route) => (
+                <Route key={route.path} path={route.path} element={route.element} />
+              ))}
 
-              {/* Admin Routes - already using ProtectedRoute internally */}
-              {adminRoutes}
+              {/* Admin Routes */}
+              {adminRoutes.map((route) => (
+                <Route key={route.path} path={route.path} element={route.element} />
+              ))}
 
               {/* Catch-all: Redirect to login */}
               <Route path="*" element={<Navigate to="/login" replace />} />
