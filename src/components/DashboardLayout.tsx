@@ -1,4 +1,3 @@
-
 import { ReactNode, useState, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { toast } from "sonner";
@@ -8,7 +7,7 @@ import SidebarHeader from "./SidebarHeader";
 import BorrowerDialog from "./borrowers/BorrowerDialog";
 import { menuItems as defaultMenuItems } from "@/config/menuItems";
 import { BorrowerFormData, BorrowerInsertData } from "./borrowers/BorrowerForm";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DashboardLayoutProps {
   children?: ReactNode;

@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { Upload } from "lucide-react";
 import RepaymentDialog from "@/components/repayments/RepaymentDialog";
 import RepaymentsTable from "@/components/repayments/RepaymentsTable";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { Repayment } from "@/types/repayment";
 
 const Repayments = () => {

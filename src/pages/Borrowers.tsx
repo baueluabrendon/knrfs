@@ -14,7 +14,7 @@ import BorrowerDetails from "@/components/borrowers/BorrowerDetails";
 import BorrowersTable from "@/components/borrowers/BorrowersTable";
 import BorrowerDialog from "@/components/borrowers/BorrowerDialog";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
 interface Borrower {
