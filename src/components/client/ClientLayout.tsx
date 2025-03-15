@@ -3,6 +3,7 @@ import React, { useState, ReactNode } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
   LayoutDashboard,
   FileText,
@@ -26,8 +27,14 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate("/login");
+    try {
+      await signOut();
+      toast.success("Successfully signed out");
+      navigate("/login", { replace: true });
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast.error("Failed to sign out. Please try again.");
+    }
   };
 
   const menuItems = [
