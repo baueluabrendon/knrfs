@@ -4,9 +4,9 @@ import { toast } from "sonner";
 import { LoanApplicationContextType } from "./types";
 import { useApplicationSteps } from "./hooks/useApplicationSteps";
 import { useDocumentUploader } from "./hooks/useDocumentUploader";
-import { useOcrProcessor } from "./hooks/useOcrProcessor";
 import { useFormData } from "./hooks/useFormData";
 import { useEmployerTypeSelection } from "./hooks/useEmployerTypeSelection";
+import { useOcrProcessor } from "./ocr-processor";
 
 const LoanApplicationContext = createContext<LoanApplicationContextType | undefined>(undefined);
 

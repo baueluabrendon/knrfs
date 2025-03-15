@@ -39,10 +39,10 @@ const App = () => {
                 } 
               />
 
-              {/* Client Routes */}
+              {/* Client Routes - already using ProtectedRoute internally */}
               {clientRoutes}
 
-              {/* Admin Routes */}
+              {/* Admin Routes - already using ProtectedRoute internally */}
               {adminRoutes}
 
               {/* Catch-all: Redirect to login */}

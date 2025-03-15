@@ -21,7 +21,6 @@ const ApplicationForm = () => {
   // Pre-fill form with OCR data when available
   useEffect(() => {
     if (formData) {
-      // This effect will trigger form pre-fill when formData changes
       console.log("Pre-filling form with extracted data:", formData);
       
       // Pre-fill the form fields using useForm's setValue method

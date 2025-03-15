@@ -1,7 +1,7 @@
 
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
@@ -55,5 +55,3 @@ export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) 
 
   return children ? <>{children}</> : <Outlet />;
 };
-
-// Remove any default export to avoid confusion

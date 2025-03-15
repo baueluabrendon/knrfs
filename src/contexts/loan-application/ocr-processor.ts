@@ -7,6 +7,8 @@ import {
   retryOperation,
   STORAGE_CONFIG
 } from "@/utils/storageUtils";
+import { toast } from "sonner";
+import { useState } from "react";
 
 /**
  * Processes an application form using Google Cloud Vision API through edge function
@@ -115,3 +117,44 @@ export const processApplicationFormOCR = async (file: File, applicationUuid: str
     throw new Error(`OCR processing failed: ${error.message}`);
   }
 };
+
+/**
+ * Hook for OCR processing
+ */
+export function useOcrProcessor(
+  documents: Record<string, any>, 
+  applicationUuid: string
+) {
+  const [isProcessingOCR, setIsProcessingOCR] = useState(false);
+
+  const processApplicationForm = async (): Promise<any> => {
+    if (!documents.applicationForm?.file) {
+      toast.error("No application form uploaded");
+      return null;
+    }
+    
+    setIsProcessingOCR(true);
+    
+    try {
+      console.log("Starting OCR processing of application form...");
+      const extractedData = await processApplicationFormOCR(documents.applicationForm.file, applicationUuid);
+      
+      if (extractedData) {
+        console.log("Successfully extracted data from application form:", extractedData);
+        return extractedData;
+      }
+      return null;
+    } catch (error) {
+      console.error("Error processing application form:", error);
+      toast.error("Failed to process application form");
+      throw error; // Re-throw to allow for custom error handling in UI
+    } finally {
+      setIsProcessingOCR(false);
+    }
+  };
+
+  return {
+    isProcessingOCR,
+    processApplicationForm
+  };
+}

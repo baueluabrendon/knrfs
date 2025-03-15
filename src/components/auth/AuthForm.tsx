@@ -10,25 +10,18 @@ const AuthForm = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  // Handle redirection based on user state
+  // Only handle redirection for authenticated users
   useEffect(() => {
-    if (loading) return;
+    if (loading || !user) return;
     
-    if (user) {
-      console.log("AuthForm: User authenticated, checking status...");
-      
-      // First-time login check
-      if (user.is_password_changed === false) {
-        console.log("AuthForm: First login detected, redirecting to set-password");
-        navigate('/set-password', { replace: true });
-        return;
-      }
-      
-      // Direct to appropriate dashboard
-      const redirectPath = user.role === 'client' ? '/client' : '/admin';
-      console.log(`AuthForm: User already logged in, redirecting to ${redirectPath}`);
-      navigate(redirectPath, { replace: true });
+    // Use the same redirection logic as in ProtectedRoute
+    if (user.is_password_changed === false) {
+      navigate('/set-password', { replace: true });
+      return;
     }
+    
+    const redirectPath = user.role === 'client' ? '/client' : '/admin';
+    navigate(redirectPath, { replace: true });
   }, [user, navigate, loading]);
 
   if (loading) {
