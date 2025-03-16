@@ -29,11 +29,14 @@ interface AppRoute extends Omit<RouteProps, 'element'> {
   element: React.ReactNode;
 }
 
+// Define the admin roles array
+const adminRoles = ["administrator", "super user", "sales officer", "accounts officer", "administration officer", "recoveries officer"];
+
 export const adminRoutes: AppRoute[] = [
   {
     path: "/admin",
     element: (
-      <ProtectedRoute allowedRoles={["admin"]}>
+      <ProtectedRoute allowedRoles={adminRoles}>
         <DashboardLayout>
           <Index />
         </DashboardLayout>
@@ -43,7 +46,7 @@ export const adminRoutes: AppRoute[] = [
   {
     path: "/admin/loans",
     element: (
-      <ProtectedRoute allowedRoles={["admin"]}>
+      <ProtectedRoute allowedRoles={adminRoles}>
         <DashboardLayout>
           <Loans />
         </DashboardLayout>
@@ -53,7 +56,7 @@ export const adminRoutes: AppRoute[] = [
   {
     path: "/admin/loans/add",
     element: (
-      <ProtectedRoute allowedRoles={["admin"]}>
+      <ProtectedRoute allowedRoles={adminRoles}>
         <DashboardLayout>
           <AddLoan />
         </DashboardLayout>
@@ -63,7 +66,7 @@ export const adminRoutes: AppRoute[] = [
   {
     path: "/admin/loans/arrears",
     element: (
-      <ProtectedRoute allowedRoles={["admin"]}>
+      <ProtectedRoute allowedRoles={adminRoles}>
         <DashboardLayout>
           <LoansInArrears />
         </DashboardLayout>
@@ -73,7 +76,7 @@ export const adminRoutes: AppRoute[] = [
   {
     path: "/admin/loans/missed",
     element: (
-      <ProtectedRoute allowedRoles={["admin"]}>
+      <ProtectedRoute allowedRoles={adminRoles}>
         <DashboardLayout>
           <MissedPayments />
         </DashboardLayout>
@@ -83,7 +86,7 @@ export const adminRoutes: AppRoute[] = [
   {
     path: "/admin/loans/partial",
     element: (
-      <ProtectedRoute allowedRoles={["admin"]}>
+      <ProtectedRoute allowedRoles={adminRoles}>
         <DashboardLayout>
           <PartialPayments />
         </DashboardLayout>
@@ -93,7 +96,7 @@ export const adminRoutes: AppRoute[] = [
   {
     path: "/admin/borrowers",
     element: (
-      <ProtectedRoute allowedRoles={["admin"]}>
+      <ProtectedRoute allowedRoles={adminRoles}>
         <DashboardLayout>
           <Borrowers />
         </DashboardLayout>
@@ -103,7 +106,7 @@ export const adminRoutes: AppRoute[] = [
   {
     path: "/admin/users",
     element: (
-      <ProtectedRoute allowedRoles={["admin"]}>
+      <ProtectedRoute allowedRoles={adminRoles}>
         <DashboardLayout>
           <Users />
         </DashboardLayout>
@@ -113,7 +116,7 @@ export const adminRoutes: AppRoute[] = [
   {
     path: "/admin/applications",
     element: (
-      <ProtectedRoute allowedRoles={["admin"]}>
+      <ProtectedRoute allowedRoles={adminRoles}>
         <DashboardLayout>
           <Applications />
         </DashboardLayout>
@@ -123,7 +126,7 @@ export const adminRoutes: AppRoute[] = [
   {
     path: "/admin/repayments",
     element: (
-      <ProtectedRoute allowedRoles={["admin"]}>
+      <ProtectedRoute allowedRoles={adminRoles}>
         <DashboardLayout>
           <Repayments />
         </DashboardLayout>
@@ -133,7 +136,7 @@ export const adminRoutes: AppRoute[] = [
   {
     path: "/admin/recoveries",
     element: (
-      <ProtectedRoute allowedRoles={["admin"]}>
+      <ProtectedRoute allowedRoles={adminRoles}>
         <DashboardLayout>
           <Recoveries />
         </DashboardLayout>
@@ -143,7 +146,7 @@ export const adminRoutes: AppRoute[] = [
   {
     path: "/admin/analytics",
     element: (
-      <ProtectedRoute allowedRoles={["admin"]}>
+      <ProtectedRoute allowedRoles={adminRoles}>
         <DashboardLayout>
           <Analytics />
         </DashboardLayout>
@@ -153,7 +156,7 @@ export const adminRoutes: AppRoute[] = [
   {
     path: "/admin/accounting/coa",
     element: (
-      <ProtectedRoute allowedRoles={["admin"]}>
+      <ProtectedRoute allowedRoles={adminRoles}>
         <DashboardLayout>
           <ChartOfAccounts />
         </DashboardLayout>
@@ -163,7 +166,7 @@ export const adminRoutes: AppRoute[] = [
   {
     path: "/admin/accounting/pl",
     element: (
-      <ProtectedRoute allowedRoles={["admin"]}>
+      <ProtectedRoute allowedRoles={adminRoles}>
         <DashboardLayout>
           <ProfitAndLoss />
         </DashboardLayout>
@@ -173,7 +176,7 @@ export const adminRoutes: AppRoute[] = [
   {
     path: "/admin/accounting/bs",
     element: (
-      <ProtectedRoute allowedRoles={["admin"]}>
+      <ProtectedRoute allowedRoles={adminRoles}>
         <DashboardLayout>
           <BalanceSheet />
         </DashboardLayout>
@@ -183,7 +186,7 @@ export const adminRoutes: AppRoute[] = [
   {
     path: "/admin/accounting/cf",
     element: (
-      <ProtectedRoute allowedRoles={["admin"]}>
+      <ProtectedRoute allowedRoles={adminRoles}>
         <DashboardLayout>
           <Cashflow />
         </DashboardLayout>
@@ -193,7 +196,7 @@ export const adminRoutes: AppRoute[] = [
   {
     path: "/admin/loans/bulk",
     element: (
-      <ProtectedRoute allowedRoles={["admin"]}>
+      <ProtectedRoute allowedRoles={adminRoles}>
         <DashboardLayout>
           <BulkLoans />
         </DashboardLayout>
@@ -203,7 +206,7 @@ export const adminRoutes: AppRoute[] = [
   {
     path: "/admin/borrowers/bulk",
     element: (
-      <ProtectedRoute allowedRoles={["admin"]}>
+      <ProtectedRoute allowedRoles={adminRoles}>
         <DashboardLayout>
           <BulkBorrowers />
         </DashboardLayout>
@@ -213,7 +216,7 @@ export const adminRoutes: AppRoute[] = [
   {
     path: "/admin/repayments/bulk",
     element: (
-      <ProtectedRoute allowedRoles={["admin"]}>
+      <ProtectedRoute allowedRoles={adminRoles}>
         <DashboardLayout>
           <BulkRepayments />
         </DashboardLayout>
