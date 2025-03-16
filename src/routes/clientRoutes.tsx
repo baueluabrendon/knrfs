@@ -1,8 +1,5 @@
 
 import { RouteProps } from "react-router-dom";
-import { ProtectedRoute } from "./ProtectedRoute";
-import ClientLayout from "@/components/client/ClientLayout";
-
 import ClientDashboard from "@/pages/client/ClientDashboard";
 import ClientLoans from "@/pages/client/ClientLoans";
 import ClientRepayments from "@/pages/client/ClientRepayments";
@@ -16,65 +13,30 @@ interface AppRoute extends Omit<RouteProps, 'element'> {
   element: React.ReactNode;
 }
 
+// Client routes without ProtectedRoute wrapper - will be applied in App.tsx
 export const clientRoutes: AppRoute[] = [
   {
     path: "/client",
-    element: (
-      <ProtectedRoute allowedRoles={["client"]}>
-        <ClientLayout>
-          <ClientDashboard />
-        </ClientLayout>
-      </ProtectedRoute>
-    ),
+    element: <ClientDashboard />
   },
   {
     path: "/client/loans",
-    element: (
-      <ProtectedRoute allowedRoles={["client"]}>
-        <ClientLayout>
-          <ClientLoans />
-        </ClientLayout>
-      </ProtectedRoute>
-    ),
+    element: <ClientLoans />
   },
   {
     path: "/client/repayments",
-    element: (
-      <ProtectedRoute allowedRoles={["client"]}>
-        <ClientLayout>
-          <ClientRepayments />
-        </ClientLayout>
-      </ProtectedRoute>
-    ),
+    element: <ClientRepayments />
   },
   {
     path: "/client/profile",
-    element: (
-      <ProtectedRoute allowedRoles={["client"]}>
-        <ClientLayout>
-          <ClientProfile />
-        </ClientLayout>
-      </ProtectedRoute>
-    ),
+    element: <ClientProfile />
   },
   {
     path: "/client/support",
-    element: (
-      <ProtectedRoute allowedRoles={["client"]}>
-        <ClientLayout>
-          <ClientSupport />
-        </ClientLayout>
-      </ProtectedRoute>
-    ),
+    element: <ClientSupport />
   },
   {
     path: "/client/applications",
-    element: (
-      <ProtectedRoute allowedRoles={["client"]}>
-        <ClientLayout>
-          <ApplicationStatus />
-        </ClientLayout>
-      </ProtectedRoute>
-    ),
+    element: <ApplicationStatus />
   },
 ];

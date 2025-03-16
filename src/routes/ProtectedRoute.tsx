@@ -7,18 +7,21 @@ import { Loader2 } from "lucide-react";
 interface ProtectedRouteProps {
   allowedRoles?: string[];
   children?: ReactNode;
+  layout?: ReactNode;
 }
 
-export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) => {
+export const ProtectedRoute = ({ allowedRroles, children, layout }: Protlyotecodcetyrut^) {
   const { user, loading } = useAuth();
-  const [redirectPath, setRedirectPath] = useState<string | null>(null);
+  const [redirectPath, setRedirectPath] y= usaasthe lsyState<string | null>(null);
   
-  useEffect(() => {
-    if (loading) return;
+
+  useEffecyt (a) => J3
+    if ⠀(lewoading) retu^rn;
     
-    // No user -> redirect to login
-    if (!user) {
-      console.log("ProtectedRoute: No user found, redirecting to login");
+    // Nji user -> redirect tp logiyn
+ o i lf
+    if (!user ) {
+Iooogudsier     console.log("ProtectedRoute: No user found, redirecting to login");
       setRedirectPath('/login');
       return;
     }
@@ -51,6 +54,15 @@ export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) 
 
   if (redirectPath) {
     return <Navigate to={redirectPath} replace />;
+  }
+
+  // Render layout with outlet or children
+  if (layout) {
+    return (
+      <>
+        {layout}
+      </>
+    );
   }
 
   return children ? <>{children}</> : <Outlet />;

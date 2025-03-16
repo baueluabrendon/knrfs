@@ -1,8 +1,4 @@
 
-import { Route, RouteProps } from "react-router-dom";
-import { ProtectedRoute } from "./ProtectedRoute";
-import DashboardLayout from "@/components/DashboardLayout";
-
 import Loans from "@/pages/Loans";
 import Borrowers from "@/pages/Borrowers";
 import AddLoan from "@/pages/AddLoan";
@@ -22,6 +18,7 @@ import BulkLoans from "@/pages/BulkLoans";
 import BulkBorrowers from "@/pages/BulkBorrowers";
 import BulkRepayments from "@/pages/BulkRepayments";
 import Recoveries from "@/pages/Recoveries";
+import { RouteProps } from "react-router-dom";
 
 // Define routes as an array of objects with path and element properties
 interface AppRoute extends Omit<RouteProps, 'element'> {
@@ -29,198 +26,82 @@ interface AppRoute extends Omit<RouteProps, 'element'> {
   element: React.ReactNode;
 }
 
-// Define the admin roles array
-const adminRoles = ["administrator", "super user", "sales officer", "accounts officer", "administration officer", "recoveries officer"];
-
+// Admin routes without ProtectedRoute wrapper - will be applied in App.tsx
 export const adminRoutes: AppRoute[] = [
   {
     path: "/admin",
-    element: (
-      <ProtectedRoute allowedRoles={adminRoles}>
-        <DashboardLayout>
-          <Index />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
+    element: <Index />
   },
   {
     path: "/admin/loans",
-    element: (
-      <ProtectedRoute allowedRoles={adminRoles}>
-        <DashboardLayout>
-          <Loans />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
+    element: <Loans />
   },
   {
     path: "/admin/loans/add",
-    element: (
-      <ProtectedRoute allowedRoles={adminRoles}>
-        <DashboardLayout>
-          <AddLoan />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
+    element: <AddLoan />
   },
   {
     path: "/admin/loans/arrears",
-    element: (
-      <ProtectedRoute allowedRoles={adminRoles}>
-        <DashboardLayout>
-          <LoansInArrears />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
+    element: <LoansInArrears />
   },
   {
     path: "/admin/loans/missed",
-    element: (
-      <ProtectedRoute allowedRoles={adminRoles}>
-        <DashboardLayout>
-          <MissedPayments />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
+    element: <MissedPayments />
   },
   {
     path: "/admin/loans/partial",
-    element: (
-      <ProtectedRoute allowedRoles={adminRoles}>
-        <DashboardLayout>
-          <PartialPayments />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
+    element: <PartialPayments />
   },
   {
     path: "/admin/borrowers",
-    element: (
-      <ProtectedRoute allowedRoles={adminRoles}>
-        <DashboardLayout>
-          <Borrowers />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
+    element: <Borrowers />
   },
   {
     path: "/admin/users",
-    element: (
-      <ProtectedRoute allowedRoles={adminRoles}>
-        <DashboardLayout>
-          <Users />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
+    element: <Users />
   },
   {
     path: "/admin/applications",
-    element: (
-      <ProtectedRoute allowedRoles={adminRoles}>
-        <DashboardLayout>
-          <Applications />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
+    element: <Applications />
   },
   {
     path: "/admin/repayments",
-    element: (
-      <ProtectedRoute allowedRoles={adminRoles}>
-        <DashboardLayout>
-          <Repayments />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
+    element: <Repayments />
   },
   {
     path: "/admin/recoveries",
-    element: (
-      <ProtectedRoute allowedRoles={adminRoles}>
-        <DashboardLayout>
-          <Recoveries />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
+    element: <Recoveries />
   },
   {
     path: "/admin/analytics",
-    element: (
-      <ProtectedRoute allowedRoles={adminRoles}>
-        <DashboardLayout>
-          <Analytics />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
+    element: <Analytics />
   },
   {
     path: "/admin/accounting/coa",
-    element: (
-      <ProtectedRoute allowedRoles={adminRoles}>
-        <DashboardLayout>
-          <ChartOfAccounts />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
+    element: <ChartOfAccounts />
   },
   {
     path: "/admin/accounting/pl",
-    element: (
-      <ProtectedRoute allowedRoles={adminRoles}>
-        <DashboardLayout>
-          <ProfitAndLoss />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
+    element: <ProfitAndLoss />
   },
   {
     path: "/admin/accounting/bs",
-    element: (
-      <ProtectedRoute allowedRoles={adminRoles}>
-        <DashboardLayout>
-          <BalanceSheet />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
+    element: <BalanceSheet />
   },
   {
     path: "/admin/accounting/cf",
-    element: (
-      <ProtectedRoute allowedRoles={adminRoles}>
-        <DashboardLayout>
-          <Cashflow />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
+    element: <Cashflow />
   },
   {
     path: "/admin/loans/bulk",
-    element: (
-      <ProtectedRoute allowedRoles={adminRoles}>
-        <DashboardLayout>
-          <BulkLoans />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
+    element: <BulkLoans />
   },
   {
     path: "/admin/borrowers/bulk",
-    element: (
-      <ProtectedRoute allowedRoles={adminRoles}>
-        <DashboardLayout>
-          <BulkBorrowers />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
+    element: <BulkBorrowers />
   },
   {
     path: "/admin/repayments/bulk",
-    element: (
-      <ProtectedRoute allowedRoles={adminRoles}>
-        <DashboardLayout>
-          <BulkRepayments />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
+    element: <BulkRepayments />
   },
 ];
