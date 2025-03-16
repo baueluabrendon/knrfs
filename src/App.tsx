@@ -41,12 +41,42 @@ const App = () => {
 
               {/* Client Routes with protection */}
               <Route element={<ProtectedRoute allowedRoles={clientRoles} />}>
-                {clientRoutes}
+                {clientRoutes.map((route) => (
+                  <Route
+                    key={route.path}
+                    path={route.path}
+                    element={route.element}
+                  >
+                    {route.children?.map((childRoute) => (
+                      <Route
+                        key={childRoute.path || 'index'}
+                        path={childRoute.path}
+                        element={childRoute.element}
+                        index={childRoute.index}
+                      />
+                    ))}
+                  </Route>
+                ))}
               </Route>
 
               {/* Admin Routes with protection */}
               <Route element={<ProtectedRoute allowedRoles={adminRoles} />}>
-                {adminRoutes}
+                {adminRoutes.map((route) => (
+                  <Route
+                    key={route.path}
+                    path={route.path}
+                    element={route.element}
+                  >
+                    {route.children?.map((childRoute) => (
+                      <Route
+                        key={childRoute.path || 'index'}
+                        path={childRoute.path}
+                        element={childRoute.element}
+                        index={childRoute.index}
+                      />
+                    ))}
+                  </Route>
+                ))}
               </Route>
 
               {/* Catch-all: Redirect to login */}

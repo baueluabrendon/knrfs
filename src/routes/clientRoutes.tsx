@@ -1,6 +1,5 @@
 
 import { RouteObject } from "react-router-dom";
-import { Route, Routes } from "react-router-dom";
 import ClientDashboard from "@/pages/client/ClientDashboard";
 import ClientLoans from "@/pages/client/ClientLoans";
 import ClientRepayments from "@/pages/client/ClientRepayments";
