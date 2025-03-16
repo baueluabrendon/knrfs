@@ -7,7 +7,7 @@ import ClientProfile from "@/pages/client/ClientProfile";
 import ClientSupport from "@/pages/client/ClientSupport";
 import ApplicationStatus from "@/pages/client/ApplicationStatus";
 import ClientLayout from "@/components/client/ClientLayout";
-import { Outlet } from "react-router-dom";
+import { Outlet, Route, Routes } from "react-router-dom";
 
 // Define routes as an array of objects with path and element properties
 interface AppRoute extends Omit<RouteProps, 'element'> {
@@ -20,12 +20,19 @@ export const clientRootRoute: AppRoute = {
   path: "/client",
   element: (
     <ClientLayout>
-      <Outlet />
+      <Routes>
+        <Route path="" element={<ClientDashboard />} />
+        <Route path="loans" element={<ClientLoans />} />
+        <Route path="repayments" element={<ClientRepayments />} />
+        <Route path="profile" element={<ClientProfile />} />
+        <Route path="support" element={<ClientSupport />} />
+        <Route path="applications" element={<ApplicationStatus />} />
+      </Routes>
     </ClientLayout>
   )
 };
 
-// Client child routes without layout (will be nested)
+// Client child routes for reference
 export const clientRoutes: AppRoute[] = [
   {
     path: "", // index route

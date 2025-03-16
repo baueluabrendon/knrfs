@@ -1,6 +1,6 @@
 
 import { RouteProps } from "react-router-dom";
-import { Outlet } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 
 import Loans from "@/pages/Loans";
@@ -34,12 +34,32 @@ export const adminRootRoute: AppRoute = {
   path: "/admin",
   element: (
     <DashboardLayout>
-      <Outlet />
+      <Routes>
+        <Route path="" element={<Index />} />
+        <Route path="loans" element={<Loans />} />
+        <Route path="loans/add" element={<AddLoan />} />
+        <Route path="loans/arrears" element={<LoansInArrears />} />
+        <Route path="loans/missed" element={<MissedPayments />} />
+        <Route path="loans/partial" element={<PartialPayments />} />
+        <Route path="borrowers" element={<Borrowers />} />
+        <Route path="users" element={<Users />} />
+        <Route path="applications" element={<Applications />} />
+        <Route path="repayments" element={<Repayments />} />
+        <Route path="recoveries" element={<Recoveries />} />
+        <Route path="analytics" element={<Analytics />} />
+        <Route path="accounting/coa" element={<ChartOfAccounts />} />
+        <Route path="accounting/pl" element={<ProfitAndLoss />} />
+        <Route path="accounting/bs" element={<BalanceSheet />} />
+        <Route path="accounting/cf" element={<Cashflow />} />
+        <Route path="loans/bulk" element={<BulkLoans />} />
+        <Route path="borrowers/bulk" element={<BulkBorrowers />} />
+        <Route path="repayments/bulk" element={<BulkRepayments />} />
+      </Routes>
     </DashboardLayout>
   )
 };
 
-// Admin child routes without layout (will be nested)
+// Admin child routes for reference
 export const adminRoutes: AppRoute[] = [
   {
     path: "", // index route

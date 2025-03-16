@@ -39,34 +39,20 @@ const App = () => {
               {/* Public loan application */}
               <Route path="/apply" element={<LoanApplicationSteps />} />
 
-              {/* Client Routes - Role protected and using ClientLayout from clientRootRoute */}
+              {/* Client Routes - Role protected */}
               <Route
-                path="/client"
+                path="/client/*"
                 element={<ProtectedRoute allowedRoles={clientRoles} />}
               >
-                <Route
-                  path=""
-                  element={clientRootRoute.element}
-                >
-                  {clientRoutes.map((route) => (
-                    <Route key={route.path} path={route.path} element={route.element} />
-                  ))}
-                </Route>
+                <Route path="*" element={clientRootRoute.element} />
               </Route>
 
-              {/* Admin Routes - Role protected and using DashboardLayout from adminRootRoute */}
+              {/* Admin Routes - Role protected */}
               <Route
-                path="/admin"
+                path="/admin/*"
                 element={<ProtectedRoute allowedRoles={adminRoles} />}
               >
-                <Route
-                  path=""
-                  element={adminRootRoute.element}
-                >
-                  {adminRoutes.map((route) => (
-                    <Route key={route.path} path={route.path} element={route.element} />
-                  ))}
-                </Route>
+                <Route path="*" element={adminRootRoute.element} />
               </Route>
 
               {/* Catch-all: Redirect to login */}
