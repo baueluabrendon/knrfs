@@ -1,46 +1,17 @@
 
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
-  allowedRoles?: string[];
+  allowedRoles: string[];
   children?: ReactNode;
-  layout?: ReactNode;
 }
 
-export const ProtectedRoute = ({ allowedRoles, children, layout }: ProtectedRouteProps) => {
+export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
-  const [redirectPath, setRedirectPath] = useState<string | null>(null);
   
-  useEffect(() => {
-    if (loading) return;
-    
-    // No user -> redirect to login
-    if (!user) {
-      console.log("ProtectedRoute: No user found, redirecting to login");
-      setRedirectPath('/login');
-      return;
-    }
-    
-    // User needs to set password -> redirect to password setup
-    if (user.is_password_changed === false) {
-      console.log("ProtectedRoute: User needs to set password");
-      setRedirectPath('/set-password');
-      return;
-    }
-    
-    // User role not allowed -> redirect to appropriate dashboard
-    if (allowedRoles && !allowedRoles.includes(user.role)) {
-      console.log("ProtectedRoute: User role not allowed:", user.role);
-      const path = user.role === 'client' ? '/client' : '/admin';
-      console.log("ProtectedRoute: Redirecting to:", path);
-      setRedirectPath(path);
-      return;
-    }
-  }, [user, loading, allowedRoles]);
-
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -50,18 +21,26 @@ export const ProtectedRoute = ({ allowedRoles, children, layout }: ProtectedRout
     );
   }
 
-  if (redirectPath) {
-    return <Navigate to={redirectPath} replace />;
+  // No user -> redirect to login
+  if (!user) {
+    console.log("ProtectedRoute: No user found, redirecting to login");
+    return <Navigate to="/login" replace />;
+  }
+  
+  // User needs to set password -> redirect to password setup
+  if (user.is_password_changed === false) {
+    console.log("ProtectedRoute: User needs to set password");
+    return <Navigate to="/set-password" replace />;
+  }
+  
+  // User role not allowed -> redirect to appropriate dashboard
+  if (!allowedRoles.includes(user.role)) {
+    console.log("ProtectedRoute: User role not allowed:", user.role);
+    const path = user.role === 'client' ? '/client' : '/admin';
+    console.log("ProtectedRoute: Redirecting to:", path);
+    return <Navigate to={path} replace />;
   }
 
-  // Render layout with outlet or children
-  if (layout) {
-    return (
-      <>
-        {layout}
-      </>
-    );
-  }
-
+  // Render children or outlet
   return children ? <>{children}</> : <Outlet />;
 };

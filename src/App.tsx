@@ -11,8 +11,8 @@ import SetPassword from "./pages/SetPassword";
 import LoanApplicationSteps from "@/components/loan/LoanApplicationSteps";
 
 // Import the routes
-import { adminRoutes, adminRootRoute } from "./routes/adminRoutes";
-import { clientRoutes, clientRootRoute } from "./routes/clientRoutes";
+import { adminRoutes } from "./routes/adminRoutes";
+import { clientRoutes } from "./routes/clientRoutes";
 
 // Define the admin roles array
 const adminRoles = ["administrator", "super user", "sales officer", "accounts officer", "administration officer", "recoveries officer"];
@@ -39,20 +39,14 @@ const App = () => {
               {/* Public loan application */}
               <Route path="/apply" element={<LoanApplicationSteps />} />
 
-              {/* Client Routes - Role protected */}
-              <Route
-                path="/client/*"
-                element={<ProtectedRoute allowedRoles={clientRoles} />}
-              >
-                <Route path="*" element={clientRootRoute.element} />
+              {/* Client Routes with protection */}
+              <Route element={<ProtectedRoute allowedRoles={clientRoles} />}>
+                {clientRoutes}
               </Route>
 
-              {/* Admin Routes - Role protected */}
-              <Route
-                path="/admin/*"
-                element={<ProtectedRoute allowedRoles={adminRoles} />}
-              >
-                <Route path="*" element={adminRootRoute.element} />
+              {/* Admin Routes with protection */}
+              <Route element={<ProtectedRoute allowedRoles={adminRoles} />}>
+                {adminRoutes}
               </Route>
 
               {/* Catch-all: Redirect to login */}
