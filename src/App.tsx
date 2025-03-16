@@ -3,18 +3,16 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import AuthForm from "@/components/auth/AuthForm";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import SetPassword from "./pages/SetPassword";
 import LoanApplicationSteps from "@/components/loan/LoanApplicationSteps";
 
-// Import the routes and layouts
-import { adminRoutes } from "./routes/adminRoutes";
-import { clientRoutes } from "./routes/clientRoutes";
-import DashboardLayout from "@/components/DashboardLayout";
-import ClientLayout from "@/components/client/ClientLayout";
+// Import the routes
+import { adminRoutes, adminRootRoute } from "./routes/adminRoutes";
+import { clientRoutes, clientRootRoute } from "./routes/clientRoutes";
 
 // Define the admin roles array
 const adminRoles = ["administrator", "super user", "sales officer", "accounts officer", "administration officer", "recoveries officer"];
@@ -38,45 +36,37 @@ const App = () => {
               <Route path="/login" element={<AuthForm />} />
               <Route path="/set-password" element={<SetPassword />} />
               
-              {/* Public loan application - No longer wrapped in ProtectedRoute */}
+              {/* Public loan application */}
               <Route path="/apply" element={<LoanApplicationSteps />} />
 
-              {/* Client Routes - Wrapped in ClientLayout with ProtectedRoute */}
+              {/* Client Routes - Role protected and using ClientLayout from clientRootRoute */}
               <Route
                 path="/client"
-                element={
-                  <ProtectedRoute 
-                    allowedRoles={clientRoles} 
-                    layout={
-                      <ClientLayout>
-                        <Outlet />
-                      </ClientLayout>
-                    }
-                  />
-                }
+                element={<ProtectedRoute allowedRoles={clientRoles} />}
               >
-                {clientRoutes.map((route) => (
-                  <Route key={route.path} path={route.path === "/client" ? "" : route.path.replace("/client", "")} element={route.element} />
-                ))}
+                <Route
+                  path=""
+                  element={clientRootRoute.element}
+                >
+                  {clientRoutes.map((route) => (
+                    <Route key={route.path} path={route.path} element={route.element} />
+                  ))}
+                </Route>
               </Route>
 
-              {/* Admin Routes - Wrapped in DashboardLayout with ProtectedRoute */}
+              {/* Admin Routes - Role protected and using DashboardLayout from adminRootRoute */}
               <Route
                 path="/admin"
-                element={
-                  <ProtectedRoute 
-                    allowedRoles={adminRoles} 
-                    layout={
-                      <DashboardLayout>
-                        <Outlet />
-                      </DashboardLayout>
-                    }
-                  />
-                }
+                element={<ProtectedRoute allowedRoles={adminRoles} />}
               >
-                {adminRoutes.map((route) => (
-                  <Route key={route.path} path={route.path === "/admin" ? "" : route.path.replace("/admin", "")} element={route.element} />
-                ))}
+                <Route
+                  path=""
+                  element={adminRootRoute.element}
+                >
+                  {adminRoutes.map((route) => (
+                    <Route key={route.path} path={route.path} element={route.element} />
+                  ))}
+                </Route>
               </Route>
 
               {/* Catch-all: Redirect to login */}

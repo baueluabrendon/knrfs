@@ -1,4 +1,8 @@
 
+import { RouteProps } from "react-router-dom";
+import { Outlet } from "react-router-dom";
+import DashboardLayout from "@/components/DashboardLayout";
+
 import Loans from "@/pages/Loans";
 import Borrowers from "@/pages/Borrowers";
 import AddLoan from "@/pages/AddLoan";
@@ -18,7 +22,6 @@ import BulkLoans from "@/pages/BulkLoans";
 import BulkBorrowers from "@/pages/BulkBorrowers";
 import BulkRepayments from "@/pages/BulkRepayments";
 import Recoveries from "@/pages/Recoveries";
-import { RouteProps } from "react-router-dom";
 
 // Define routes as an array of objects with path and element properties
 interface AppRoute extends Omit<RouteProps, 'element'> {
@@ -26,82 +29,92 @@ interface AppRoute extends Omit<RouteProps, 'element'> {
   element: React.ReactNode;
 }
 
-// Admin routes without ProtectedRoute wrapper - will be applied in App.tsx
+// Root admin route with DashboardLayout
+export const adminRootRoute: AppRoute = {
+  path: "/admin",
+  element: (
+    <DashboardLayout>
+      <Outlet />
+    </DashboardLayout>
+  )
+};
+
+// Admin child routes without layout (will be nested)
 export const adminRoutes: AppRoute[] = [
   {
-    path: "/admin",
+    path: "", // index route
     element: <Index />
   },
   {
-    path: "/admin/loans",
+    path: "loans",
     element: <Loans />
   },
   {
-    path: "/admin/loans/add",
+    path: "loans/add",
     element: <AddLoan />
   },
   {
-    path: "/admin/loans/arrears",
+    path: "loans/arrears",
     element: <LoansInArrears />
   },
   {
-    path: "/admin/loans/missed",
+    path: "loans/missed",
     element: <MissedPayments />
   },
   {
-    path: "/admin/loans/partial",
+    path: "loans/partial",
     element: <PartialPayments />
   },
   {
-    path: "/admin/borrowers",
+    path: "borrowers",
     element: <Borrowers />
   },
   {
-    path: "/admin/users",
+    path: "users",
     element: <Users />
   },
   {
-    path: "/admin/applications",
+    path: "applications",
     element: <Applications />
   },
   {
-    path: "/admin/repayments",
+    path: "repayments",
     element: <Repayments />
   },
   {
-    path: "/admin/recoveries",
+    path: "recoveries",
     element: <Recoveries />
   },
   {
-    path: "/admin/analytics",
+    path: "analytics",
     element: <Analytics />
   },
   {
-    path: "/admin/accounting/coa",
+    path: "accounting/coa",
     element: <ChartOfAccounts />
   },
   {
-    path: "/admin/accounting/pl",
+    path: "accounting/pl",
     element: <ProfitAndLoss />
   },
   {
-    path: "/admin/accounting/bs",
+    path: "accounting/bs",
     element: <BalanceSheet />
   },
   {
-    path: "/admin/accounting/cf",
+    path: "accounting/cf",
     element: <Cashflow />
   },
   {
-    path: "/admin/loans/bulk",
+    path: "loans/bulk",
     element: <BulkLoans />
   },
   {
-    path: "/admin/borrowers/bulk",
+    path: "borrowers/bulk",
     element: <BulkBorrowers />
   },
   {
-    path: "/admin/repayments/bulk",
+    path: "repayments/bulk",
     element: <BulkRepayments />
   },
 ];

@@ -10,18 +10,16 @@ interface ProtectedRouteProps {
   layout?: ReactNode;
 }
 
-export const ProtectedRoute = ({ allowedRroles, children, layout }: Protlyotecodcetyrut^) {
+export const ProtectedRoute = ({ allowedRoles, children, layout }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
-  const [redirectPath, setRedirectPath] y= usaasthe lsyState<string | null>(null);
+  const [redirectPath, setRedirectPath] = useState<string | null>(null);
   
-
-  useEffecyt (a) => J3
-    if ⠀(lewoading) retu^rn;
+  useEffect(() => {
+    if (loading) return;
     
-    // Nji user -> redirect tp logiyn
- o i lf
-    if (!user ) {
-Iooogudsier     console.log("ProtectedRoute: No user found, redirecting to login");
+    // No user -> redirect to login
+    if (!user) {
+      console.log("ProtectedRoute: No user found, redirecting to login");
       setRedirectPath('/login');
       return;
     }

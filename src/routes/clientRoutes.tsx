@@ -6,6 +6,8 @@ import ClientRepayments from "@/pages/client/ClientRepayments";
 import ClientProfile from "@/pages/client/ClientProfile";
 import ClientSupport from "@/pages/client/ClientSupport";
 import ApplicationStatus from "@/pages/client/ApplicationStatus";
+import ClientLayout from "@/components/client/ClientLayout";
+import { Outlet } from "react-router-dom";
 
 // Define routes as an array of objects with path and element properties
 interface AppRoute extends Omit<RouteProps, 'element'> {
@@ -13,30 +15,40 @@ interface AppRoute extends Omit<RouteProps, 'element'> {
   element: React.ReactNode;
 }
 
-// Client routes without ProtectedRoute wrapper - will be applied in App.tsx
+// Root client route with ClientLayout
+export const clientRootRoute: AppRoute = {
+  path: "/client",
+  element: (
+    <ClientLayout>
+      <Outlet />
+    </ClientLayout>
+  )
+};
+
+// Client child routes without layout (will be nested)
 export const clientRoutes: AppRoute[] = [
   {
-    path: "/client",
+    path: "", // index route
     element: <ClientDashboard />
   },
   {
-    path: "/client/loans",
+    path: "loans",
     element: <ClientLoans />
   },
   {
-    path: "/client/repayments",
+    path: "repayments",
     element: <ClientRepayments />
   },
   {
-    path: "/client/profile",
+    path: "profile",
     element: <ClientProfile />
   },
   {
-    path: "/client/support",
+    path: "support",
     element: <ClientSupport />
   },
   {
-    path: "/client/applications",
+    path: "applications",
     element: <ApplicationStatus />
   },
 ];
