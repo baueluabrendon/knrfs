@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { UserProfile } from "@/types/auth";
@@ -93,27 +94,7 @@ export async function signOut(): Promise<boolean> {
   }
 }
 
-/**
- * Gets the current session
- */
-export async function getCurrentSession() {
-  try {
-    console.log("AuthService: Checking current session");
-    
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (session) {
-      console.log("AuthService: Found existing session", session.user.id);
-      return session;
-    }
-    
-    console.log("AuthService: No session found");
-    return null;
-  } catch (error) {
-    console.error("AuthService: Session check error:", error);
-    return null;
-  }
-}
+// The getCurrentSession function has been removed as it duplicates checkExistingSession functionality
 
 /**
  * Sends a password reset email
