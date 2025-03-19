@@ -7,6 +7,7 @@ import "react-day-picker/lib/style.css"; // Import default styles for v8
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 
+// Fix: Use the correct type for CalendarProps
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
 function Calendar({
