@@ -1,5 +1,5 @@
 
-import React, { useState, ReactNode } from "react";
+import React, { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -17,11 +17,8 @@ import {
   HelpCircle,
 } from "lucide-react";
 
-interface ClientLayoutProps {
-  children: ReactNode;
-}
-
-const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
+// Remove the children prop requirement since we'll be using Outlet
+const ClientLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { signOut } = useAuth();
   const navigate = useNavigate();
@@ -138,7 +135,7 @@ const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
           <h1 className="text-xl font-bold">Welcome to K&R Financial Services</h1>
         </div>
         <div className="p-6">
-          {children}
+          <Outlet />
         </div>
       </main>
     </div>
