@@ -1,6 +1,7 @@
 
 import { RouteObject } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
+import { menuItems } from "@/config/menuItems";
 
 import Loans from "@/pages/Loans";
 import Borrowers from "@/pages/Borrowers";
@@ -41,15 +42,15 @@ export const adminRoutes: RouteObject[] = [
         element: <AddLoan />
       },
       {
-        path: "loans/arrears",
+        path: "recoveries/loans-in-arrears",
         element: <LoansInArrears />
       },
       {
-        path: "loans/missed",
+        path: "recoveries/missed-payments",
         element: <MissedPayments />
       },
       {
-        path: "loans/partial",
+        path: "recoveries/partial-payments",
         element: <PartialPayments />
       },
       {
@@ -77,19 +78,19 @@ export const adminRoutes: RouteObject[] = [
         element: <Analytics />
       },
       {
-        path: "accounting/coa",
+        path: "accounting/chart-of-accounts",
         element: <ChartOfAccounts />
       },
       {
-        path: "accounting/pl",
+        path: "accounting/profit-loss",
         element: <ProfitAndLoss />
       },
       {
-        path: "accounting/bs",
+        path: "accounting/balance-sheet",
         element: <BalanceSheet />
       },
       {
-        path: "accounting/cf",
+        path: "accounting/cashflow",
         element: <Cashflow />
       },
       {

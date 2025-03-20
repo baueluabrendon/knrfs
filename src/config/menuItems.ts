@@ -46,7 +46,7 @@ export const menuItems = [
   { 
     icon: Wallet, 
     label: "Loans", 
-    path: "/admin/loans/view",
+    path: "/admin/loans",
     subItems: [] 
   },
   { 
