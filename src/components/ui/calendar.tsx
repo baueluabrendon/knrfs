@@ -7,7 +7,6 @@ import "react-day-picker/dist/style.css"; // Import default styles for v8
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 
-// Fix: Use the correct type for CalendarProps
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
 function Calendar({
@@ -21,7 +20,6 @@ function Calendar({
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
       classNames={{
-        container: "space-y-4",
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
         caption: "flex justify-center pt-1 relative items-center",
