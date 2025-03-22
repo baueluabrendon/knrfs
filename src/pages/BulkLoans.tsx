@@ -26,6 +26,10 @@ interface CSVLoan {
   product?: string;
   gross_salary?: string;
   net_income?: string;
+  interest?: string;
+  loan_risk_insurance?: string;
+  fortnightly_installment?: string;
+  gross_loan?: string;
 }
 
 // Expected CSV headers mapping
@@ -37,7 +41,11 @@ const CSV_HEADERS = {
   start_repayment_date: "start_repayment_date",
   product: "product",
   gross_salary: "gross_salary",
-  net_income: "net_income"
+  net_income: "net_income",
+  interest: "interest",
+  loan_risk_insurance: "loan_risk_insurance",
+  fortnightly_installment: "fortnightly_installment",
+  gross_loan: "gross_loan"
 };
 
 // Updated to match the database enum types
@@ -122,6 +130,10 @@ const BulkLoans = () => {
             product: row[CSV_HEADERS.product] || "",
             gross_salary: row[CSV_HEADERS.gross_salary] || "",
             net_income: row[CSV_HEADERS.net_income] || "",
+            interest: row[CSV_HEADERS.interest] || "",
+            loan_risk_insurance: row[CSV_HEADERS.loan_risk_insurance] || "",
+            fortnightly_installment: row[CSV_HEADERS.fortnightly_installment] || "",
+            gross_loan: row[CSV_HEADERS.gross_loan] || "",
           }));
 
           setCSVData(parsedData);
@@ -231,8 +243,21 @@ const BulkLoans = () => {
         const principal = parseFloat(loan.principal);
         const loanTerm = parseInt(loan.loan_term);
         
-        // Calculate additional loan values
-        const loanValues = calculateLoanValues(principal, loanTerm);
+        // Calculate loan values - either use provided values from CSV or calculate them
+        let loanValues;
+        let interest = loan.interest ? parseFloat(loan.interest) : null;
+        let loanRiskInsurance = loan.loan_risk_insurance ? parseFloat(loan.loan_risk_insurance) : null;
+        let fortnightlyInstallment = loan.fortnightly_installment ? parseFloat(loan.fortnightly_installment) : null;
+        let grossLoan = loan.gross_loan ? parseFloat(loan.gross_loan) : null;
+        
+        // If any of the calculated values are missing, calculate them all
+        if (!interest || !loanRiskInsurance || !fortnightlyInstallment || !grossLoan) {
+          loanValues = calculateLoanValues(principal, loanTerm);
+          interest = loanValues.interest;
+          loanRiskInsurance = loanValues.loanRiskInsurance;
+          fortnightlyInstallment = loanValues.fortnightlyInstallment;
+          grossLoan = loanValues.grossLoan;
+        }
         
         // Determine the loan term enum value
         const loanTermEnum = getLoanTermEnum(loan.loan_term);
@@ -251,12 +276,12 @@ const BulkLoans = () => {
           borrower_id: borrowerId,
           principal: principal,
           loan_term: loanTermEnum,
-          fortnightly_installment: loanValues.fortnightlyInstallment,
-          interest: loanValues.interest,
+          fortnightly_installment: fortnightlyInstallment,
+          interest: interest,
           interest_rate: interestRateEnum,
-          loan_risk_insurance: loanValues.loanRiskInsurance,
-          documentation_fee: loanValues.documentationFee,
-          gross_loan: loanValues.grossLoan,
+          loan_risk_insurance: loanRiskInsurance,
+          documentation_fee: 50, // Default documentation fee
+          gross_loan: grossLoan,
           disbursement_date: loan.disbursement_date || new Date().toISOString().split('T')[0],
           start_repayment_date: loan.start_repayment_date || loan.disbursement_date || new Date().toISOString().split('T')[0],
           maturity_date: maturityDate.toISOString().split('T')[0],
@@ -347,7 +372,8 @@ const BulkLoans = () => {
                 <span className="font-semibold"> borrower_name</span>*, 
                 <span className="font-semibold"> principal</span>*, 
                 <span className="font-semibold"> loan_term</span>*,
-                disbursement_date, start_repayment_date, product, gross_salary, net_income
+                disbursement_date, start_repayment_date, product, gross_salary, net_income,
+                interest, loan_risk_insurance, fortnightly_installment, gross_loan
               </p>
               <Button
                 variant="outline"
@@ -419,6 +445,10 @@ const BulkLoans = () => {
                       <TableHead>Borrower Name</TableHead>
                       <TableHead>Principal</TableHead>
                       <TableHead>Loan Term</TableHead>
+                      <TableHead>Interest</TableHead>
+                      <TableHead>Loan Risk Insurance</TableHead>
+                      <TableHead>Bi-Weekly Repayment</TableHead>
+                      <TableHead>Gross Loan</TableHead>
                       <TableHead>Disbursement Date</TableHead>
                       <TableHead>Start Repayment Date</TableHead>
                       <TableHead>Product</TableHead>
@@ -432,6 +462,10 @@ const BulkLoans = () => {
                         <TableCell>{loan.borrower_name}</TableCell>
                         <TableCell>${parseFloat(loan.principal).toFixed(2)}</TableCell>
                         <TableCell>{loan.loan_term} periods</TableCell>
+                        <TableCell>${loan.interest ? parseFloat(loan.interest).toFixed(2) : '-'}</TableCell>
+                        <TableCell>${loan.loan_risk_insurance ? parseFloat(loan.loan_risk_insurance).toFixed(2) : '-'}</TableCell>
+                        <TableCell>${loan.fortnightly_installment ? parseFloat(loan.fortnightly_installment).toFixed(2) : '-'}</TableCell>
+                        <TableCell>${loan.gross_loan ? parseFloat(loan.gross_loan).toFixed(2) : '-'}</TableCell>
                         <TableCell>{loan.disbursement_date || 'Today'}</TableCell>
                         <TableCell>{loan.start_repayment_date || loan.disbursement_date || 'Today'}</TableCell>
                         <TableCell>{loan.product || 'Others'}</TableCell>

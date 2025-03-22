@@ -196,15 +196,7 @@ export type Database = {
           loan_id?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "arrear_loan_id_fkey"
-            columns: ["loan_id"]
-            isOneToOne: false
-            referencedRelation: "loans"
-            referencedColumns: ["loan_id"]
-          },
-        ]
+        Relationships: []
       }
       documents: {
         Row: {
@@ -545,13 +537,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "repayment_schedule_loan_id_fkey"
-            columns: ["loan_id"]
-            isOneToOne: false
-            referencedRelation: "loans"
-            referencedColumns: ["loan_id"]
-          },
-          {
             foreignKeyName: "repayment_schedule_period_id_fkey"
             columns: ["period_id"]
             isOneToOne: false
@@ -588,15 +573,7 @@ export type Database = {
           repayment_id?: string
           status?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "loan_repayments_loan_id_fkey"
-            columns: ["loan_id"]
-            isOneToOne: false
-            referencedRelation: "loans"
-            referencedColumns: ["loan_id"]
-          },
-        ]
+        Relationships: []
       }
       user_profiles: {
         Row: {
