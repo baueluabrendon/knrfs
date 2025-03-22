@@ -91,7 +91,8 @@ const AddLoan = () => {
         fortnightly_installment: fortnightlyInstallment,
         gross_loan: grossLoan,
         interest: interest,
-        interest_rate: `RATE_${Math.round(interestRate * 100)}` as any,
+        // Don't set interest_rate explicitly, as it's handled by a database trigger
+        // based on the loan_term value
         loan_risk_insurance: loanRiskInsurance,
         documentation_fee: documentationFee,
         loan_status: 'active',

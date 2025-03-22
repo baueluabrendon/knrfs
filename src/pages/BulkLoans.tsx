@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { Upload, X, Download } from "lucide-react";
@@ -64,7 +63,7 @@ interface LoanInsert {
   principal: number;
   loan_term: BiWeeklyLoanTermEnum;
   interest: number;
-  interest_rate: InterestRateEnum;
+  // Don't explicitly set interest_rate as it's handled by a database trigger
   fortnightly_installment: number;
   loan_risk_insurance: number;
   documentation_fee: number;
@@ -160,6 +159,8 @@ const BulkLoans = () => {
   };
 
   // Helper function to get interest rate enum value based on loan term
+  // NOTE: We're keeping this function but not using it for insertions
+  // since a database trigger will set the correct interest_rate value
   const getInterestRateEnum = (loanTerm: BiWeeklyLoanTermEnum): InterestRateEnum => {
     const rateMap: Record<BiWeeklyLoanTermEnum, InterestRateEnum> = {
       'TERM_5': 'RATE_20',
@@ -261,7 +262,6 @@ const BulkLoans = () => {
         
         // Determine the loan term enum value
         const loanTermEnum = getLoanTermEnum(loan.loan_term);
-        const interestRateEnum = getInterestRateEnum(loanTermEnum);
         
         // Calculate maturity date by adding (loanTerm * 14) days from disbursement date or today
         const startDate = loan.disbursement_date ? new Date(loan.disbursement_date) : new Date();
@@ -278,7 +278,7 @@ const BulkLoans = () => {
           loan_term: loanTermEnum,
           fortnightly_installment: fortnightlyInstallment,
           interest: interest,
-          interest_rate: interestRateEnum,
+          // Don't set interest_rate explicitly, it's handled by a database trigger
           loan_risk_insurance: loanRiskInsurance,
           documentation_fee: 50, // Default documentation fee
           gross_loan: grossLoan,
