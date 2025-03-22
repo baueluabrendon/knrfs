@@ -213,6 +213,34 @@ const LoanFormFields = () => {
 
         <FormField
           control={form.control}
+          name="grossSalary"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base">Gross Salary</FormLabel>
+              <FormControl>
+                <Input type="number" step="0.01" placeholder="Enter gross salary" {...field} className="h-12" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="netIncome"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base">Net Income</FormLabel>
+              <FormControl>
+                <Input type="number" step="0.01" placeholder="Enter net income" {...field} className="h-12" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="fortnightlyInstallment"
           render={({ field }) => (
             <FormItem>

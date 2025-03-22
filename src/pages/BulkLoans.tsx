@@ -24,6 +24,8 @@ interface CSVLoan {
   disbursement_date?: string;
   start_repayment_date?: string;
   product?: string;
+  gross_salary?: string;
+  net_income?: string;
 }
 
 // Expected CSV headers mapping
@@ -33,7 +35,9 @@ const CSV_HEADERS = {
   loan_term: "loan_term",
   disbursement_date: "disbursement_date",
   start_repayment_date: "start_repayment_date",
-  product: "product"
+  product: "product",
+  gross_salary: "gross_salary",
+  net_income: "net_income"
 };
 
 // Updated to match the database enum types
@@ -62,6 +66,8 @@ interface LoanInsert {
   maturity_date?: string;
   loan_status: 'active';
   product?: string;
+  gross_salary?: number | null;
+  net_income?: number | null;
 }
 
 const BulkLoans = () => {
@@ -114,6 +120,8 @@ const BulkLoans = () => {
             disbursement_date: row[CSV_HEADERS.disbursement_date] || "",
             start_repayment_date: row[CSV_HEADERS.start_repayment_date] || "",
             product: row[CSV_HEADERS.product] || "",
+            gross_salary: row[CSV_HEADERS.gross_salary] || "",
+            net_income: row[CSV_HEADERS.net_income] || "",
           }));
 
           setCSVData(parsedData);
@@ -235,6 +243,10 @@ const BulkLoans = () => {
         const maturityDate = new Date(startDate);
         maturityDate.setDate(maturityDate.getDate() + (loanTerm * 14));
         
+        // Parse gross salary and net income if provided
+        const grossSalary = loan.gross_salary ? parseFloat(loan.gross_salary) : null;
+        const netIncome = loan.net_income ? parseFloat(loan.net_income) : null;
+
         loansToInsert.push({
           borrower_id: borrowerId,
           principal: principal,
@@ -250,6 +262,8 @@ const BulkLoans = () => {
           maturity_date: maturityDate.toISOString().split('T')[0],
           loan_status: 'active',
           product: loan.product || "Others",
+          gross_salary: grossSalary,
+          net_income: netIncome,
         });
       }
 
@@ -333,7 +347,7 @@ const BulkLoans = () => {
                 <span className="font-semibold"> borrower_name</span>*, 
                 <span className="font-semibold"> principal</span>*, 
                 <span className="font-semibold"> loan_term</span>*,
-                disbursement_date, start_repayment_date, product
+                disbursement_date, start_repayment_date, product, gross_salary, net_income
               </p>
               <Button
                 variant="outline"
@@ -408,6 +422,8 @@ const BulkLoans = () => {
                       <TableHead>Disbursement Date</TableHead>
                       <TableHead>Start Repayment Date</TableHead>
                       <TableHead>Product</TableHead>
+                      <TableHead>Gross Salary</TableHead>
+                      <TableHead>Net Income</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -419,6 +435,8 @@ const BulkLoans = () => {
                         <TableCell>{loan.disbursement_date || 'Today'}</TableCell>
                         <TableCell>{loan.start_repayment_date || loan.disbursement_date || 'Today'}</TableCell>
                         <TableCell>{loan.product || 'Others'}</TableCell>
+                        <TableCell>{loan.gross_salary ? `$${parseFloat(loan.gross_salary).toFixed(2)}` : '-'}</TableCell>
+                        <TableCell>{loan.net_income ? `$${parseFloat(loan.net_income).toFixed(2)}` : '-'}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

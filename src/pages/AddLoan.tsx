@@ -28,6 +28,8 @@ const loanFormSchema = z.object({
   loanRiskInsurance: z.number().nullable(),
   grossLoan: z.number().nullable(),
   documentationFee: z.number().nullable(),
+  grossSalary: z.coerce.number().optional(),
+  netIncome: z.coerce.number().optional(),
 });
 
 type LoanFormValues = z.infer<typeof loanFormSchema>;
@@ -52,6 +54,8 @@ const AddLoan = () => {
       loanRiskInsurance: null,
       grossLoan: null,
       documentationFee: 50,
+      grossSalary: 0,
+      netIncome: 0,
     },
   });
 
@@ -95,6 +99,8 @@ const AddLoan = () => {
         disbursement_date: values.disbursementDate ? values.disbursementDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
         start_repayment_date: values.startRepaymentDate ? values.startRepaymentDate.toISOString().split('T')[0] : (values.disbursementDate ? values.disbursementDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0]),
         maturity_date: maturityDate.toISOString().split('T')[0],
+        gross_salary: values.grossSalary || null,
+        net_income: values.netIncome || null,
       });
 
       if (error) {
