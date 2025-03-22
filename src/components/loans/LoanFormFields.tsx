@@ -13,6 +13,16 @@ import BorrowerSelect from "./BorrowerSelect";
 import { calculateLoanValues, VALID_LOAN_TERMS, LOAN_TERM_INTEREST_RATE_MAP } from "@/utils/loanCalculations";
 import { cn } from "@/lib/utils";
 
+// Product options for the loan form
+const LOAN_PRODUCTS = [
+  "School Fee",
+  "Medical",
+  "Vacation",
+  "Funeral",
+  "Customary",
+  "Others"
+];
+
 const LoanFormFields = () => {
   const form = useFormContext();
   
@@ -84,6 +94,34 @@ const LoanFormFields = () => {
                   {VALID_LOAN_TERMS.map((term) => (
                     <SelectItem key={term} value={term.toString()}>
                       {term} periods ({LOAN_TERM_INTEREST_RATE_MAP[term]}% interest)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="product"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base">Product</FormLabel>
+              <Select 
+                onValueChange={field.onChange}
+                value={field.value || ""}
+              >
+                <FormControl>
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder="Select loan product" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {LOAN_PRODUCTS.map((product) => (
+                    <SelectItem key={product} value={product}>
+                      {product}
                     </SelectItem>
                   ))}
                 </SelectContent>

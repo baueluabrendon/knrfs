@@ -23,6 +23,7 @@ interface CSVLoan {
   loan_term: string;
   disbursement_date?: string;
   start_repayment_date?: string;
+  product?: string;
 }
 
 // Expected CSV headers mapping
@@ -31,7 +32,8 @@ const CSV_HEADERS = {
   principal: "principal",
   loan_term: "loan_term",
   disbursement_date: "disbursement_date",
-  start_repayment_date: "start_repayment_date"
+  start_repayment_date: "start_repayment_date",
+  product: "product"
 };
 
 // Updated to match the database enum types
@@ -59,6 +61,7 @@ interface LoanInsert {
   start_repayment_date?: string;
   maturity_date?: string;
   loan_status: 'active';
+  product?: string;
 }
 
 const BulkLoans = () => {
@@ -110,6 +113,7 @@ const BulkLoans = () => {
             loan_term: row[CSV_HEADERS.loan_term] || "",
             disbursement_date: row[CSV_HEADERS.disbursement_date] || "",
             start_repayment_date: row[CSV_HEADERS.start_repayment_date] || "",
+            product: row[CSV_HEADERS.product] || "",
           }));
 
           setCSVData(parsedData);
@@ -245,6 +249,7 @@ const BulkLoans = () => {
           start_repayment_date: loan.start_repayment_date || loan.disbursement_date || new Date().toISOString().split('T')[0],
           maturity_date: maturityDate.toISOString().split('T')[0],
           loan_status: 'active',
+          product: loan.product || "Others",
         });
       }
 
@@ -328,7 +333,7 @@ const BulkLoans = () => {
                 <span className="font-semibold"> borrower_name</span>*, 
                 <span className="font-semibold"> principal</span>*, 
                 <span className="font-semibold"> loan_term</span>*,
-                disbursement_date, start_repayment_date
+                disbursement_date, start_repayment_date, product
               </p>
               <Button
                 variant="outline"
@@ -402,6 +407,7 @@ const BulkLoans = () => {
                       <TableHead>Loan Term</TableHead>
                       <TableHead>Disbursement Date</TableHead>
                       <TableHead>Start Repayment Date</TableHead>
+                      <TableHead>Product</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -412,6 +418,7 @@ const BulkLoans = () => {
                         <TableCell>{loan.loan_term} periods</TableCell>
                         <TableCell>{loan.disbursement_date || 'Today'}</TableCell>
                         <TableCell>{loan.start_repayment_date || loan.disbursement_date || 'Today'}</TableCell>
+                        <TableCell>{loan.product || 'Others'}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
