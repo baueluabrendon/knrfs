@@ -19,6 +19,8 @@ const loanFormSchema = z.object({
     (value) => VALID_LOAN_TERMS.includes(value),
     { message: "Please select a valid loan term" }
   ),
+  disbursementDate: z.date().optional(),
+  startRepaymentDate: z.date().optional(),
   fortnightlyInstallment: z.number().nullable(),
   interest: z.number().nullable(),
   interestRate: z.number().nullable(),
@@ -40,6 +42,8 @@ const AddLoan = () => {
       borrowerId: "",
       principal: 0,
       loanTerm: VALID_LOAN_TERMS[0],
+      disbursementDate: undefined,
+      startRepaymentDate: undefined,
       fortnightlyInstallment: null,
       interest: null,
       interestRate: null,
@@ -67,14 +71,14 @@ const AddLoan = () => {
 
       // Calculate maturity date by adding (loanTerm * 14) days.
       const maturityDate = new Date();
-      maturityDate.setDate(maturityDate.getDate() + (values.loanTerm * 14));
-
-      // Generate a unique loan ID (will be replaced by DB trigger).
-      const dummyLoanId = `temp_${Date.now()}`;
+      if (values.disbursementDate) {
+        maturityDate.setTime(values.disbursementDate.getTime() + (values.loanTerm * 14 * 24 * 60 * 60 * 1000));
+      } else {
+        maturityDate.setDate(maturityDate.getDate() + (values.loanTerm * 14));
+      }
 
       // Create the loan record.
       const { error } = await supabase.from("loans").insert({
-        loan_id: dummyLoanId,
         borrower_id: values.borrowerId,
         principal: values.principal,
         loan_term: loanTermEnum as any,
@@ -85,6 +89,8 @@ const AddLoan = () => {
         loan_risk_insurance: loanRiskInsurance,
         documentation_fee: documentationFee,
         loan_status: 'active',
+        disbursement_date: values.disbursementDate ? values.disbursementDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        start_repayment_date: values.startRepaymentDate ? values.startRepaymentDate.toISOString().split('T')[0] : (values.disbursementDate ? values.disbursementDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0]),
         maturity_date: maturityDate.toISOString().split('T')[0],
       });
 
@@ -93,7 +99,7 @@ const AddLoan = () => {
       }
 
       toast.success("Loan added successfully");
-      navigate("/admin/loans/view");
+      navigate("/admin/loans");
     } catch (error) {
       console.error("Error adding loan:", error);
       toast.error("Failed to add loan");
@@ -116,7 +122,7 @@ const AddLoan = () => {
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={() => navigate("/admin/loans/view")}
+                onClick={() => navigate("/admin/loans")}
                 className="px-6"
               >
                 Cancel

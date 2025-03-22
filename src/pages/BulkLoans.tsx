@@ -18,7 +18,7 @@ import { calculateLoanValues } from "@/utils/loanCalculations";
 
 // CSV expected structure
 interface CSVLoan {
-  borrower_id: string;
+  borrower_name: string;
   principal: string;
   loan_term: string;
   disbursement_date?: string;
@@ -27,7 +27,7 @@ interface CSVLoan {
 
 // Expected CSV headers mapping
 const CSV_HEADERS = {
-  borrower_id: "borrower_id",
+  borrower_name: "borrower_name",
   principal: "principal",
   loan_term: "loan_term",
   disbursement_date: "disbursement_date",
@@ -65,6 +65,7 @@ const BulkLoans = () => {
   const [csvData, setCSVData] = useState<CSVLoan[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [missingHeaders, setMissingHeaders] = useState<string[]>([]);
+  const [borrowerLookupError, setBorrowerLookupError] = useState<string | null>(null);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -77,6 +78,7 @@ const BulkLoans = () => {
 
     setIsLoading(true);
     setMissingHeaders([]);
+    setBorrowerLookupError(null);
 
     Papa.parse(file, {
       header: true,
@@ -92,7 +94,7 @@ const BulkLoans = () => {
         try {
           // Check for required headers
           const headers = results.meta.fields || [];
-          const requiredHeaders = ["borrower_id", "principal", "loan_term"];
+          const requiredHeaders = ["borrower_name", "principal", "loan_term"];
           const missingRequiredHeaders = requiredHeaders.filter(h => !headers.includes(h));
           
           if (missingRequiredHeaders.length > 0) {
@@ -103,7 +105,7 @@ const BulkLoans = () => {
           }
 
           const parsedData = results.data.map((row: any) => ({
-            borrower_id: row[CSV_HEADERS.borrower_id] || "",
+            borrower_name: row[CSV_HEADERS.borrower_name] || "",
             principal: row[CSV_HEADERS.principal] || "",
             loan_term: row[CSV_HEADERS.loan_term] || "",
             disbursement_date: row[CSV_HEADERS.disbursement_date] || "",
@@ -156,6 +158,42 @@ const BulkLoans = () => {
     return rateMap[loanTerm];
   };
 
+  const lookupBorrowerId = async (borrowerName: string): Promise<string | null> => {
+    // Split the name into parts
+    const nameParts = borrowerName.trim().split(' ');
+    let query;
+    
+    if (nameParts.length >= 2) {
+      // If we have at least first and last name
+      const firstName = nameParts[0];
+      const lastName = nameParts[nameParts.length - 1];
+      
+      // Try to match on given_name and surname
+      query = supabase
+        .from('borrowers')
+        .select('borrower_id')
+        .ilike('given_name', `%${firstName}%`)
+        .ilike('surname', `%${lastName}%`)
+        .limit(1);
+    } else {
+      // If we only have one name part, try to match on either given_name or surname
+      query = supabase
+        .from('borrowers')
+        .select('borrower_id')
+        .or(`given_name.ilike.%${borrowerName}%,surname.ilike.%${borrowerName}%`)
+        .limit(1);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error("Error looking up borrower:", error);
+      return null;
+    }
+    
+    return data.length > 0 ? data[0].borrower_id : null;
+  };
+
   const handleSubmit = async () => {
     if (csvData.length === 0) {
       toast.error("Please upload a CSV file first");
@@ -163,9 +201,21 @@ const BulkLoans = () => {
     }
 
     setIsLoading(true);
+    setBorrowerLookupError(null);
     
     try {
-      const loansToInsert: LoanInsert[] = csvData.map(loan => {
+      const loansToInsert: LoanInsert[] = [];
+      const errors: string[] = [];
+      
+      // First, process each loan entry and look up borrower IDs
+      for (const loan of csvData) {
+        const borrowerId = await lookupBorrowerId(loan.borrower_name);
+        
+        if (!borrowerId) {
+          errors.push(`Borrower "${loan.borrower_name}" not found`);
+          continue;
+        }
+        
         const principal = parseFloat(loan.principal);
         const loanTerm = parseInt(loan.loan_term);
         
@@ -181,8 +231,8 @@ const BulkLoans = () => {
         const maturityDate = new Date(startDate);
         maturityDate.setDate(maturityDate.getDate() + (loanTerm * 14));
         
-        return {
-          borrower_id: loan.borrower_id,
+        loansToInsert.push({
+          borrower_id: borrowerId,
           principal: principal,
           loan_term: loanTermEnum,
           fortnightly_installment: loanValues.fortnightlyInstallment,
@@ -195,8 +245,16 @@ const BulkLoans = () => {
           start_repayment_date: loan.start_repayment_date || loan.disbursement_date || new Date().toISOString().split('T')[0],
           maturity_date: maturityDate.toISOString().split('T')[0],
           loan_status: 'active',
-        };
-      });
+        });
+      }
+
+      if (errors.length > 0) {
+        setBorrowerLookupError(`Failed to look up ${errors.length} borrowers. The first few errors: ${errors.slice(0, 3).join(", ")}${errors.length > 3 ? "..." : ""}`);
+        if (loansToInsert.length === 0) {
+          throw new Error("No valid loans to insert");
+        }
+        toast.warning(`Some borrowers could not be found. Continuing with ${loansToInsert.length} valid loans.`);
+      }
 
       const batchSize = 20;
       let successCount = 0;
@@ -237,6 +295,7 @@ const BulkLoans = () => {
   const handleCancel = () => {
     setCSVData([]);
     setMissingHeaders([]);
+    setBorrowerLookupError(null);
     setIsLoading(false);
   };
 
@@ -266,7 +325,7 @@ const BulkLoans = () => {
             <div className="flex justify-between items-center">
               <p className="text-muted-foreground">
                 Upload a CSV file with the following columns: 
-                <span className="font-semibold"> borrower_id</span>*, 
+                <span className="font-semibold"> borrower_name</span>*, 
                 <span className="font-semibold"> principal</span>*, 
                 <span className="font-semibold"> loan_term</span>*,
                 disbursement_date, start_repayment_date
@@ -289,6 +348,13 @@ const BulkLoans = () => {
                     <li key={header}>{header}</li>
                   ))}
                 </ul>
+              </div>
+            )}
+
+            {borrowerLookupError && (
+              <div className="bg-yellow-50 text-yellow-700 p-3 rounded-md my-2">
+                <p className="font-semibold">Borrower Lookup Issues:</p>
+                <p>{borrowerLookupError}</p>
               </div>
             )}
             
@@ -331,7 +397,7 @@ const BulkLoans = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Borrower ID</TableHead>
+                      <TableHead>Borrower Name</TableHead>
                       <TableHead>Principal</TableHead>
                       <TableHead>Loan Term</TableHead>
                       <TableHead>Disbursement Date</TableHead>
@@ -341,7 +407,7 @@ const BulkLoans = () => {
                   <TableBody>
                     {csvData.map((loan, index) => (
                       <TableRow key={index}>
-                        <TableCell>{loan.borrower_id}</TableCell>
+                        <TableCell>{loan.borrower_name}</TableCell>
                         <TableCell>${parseFloat(loan.principal).toFixed(2)}</TableCell>
                         <TableCell>{loan.loan_term} periods</TableCell>
                         <TableCell>{loan.disbursement_date || 'Today'}</TableCell>
