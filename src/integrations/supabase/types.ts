@@ -276,13 +276,13 @@ export type Database = {
           application_id: string | null
           arrears: number | null
           borrower_id: string
-          created_at: string | null
+          created_at: string
           default_fees_accumulated: number | null
-          disbursement_date: string | null
+          disbursement_date: string
           documentation_fee: number | null
           fortnightly_installment: number
           gross_loan: number
-          gross_salary: number | null
+          gross_salary: number
           gst_amount: number | null
           interest: number
           interest_rate:
@@ -299,16 +299,15 @@ export type Database = {
             | null
           maturity_date: string | null
           missed_payments_count: number | null
-          net_income: number | null
-          net_repayable: number | null
+          net_income: number
           outstanding_balance: number | null
           partial_payments_count: number | null
           principal: number
-          product: string | null
+          product: string
           refinanced_by: string | null
           repayment_completion_percentage: number | null
           repayment_count: number | null
-          start_repayment_date: string | null
+          start_repayment_date: string
           total_repayment: number | null
           updated_at: string | null
         }
@@ -316,13 +315,13 @@ export type Database = {
           application_id?: string | null
           arrears?: number | null
           borrower_id?: string
-          created_at?: string | null
+          created_at?: string
           default_fees_accumulated?: number | null
-          disbursement_date?: string | null
+          disbursement_date: string
           documentation_fee?: number | null
           fortnightly_installment: number
           gross_loan: number
-          gross_salary?: number | null
+          gross_salary: number
           gst_amount?: number | null
           interest?: number
           interest_rate?:
@@ -339,16 +338,15 @@ export type Database = {
             | null
           maturity_date?: string | null
           missed_payments_count?: number | null
-          net_income?: number | null
-          net_repayable?: number | null
+          net_income: number
           outstanding_balance?: number | null
           partial_payments_count?: number | null
           principal: number
-          product?: string | null
+          product: string
           refinanced_by?: string | null
           repayment_completion_percentage?: number | null
           repayment_count?: number | null
-          start_repayment_date?: string | null
+          start_repayment_date: string
           total_repayment?: number | null
           updated_at?: string | null
         }
@@ -356,13 +354,13 @@ export type Database = {
           application_id?: string | null
           arrears?: number | null
           borrower_id?: string
-          created_at?: string | null
+          created_at?: string
           default_fees_accumulated?: number | null
-          disbursement_date?: string | null
+          disbursement_date?: string
           documentation_fee?: number | null
           fortnightly_installment?: number
           gross_loan?: number
-          gross_salary?: number | null
+          gross_salary?: number
           gst_amount?: number | null
           interest?: number
           interest_rate?:
@@ -379,16 +377,15 @@ export type Database = {
             | null
           maturity_date?: string | null
           missed_payments_count?: number | null
-          net_income?: number | null
-          net_repayable?: number | null
+          net_income?: number
           outstanding_balance?: number | null
           partial_payments_count?: number | null
           principal?: number
-          product?: string | null
+          product?: string
           refinanced_by?: string | null
           repayment_completion_percentage?: number | null
           repayment_count?: number | null
-          start_repayment_date?: string | null
+          start_repayment_date?: string
           total_repayment?: number | null
           updated_at?: string | null
         }

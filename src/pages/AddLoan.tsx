@@ -34,6 +34,43 @@ const loanFormSchema = z.object({
 
 type LoanFormValues = z.infer<typeof loanFormSchema>;
 
+/**
+ * Looks up a borrower ID based on borrower name
+ * @param borrowerName The name of the borrower to look up
+ * @returns The borrower_id if found, null otherwise
+ */
+const lookupBorrowerId = async (borrowerName: string): Promise<string | null> => {
+  const nameParts = borrowerName.trim().split(' ');
+  let query;
+  
+  if (nameParts.length >= 2) {
+    const firstName = nameParts[0];
+    const lastName = nameParts[nameParts.length - 1];
+    
+    query = supabase
+      .from('borrowers')
+      .select('borrower_id')
+      .ilike('given_name', `%${firstName}%`)
+      .ilike('surname', `%${lastName}%`)
+      .limit(1);
+  } else {
+    query = supabase
+      .from('borrowers')
+      .select('borrower_id')
+      .or(`given_name.ilike.%${borrowerName}%,surname.ilike.%${borrowerName}%`)
+      .limit(1);
+  }
+  
+  const { data, error } = await query;
+  
+  if (error) {
+    console.error("Error looking up borrower:", error);
+    return null;
+  }
+  
+  return data.length > 0 ? data[0].borrower_id : null;
+};
+
 const AddLoan = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -75,16 +112,36 @@ const AddLoan = () => {
       // Determine the loan term enum value.
       const loanTermEnum = `TERM_${values.loanTerm}`;
 
-      // Calculate maturity date by adding (loanTerm * 14) days.
+      // Get the selected borrower name from form context (used by BorrowerSelect component)
+      const borrowerSelectElement = document.querySelector('[aria-selected="true"]');
+      if (!borrowerSelectElement) {
+        toast.error("Please select a valid borrower");
+        setIsLoading(false);
+        return;
+      }
+      
+      const borrowerName = borrowerSelectElement.textContent?.trim() || "";
+      
+      // Look up the borrower_id from the database
+      const borrowerId = await lookupBorrowerId(borrowerName);
+      
+      if (!borrowerId) {
+        toast.error(`Borrower "${borrowerName}" not found in the database`);
+        setIsLoading(false);
+        return;
+      }
+
+      // Calculate maturity date by adding (loanTerm * 14) days to start_repayment_date
       const maturityDate = new Date();
-      if (values.disbursementDate) {
-        maturityDate.setTime(values.disbursementDate.getTime() + (values.loanTerm * 14 * 24 * 60 * 60 * 1000));
+      if (values.startRepaymentDate) {
+        maturityDate.setTime(values.startRepaymentDate.getTime() + (values.loanTerm * 14 * 24 * 60 * 60 * 1000));
       } else {
+        // If no start repayment date, use current date as fallback
         maturityDate.setDate(maturityDate.getDate() + (values.loanTerm * 14));
       }
 
       console.log("Submitting loan with data:", {
-        borrower_id: values.borrowerId,
+        borrower_id: borrowerId, // Using looked up borrower_id
         principal: values.principal,
         loan_term: loanTermEnum,
         fortnightly_installment: fortnightlyInstallment,
@@ -92,18 +149,16 @@ const AddLoan = () => {
         interest: interest,
         loan_risk_insurance: loanRiskInsurance,
         documentation_fee: documentationFee,
-        // Removed application_id field completely
       });
 
-      // Create the loan record without application_id field
+      // Create the loan record
       const { error } = await supabase.from("loans").insert({
-        borrower_id: values.borrowerId,
+        borrower_id: borrowerId, // Using looked up borrower_id
         principal: values.principal,
         loan_term: loanTermEnum as any,
         fortnightly_installment: fortnightlyInstallment,
         gross_loan: grossLoan,
         interest: interest,
-        // Don't set interest_rate explicitly, as it's handled by a database trigger
         loan_risk_insurance: loanRiskInsurance,
         documentation_fee: documentationFee,
         loan_status: 'active',
