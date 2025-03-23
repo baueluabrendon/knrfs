@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -83,7 +82,7 @@ const AddLoan = () => {
         maturityDate.setDate(maturityDate.getDate() + (values.loanTerm * 14));
       }
 
-      // Create the loan record without the application_id
+      // Create the loan record without application_id field
       const { error } = await supabase.from("loans").insert({
         borrower_id: values.borrowerId,
         principal: values.principal,
@@ -92,7 +91,6 @@ const AddLoan = () => {
         gross_loan: grossLoan,
         interest: interest,
         // Don't set interest_rate explicitly, as it's handled by a database trigger
-        // based on the loan_term value
         loan_risk_insurance: loanRiskInsurance,
         documentation_fee: documentationFee,
         loan_status: 'active',

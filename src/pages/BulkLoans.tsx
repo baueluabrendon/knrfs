@@ -152,15 +152,11 @@ const BulkLoans = () => {
     });
   };
 
-  // Helper function to convert loan term to enum value
   const getLoanTermEnum = (term: string): BiWeeklyLoanTermEnum => {
     const termNumber = parseInt(term, 10);
     return `TERM_${termNumber}` as BiWeeklyLoanTermEnum;
   };
 
-  // Helper function to get interest rate enum value based on loan term
-  // NOTE: We're keeping this function but not using it for insertions
-  // since a database trigger will set the correct interest_rate value
   const getInterestRateEnum = (loanTerm: BiWeeklyLoanTermEnum): InterestRateEnum => {
     const rateMap: Record<BiWeeklyLoanTermEnum, InterestRateEnum> = {
       'TERM_5': 'RATE_20',
@@ -184,16 +180,13 @@ const BulkLoans = () => {
   };
 
   const lookupBorrowerId = async (borrowerName: string): Promise<string | null> => {
-    // Split the name into parts
     const nameParts = borrowerName.trim().split(' ');
     let query;
     
     if (nameParts.length >= 2) {
-      // If we have at least first and last name
       const firstName = nameParts[0];
       const lastName = nameParts[nameParts.length - 1];
       
-      // Try to match on given_name and surname
       query = supabase
         .from('borrowers')
         .select('borrower_id')
@@ -201,7 +194,6 @@ const BulkLoans = () => {
         .ilike('surname', `%${lastName}%`)
         .limit(1);
     } else {
-      // If we only have one name part, try to match on either given_name or surname
       query = supabase
         .from('borrowers')
         .select('borrower_id')
@@ -232,7 +224,6 @@ const BulkLoans = () => {
       const loansToInsert: LoanInsert[] = [];
       const errors: string[] = [];
       
-      // First, process each loan entry and look up borrower IDs
       for (const loan of csvData) {
         const borrowerId = await lookupBorrowerId(loan.borrower_name);
         
@@ -244,14 +235,12 @@ const BulkLoans = () => {
         const principal = parseFloat(loan.principal);
         const loanTerm = parseInt(loan.loan_term);
         
-        // Calculate loan values - either use provided values from CSV or calculate them
         let loanValues;
         let interest = loan.interest ? parseFloat(loan.interest) : null;
         let loanRiskInsurance = loan.loan_risk_insurance ? parseFloat(loan.loan_risk_insurance) : null;
         let fortnightlyInstallment = loan.fortnightly_installment ? parseFloat(loan.fortnightly_installment) : null;
         let grossLoan = loan.gross_loan ? parseFloat(loan.gross_loan) : null;
         
-        // If any of the calculated values are missing, calculate them all
         if (!interest || !loanRiskInsurance || !fortnightlyInstallment || !grossLoan) {
           loanValues = calculateLoanValues(principal, loanTerm);
           interest = loanValues.interest;
@@ -260,15 +249,12 @@ const BulkLoans = () => {
           grossLoan = loanValues.grossLoan;
         }
         
-        // Determine the loan term enum value
         const loanTermEnum = getLoanTermEnum(loan.loan_term);
         
-        // Calculate maturity date by adding (loanTerm * 14) days from disbursement date or today
         const startDate = loan.disbursement_date ? new Date(loan.disbursement_date) : new Date();
         const maturityDate = new Date(startDate);
         maturityDate.setDate(maturityDate.getDate() + (loanTerm * 14));
         
-        // Parse gross salary and net income if provided
         const grossSalary = loan.gross_salary ? parseFloat(loan.gross_salary) : null;
         const netIncome = loan.net_income ? parseFloat(loan.net_income) : null;
 
@@ -278,9 +264,8 @@ const BulkLoans = () => {
           loan_term: loanTermEnum,
           fortnightly_installment: fortnightlyInstallment,
           interest: interest,
-          // Don't set interest_rate explicitly, it's handled by a database trigger
           loan_risk_insurance: loanRiskInsurance,
-          documentation_fee: 50, // Default documentation fee
+          documentation_fee: 50,
           gross_loan: grossLoan,
           disbursement_date: loan.disbursement_date || new Date().toISOString().split('T')[0],
           start_repayment_date: loan.start_repayment_date || loan.disbursement_date || new Date().toISOString().split('T')[0],
