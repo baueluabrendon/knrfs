@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -82,6 +83,18 @@ const AddLoan = () => {
         maturityDate.setDate(maturityDate.getDate() + (values.loanTerm * 14));
       }
 
+      console.log("Submitting loan with data:", {
+        borrower_id: values.borrowerId,
+        principal: values.principal,
+        loan_term: loanTermEnum,
+        fortnightly_installment: fortnightlyInstallment,
+        gross_loan: grossLoan,
+        interest: interest,
+        loan_risk_insurance: loanRiskInsurance,
+        documentation_fee: documentationFee,
+        // Removed application_id field completely
+      });
+
       // Create the loan record without application_id field
       const { error } = await supabase.from("loans").insert({
         borrower_id: values.borrowerId,
@@ -103,6 +116,7 @@ const AddLoan = () => {
       });
 
       if (error) {
+        console.error("Supabase error:", error);
         throw error;
       }
 

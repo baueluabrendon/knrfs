@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { toast } from "sonner";
 import { Upload, X, Download } from "lucide-react";
@@ -274,6 +275,7 @@ const BulkLoans = () => {
           product: loan.product || "Others",
           gross_salary: grossSalary,
           net_income: netIncome,
+          // Removed application_id field completely
         });
       }
 
@@ -284,6 +286,8 @@ const BulkLoans = () => {
         }
         toast.warning(`Some borrowers could not be found. Continuing with ${loansToInsert.length} valid loans.`);
       }
+
+      console.log("Loans to insert:", loansToInsert);
 
       const batchSize = 20;
       let successCount = 0;
