@@ -28,7 +28,7 @@ const loanFormSchema = z.object({
   loanRiskInsurance: z.number().nullable(),
   grossLoan: z.number().nullable(),
   documentationFee: z.number().nullable(),
-  // Make these fields required
+  // These fields are required and must be positive numbers
   grossSalary: z.coerce.number().min(0, { message: "Gross salary must be positive" }),
   netIncome: z.coerce.number().min(0, { message: "Net income must be positive" }),
 });
