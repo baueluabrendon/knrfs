@@ -59,23 +59,23 @@ type BiWeeklyLoanTermEnum =
   | "TERM_12" | "TERM_14" | "TERM_16" | "TERM_18" | "TERM_20" | "TERM_22" 
   | "TERM_24" | "TERM_26" | "TERM_28" | "TERM_30";
 
+// Updated LoanInsert to match required database fields
 interface LoanInsert {
   borrower_id: string;
   principal: number;
   loan_term: BiWeeklyLoanTermEnum;
-  interest: number;
-  // Don't explicitly set interest_rate as it's handled by a database trigger
+  interest: number; // Now required
   fortnightly_installment: number;
   loan_risk_insurance: number;
   documentation_fee: number;
   gross_loan: number;
-  disbursement_date?: string;
-  start_repayment_date?: string;
-  maturity_date?: string;
+  disbursement_date: string; // Now required
+  start_repayment_date: string; // Now required
+  maturity_date: string; // Now required
   loan_status: 'active';
-  product?: string;
-  gross_salary?: number | null;
-  net_income?: number | null;
+  product: string; // Now required
+  gross_salary: number; // Now required
+  net_income: number; // Now required
 }
 
 const BulkLoans = () => {
@@ -252,12 +252,16 @@ const BulkLoans = () => {
         
         const loanTermEnum = getLoanTermEnum(loan.loan_term);
         
-        const startDate = loan.disbursement_date ? new Date(loan.disbursement_date) : new Date();
+        const startDate = loan.start_repayment_date ? new Date(loan.start_repayment_date) : 
+                         (loan.disbursement_date ? new Date(loan.disbursement_date) : new Date());
         const maturityDate = new Date(startDate);
         maturityDate.setDate(maturityDate.getDate() + (loanTerm * 14));
         
-        const grossSalary = loan.gross_salary ? parseFloat(loan.gross_salary) : null;
-        const netIncome = loan.net_income ? parseFloat(loan.net_income) : null;
+        const grossSalary = loan.gross_salary ? parseFloat(loan.gross_salary) : 0; // Default to 0 if not provided
+        const netIncome = loan.net_income ? parseFloat(loan.net_income) : 0; // Default to 0 if not provided
+        const disbursementDate = loan.disbursement_date || new Date().toISOString().split('T')[0];
+        const startRepaymentDate = loan.start_repayment_date || disbursementDate;
+        const product = loan.product || "Others";
 
         loansToInsert.push({
           borrower_id: borrowerId,
@@ -268,14 +272,13 @@ const BulkLoans = () => {
           loan_risk_insurance: loanRiskInsurance,
           documentation_fee: 50,
           gross_loan: grossLoan,
-          disbursement_date: loan.disbursement_date || new Date().toISOString().split('T')[0],
-          start_repayment_date: loan.start_repayment_date || loan.disbursement_date || new Date().toISOString().split('T')[0],
+          disbursement_date: disbursementDate,
+          start_repayment_date: startRepaymentDate,
           maturity_date: maturityDate.toISOString().split('T')[0],
           loan_status: 'active',
-          product: loan.product || "Others",
+          product: product,
           gross_salary: grossSalary,
           net_income: netIncome,
-          // Removed application_id field completely
         });
       }
 
@@ -296,6 +299,7 @@ const BulkLoans = () => {
       for (let i = 0; i < loansToInsert.length; i += batchSize) {
         const batch = loansToInsert.slice(i, i + batchSize);
         
+        // Fixed: Using .insert(batch) to correctly pass an array of loans
         const { data, error } = await supabase
           .from('loans')
           .insert(batch)

@@ -276,7 +276,7 @@ export type Database = {
           application_id: string | null
           arrears: number | null
           borrower_id: string
-          created_at: string
+          created_at: string | null
           default_fees_accumulated: number | null
           disbursement_date: string
           documentation_fee: number | null
@@ -315,7 +315,7 @@ export type Database = {
           application_id?: string | null
           arrears?: number | null
           borrower_id?: string
-          created_at?: string
+          created_at?: string | null
           default_fees_accumulated?: number | null
           disbursement_date: string
           documentation_fee?: number | null
@@ -354,7 +354,7 @@ export type Database = {
           application_id?: string | null
           arrears?: number | null
           borrower_id?: string
-          created_at?: string
+          created_at?: string | null
           default_fees_accumulated?: number | null
           disbursement_date?: string
           documentation_fee?: number | null

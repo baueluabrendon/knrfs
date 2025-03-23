@@ -28,8 +28,9 @@ const loanFormSchema = z.object({
   loanRiskInsurance: z.number().nullable(),
   grossLoan: z.number().nullable(),
   documentationFee: z.number().nullable(),
-  grossSalary: z.coerce.number().optional(),
-  netIncome: z.coerce.number().optional(),
+  // Make these fields required
+  grossSalary: z.coerce.number().min(0, { message: "Gross salary must be positive" }),
+  netIncome: z.coerce.number().min(0, { message: "Net income must be positive" }),
 });
 
 type LoanFormValues = z.infer<typeof loanFormSchema>;
@@ -136,12 +137,13 @@ const AddLoan = () => {
       if (values.startRepaymentDate) {
         maturityDate.setTime(values.startRepaymentDate.getTime() + (values.loanTerm * 14 * 24 * 60 * 60 * 1000));
       } else {
-        // If no start repayment date, use current date as fallback
-        maturityDate.setDate(maturityDate.getDate() + (values.loanTerm * 14));
+        // If no start repayment date, use disbursement date or current date as fallback
+        const startDate = values.disbursementDate || new Date();
+        maturityDate.setTime(startDate.getTime() + (values.loanTerm * 14 * 24 * 60 * 60 * 1000));
       }
 
       console.log("Submitting loan with data:", {
-        borrower_id: borrowerId, // Using looked up borrower_id
+        borrower_id: borrowerId,
         principal: values.principal,
         loan_term: loanTermEnum,
         fortnightly_installment: fortnightlyInstallment,
@@ -149,11 +151,13 @@ const AddLoan = () => {
         interest: interest,
         loan_risk_insurance: loanRiskInsurance,
         documentation_fee: documentationFee,
+        gross_salary: values.grossSalary,
+        net_income: values.netIncome,
       });
 
       // Create the loan record
       const { error } = await supabase.from("loans").insert({
-        borrower_id: borrowerId, // Using looked up borrower_id
+        borrower_id: borrowerId,
         principal: values.principal,
         loan_term: loanTermEnum as any,
         fortnightly_installment: fortnightlyInstallment,
@@ -166,8 +170,8 @@ const AddLoan = () => {
         disbursement_date: values.disbursementDate ? values.disbursementDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
         start_repayment_date: values.startRepaymentDate ? values.startRepaymentDate.toISOString().split('T')[0] : (values.disbursementDate ? values.disbursementDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0]),
         maturity_date: maturityDate.toISOString().split('T')[0],
-        gross_salary: values.grossSalary || null,
-        net_income: values.netIncome || null,
+        gross_salary: values.grossSalary,
+        net_income: values.netIncome,
       });
 
       if (error) {
