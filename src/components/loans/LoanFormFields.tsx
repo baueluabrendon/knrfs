@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 import { format } from "date-fns";
@@ -32,6 +33,9 @@ const LoanFormFields = () => {
     
     if (principal > 0 && loanTerm > 0) {
       const loanValues = calculateLoanValues(principal, loanTerm);
+      console.log("Calculated loan values:", loanValues);
+      console.log("Loan term being used:", loanTerm, "Type:", typeof loanTerm);
+      
       form.setValue("fortnightlyInstallment", loanValues.fortnightlyInstallment);
       form.setValue("interest", loanValues.interest);
       form.setValue("interestRate", loanValues.interestRate);
