@@ -83,7 +83,7 @@ const AddLoan = () => {
         maturityDate.setDate(maturityDate.getDate() + (values.loanTerm * 14));
       }
 
-      // Create the loan record.
+      // Create the loan record without the application_id
       const { error } = await supabase.from("loans").insert({
         borrower_id: values.borrowerId,
         principal: values.principal,
