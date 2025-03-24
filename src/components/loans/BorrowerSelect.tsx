@@ -1,6 +1,5 @@
 
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
+import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,14 +22,7 @@ import {
 } from "@/components/ui/popover";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
-
-interface Borrower {
-  borrower_id: string;
-  given_name: string;
-  surname: string;
-  email: string;
-}
+import { useBorrowerSelect } from "@/hooks/useBorrowerSelect";
 
 interface BorrowerSelectProps {
   name: string;
@@ -38,40 +30,21 @@ interface BorrowerSelectProps {
 
 const BorrowerSelect = ({ name }: BorrowerSelectProps) => {
   const [open, setOpen] = useState(false);
-  const [borrowers, setBorrowers] = useState<Borrower[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const form = useFormContext();
+  
+  const { 
+    borrowers, 
+    isLoading, 
+    getBorrowerNameById 
+  } = useBorrowerSelect();
 
-  // Fetch borrowers on component mount.
-  useEffect(() => {
-    const fetchBorrowers = async () => {
-      setIsLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from("borrowers")
-          .select("borrower_id, given_name, surname, email");
-        if (error) {
-          throw error;
-        }
-        setBorrowers(data || []);
-      } catch (error) {
-        console.error("Error fetching borrowers:", error);
-        toast.error("Failed to load borrowers");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchBorrowers();
-  }, []);
-
-  // Filter borrowers based on the search term.
+  // Filter borrowers based on the search term
   const filteredBorrowers = borrowers.filter((borrower) =>
     `${borrower.given_name} ${borrower.surname}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase()) ||
-    borrower.email.toLowerCase().includes(searchTerm.toLowerCase())
+    borrower.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -90,14 +63,7 @@ const BorrowerSelect = ({ name }: BorrowerSelectProps) => {
               {isLoading
                 ? "Loading borrowers..."
                 : form.watch(name)
-                ? (() => {
-                    const selected = borrowers.find(
-                      (borrower) => borrower.borrower_id === form.watch(name)
-                    );
-                    return selected
-                      ? `${selected.given_name} ${selected.surname}`
-                      : "Select borrower";
-                  })()
+                ? getBorrowerNameById(form.watch(name))
                 : "Select borrower"}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>

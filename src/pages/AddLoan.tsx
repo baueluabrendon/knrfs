@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import LoanFormFields from "@/components/loans/LoanFormFields";
 import { calculateLoanValues, VALID_LOAN_TERMS } from "@/utils/loanCalculations";
+import { useBorrowerSelect } from "@/hooks/useBorrowerSelect";
 
 // Validation schema for the loan form.
 const loanFormSchema = z.object({
@@ -35,46 +36,10 @@ const loanFormSchema = z.object({
 
 type LoanFormValues = z.infer<typeof loanFormSchema>;
 
-/**
- * Looks up a borrower ID based on borrower name
- * @param borrowerName The name of the borrower to look up
- * @returns The borrower_id if found, null otherwise
- */
-const lookupBorrowerId = async (borrowerName: string): Promise<string | null> => {
-  const nameParts = borrowerName.trim().split(' ');
-  let query;
-  
-  if (nameParts.length >= 2) {
-    const firstName = nameParts[0];
-    const lastName = nameParts[nameParts.length - 1];
-    
-    query = supabase
-      .from('borrowers')
-      .select('borrower_id')
-      .ilike('given_name', `%${firstName}%`)
-      .ilike('surname', `%${lastName}%`)
-      .limit(1);
-  } else {
-    query = supabase
-      .from('borrowers')
-      .select('borrower_id')
-      .or(`given_name.ilike.%${borrowerName}%,surname.ilike.%${borrowerName}%`)
-      .limit(1);
-  }
-  
-  const { data, error } = await query;
-  
-  if (error) {
-    console.error("Error looking up borrower:", error);
-    return null;
-  }
-  
-  return data.length > 0 ? data[0].borrower_id : null;
-};
-
 const AddLoan = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const { findBorrowerIdByName } = useBorrowerSelect();
 
   // Initialize the form with react-hook-form.
   const form = useForm<LoanFormValues>({
@@ -113,25 +78,6 @@ const AddLoan = () => {
       // Determine the loan term enum value.
       const loanTermEnum = `TERM_${values.loanTerm}`;
 
-      // Get the selected borrower name from form context (used by BorrowerSelect component)
-      const borrowerSelectElement = document.querySelector('[aria-selected="true"]');
-      if (!borrowerSelectElement) {
-        toast.error("Please select a valid borrower");
-        setIsLoading(false);
-        return;
-      }
-      
-      const borrowerName = borrowerSelectElement.textContent?.trim() || "";
-      
-      // Look up the borrower_id from the database
-      const borrowerId = await lookupBorrowerId(borrowerName);
-      
-      if (!borrowerId) {
-        toast.error(`Borrower "${borrowerName}" not found in the database`);
-        setIsLoading(false);
-        return;
-      }
-
       // Calculate maturity date by adding (loanTerm * 14) days to start_repayment_date
       const maturityDate = new Date();
       if (values.startRepaymentDate) {
@@ -143,7 +89,7 @@ const AddLoan = () => {
       }
 
       console.log("Submitting loan with data:", {
-        borrower_id: borrowerId,
+        borrower_id: values.borrowerId,
         principal: values.principal,
         loan_term: loanTermEnum,
         fortnightly_installment: fortnightlyInstallment,
@@ -157,7 +103,7 @@ const AddLoan = () => {
 
       // Create the loan record
       const { error } = await supabase.from("loans").insert({
-        borrower_id: borrowerId,
+        borrower_id: values.borrowerId,
         principal: values.principal,
         loan_term: loanTermEnum as any,
         fortnightly_installment: fortnightlyInstallment,
