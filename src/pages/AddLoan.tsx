@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,7 +9,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import LoanFormFields from "@/components/loans/LoanFormFields";
 import { calculateLoanValues, VALID_LOAN_TERMS } from "@/utils/loanCalculations";
-import { useBorrowerSelect } from "@/hooks/useBorrowerSelect";
 
 // Validation schema for the loan form.
 const loanFormSchema = z.object({
@@ -39,7 +37,6 @@ type LoanFormValues = z.infer<typeof loanFormSchema>;
 const AddLoan = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const { findBorrowerIdByName } = useBorrowerSelect();
 
   // Initialize the form with react-hook-form.
   const form = useForm<LoanFormValues>({

@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 import { format } from "date-fns";
@@ -13,7 +12,6 @@ import BorrowerSelect from "./BorrowerSelect";
 import { calculateLoanValues, VALID_LOAN_TERMS, LOAN_TERM_INTEREST_RATE_MAP } from "@/utils/loanCalculations";
 import { cn } from "@/lib/utils";
 
-// Product options for the loan form
 const LOAN_PRODUCTS = [
   "School Fee",
   "Medical",
@@ -26,7 +24,6 @@ const LOAN_PRODUCTS = [
 const LoanFormFields = () => {
   const form = useFormContext();
   
-  // Calculate loan values when principal or loanTerm changes
   useEffect(() => {
     const principal = form.watch("principal");
     const loanTerm = form.watch("loanTerm");
@@ -54,13 +51,12 @@ const LoanFormFields = () => {
 
   return (
     <div className="grid grid-cols-1 gap-8">
-      {/* Primary Loan Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <FormField
           control={form.control}
           name="borrowerId"
           render={({ field }) => (
-            <BorrowerSelect name={field.name} />
+            <BorrowerSelect name="borrowerId" />
           )}
         />
 
@@ -264,7 +260,6 @@ const LoanFormFields = () => {
         />
       </div>
 
-      {/* Additional Loan Details */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <FormField
           control={form.control}
@@ -321,7 +316,6 @@ const LoanFormFields = () => {
         />
       </div>
 
-      {/* Summary Section */}
       <div className="border-t pt-6 mt-2">
         <FormField
           control={form.control}
