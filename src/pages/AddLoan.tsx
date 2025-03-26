@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -98,7 +99,7 @@ const AddLoan = () => {
         net_income: values.netIncome,
       });
 
-      // Create the loan record
+      // Create the loan record directly using Supabase client
       const { error } = await supabase.from("loans").insert({
         borrower_id: values.borrowerId,
         principal: values.principal,
