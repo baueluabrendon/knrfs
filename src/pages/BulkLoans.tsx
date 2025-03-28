@@ -61,22 +61,21 @@ type BiWeeklyLoanTermEnum =
 
 // Updated LoanInsert to match required database fields
 interface LoanInsert {
-  loan_id: string; // Added loan_id field
   borrower_id: string;
   principal: number;
   loan_term: BiWeeklyLoanTermEnum;
-  interest: number;
+  interest: number; // Now required
   fortnightly_installment: number;
   loan_risk_insurance: number;
   documentation_fee: number;
   gross_loan: number;
-  disbursement_date: string;
-  start_repayment_date: string;
-  maturity_date: string;
+  disbursement_date: string; // Now required
+  start_repayment_date: string; // Now required
+  maturity_date: string; // Now required
   loan_status: 'active';
-  product: string;
-  gross_salary: number;
-  net_income: number;
+  product: string; // Now required
+  gross_salary: number; // Now required
+  net_income: number; // Now required
 }
 
 const BulkLoans = () => {
@@ -258,17 +257,13 @@ const BulkLoans = () => {
         const maturityDate = new Date(startDate);
         maturityDate.setDate(maturityDate.getDate() + (loanTerm * 14));
         
-        const grossSalary = loan.gross_salary ? parseFloat(loan.gross_salary) : 0;
-        const netIncome = loan.net_income ? parseFloat(loan.net_income) : 0;
+        const grossSalary = loan.gross_salary ? parseFloat(loan.gross_salary) : 0; // Default to 0 if not provided
+        const netIncome = loan.net_income ? parseFloat(loan.net_income) : 0; // Default to 0 if not provided
         const disbursementDate = loan.disbursement_date || new Date().toISOString().split('T')[0];
         const startRepaymentDate = loan.start_repayment_date || disbursementDate;
         const product = loan.product || "Others";
 
-        // Generate a temporary loan_id that will be replaced by the database trigger
-        const tempLoanId = `temp_${Math.random().toString(36).substring(2, 15)}_${loansToInsert.length}`;
-
         loansToInsert.push({
-          loan_id: tempLoanId, // Add temporary loan_id
           borrower_id: borrowerId,
           principal: principal,
           loan_term: loanTermEnum,

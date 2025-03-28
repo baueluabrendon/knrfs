@@ -99,12 +99,8 @@ const AddLoan = () => {
         net_income: values.netIncome,
       });
 
-      // Generate a temporary loan_id for the insert, the server will replace it with the proper one via a trigger
-      const tempLoanId = `temp_${Math.random().toString(36).substring(2, 15)}`;
-
       // Create the loan record directly using Supabase client
       const { error } = await supabase.from("loans").insert({
-        loan_id: tempLoanId, // Add temporary loan_id, it will be replaced by the database trigger
         borrower_id: values.borrowerId,
         principal: values.principal,
         loan_term: loanTermEnum as any,
