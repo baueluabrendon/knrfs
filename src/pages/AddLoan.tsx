@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -99,7 +100,9 @@ const AddLoan = () => {
       });
 
       // Create the loan record
+      // Adding temporary loan_id to satisfy TypeScript, will be replaced by trigger
       const { error } = await supabase.from("loans").insert({
+        loan_id: "temporary_id", // This will be overwritten by the database trigger
         borrower_id: values.borrowerId,
         principal: values.principal,
         loan_term: loanTermEnum as any,

@@ -1,3 +1,4 @@
+
 import { ApiResponse } from './types';
 
 const API_BASE_URL = 'http://localhost:5000';
@@ -19,6 +20,12 @@ export const loansApi = {
 
   async createLoan(loanData: any) {
     try {
+      // Ensure loan_id is provided for TypeScript validation 
+      // (it will be overwritten by the database trigger)
+      if (!loanData.loan_id) {
+        loanData.loan_id = "temporary_id";
+      }
+      
       const response = await fetch(`${API_BASE_URL}/loans`, {
         method: 'POST',
         headers: {

@@ -61,21 +61,22 @@ type BiWeeklyLoanTermEnum =
 
 // Updated LoanInsert to match required database fields
 interface LoanInsert {
+  loan_id: string; // Added to satisfy TypeScript, will be replaced by trigger
   borrower_id: string;
   principal: number;
   loan_term: BiWeeklyLoanTermEnum;
-  interest: number; // Now required
+  interest: number;
   fortnightly_installment: number;
   loan_risk_insurance: number;
   documentation_fee: number;
   gross_loan: number;
-  disbursement_date: string; // Now required
-  start_repayment_date: string; // Now required
-  maturity_date: string; // Now required
+  disbursement_date: string;
+  start_repayment_date: string;
+  maturity_date: string;
   loan_status: 'active';
-  product: string; // Now required
-  gross_salary: number; // Now required
-  net_income: number; // Now required
+  product: string;
+  gross_salary: number;
+  net_income: number;
 }
 
 const BulkLoans = () => {
@@ -257,13 +258,14 @@ const BulkLoans = () => {
         const maturityDate = new Date(startDate);
         maturityDate.setDate(maturityDate.getDate() + (loanTerm * 14));
         
-        const grossSalary = loan.gross_salary ? parseFloat(loan.gross_salary) : 0; // Default to 0 if not provided
-        const netIncome = loan.net_income ? parseFloat(loan.net_income) : 0; // Default to 0 if not provided
+        const grossSalary = loan.gross_salary ? parseFloat(loan.gross_salary) : 0;
+        const netIncome = loan.net_income ? parseFloat(loan.net_income) : 0;
         const disbursementDate = loan.disbursement_date || new Date().toISOString().split('T')[0];
         const startRepaymentDate = loan.start_repayment_date || disbursementDate;
         const product = loan.product || "Others";
 
         loansToInsert.push({
+          loan_id: "temporary_id", // This will be overwritten by the database trigger
           borrower_id: borrowerId,
           principal: principal,
           loan_term: loanTermEnum,
