@@ -273,6 +273,7 @@ export type Database = {
       }
       loans: {
         Row: {
+          application_id: string | null
           arrears: number | null
           borrower_id: string
           created_at: string | null
@@ -311,8 +312,9 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          application_id?: string | null
           arrears?: number | null
-          borrower_id: string
+          borrower_id?: string
           created_at?: string | null
           default_fees_accumulated?: number | null
           disbursement_date: string
@@ -321,15 +323,15 @@ export type Database = {
           gross_loan: number
           gross_salary: number
           gst_amount?: number | null
-          interest: number
+          interest?: number
           interest_rate?:
             | Database["public"]["Enums"]["interest_rate_enum"]
             | null
-          loan_id: string
+          loan_id?: string
           loan_repayment_status?:
             | Database["public"]["Enums"]["repayment_status_enum"]
             | null
-          loan_risk_insurance: number
+          loan_risk_insurance?: number
           loan_status?: Database["public"]["Enums"]["loan_status_enum"] | null
           loan_term?:
             | Database["public"]["Enums"]["bi_weekly_loan_term_enum"]
@@ -349,6 +351,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          application_id?: string | null
           arrears?: number | null
           borrower_id?: string
           created_at?: string | null
@@ -393,6 +396,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "borrowers"
             referencedColumns: ["borrower_id"]
+          },
+          {
+            foreignKeyName: "loans_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["application_id"]
           },
         ]
       }

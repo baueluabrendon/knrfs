@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import {
@@ -9,8 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { ChevronDown } from "lucide-react";
 
 interface LoanInArrears {
   id: string;
@@ -23,54 +22,34 @@ interface LoanInArrears {
 
 const Recoveries = () => {
   const [selectedView, setSelectedView] = useState<string>("loans-in-arrears");
-  const [loansInArrears, setLoansInArrears] = useState<LoanInArrears[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchRecoveryData();
-  }, [selectedView]);
-
-  const fetchRecoveryData = async () => {
-    setIsLoading(true);
-    try {
-      if (selectedView === "loans-in-arrears") {
-        // Fetch loans in arrears from Supabase
-        const { data, error } = await supabase
-          .from('loans')
-          .select(`
-            loan_id,
-            principal,
-            arrears,
-            borrower:borrower_id (
-              given_name,
-              surname
-            ),
-            updated_at
-          `)
-          .gt('arrears', 0)
-          .order('arrears', { ascending: false });
-
-        if (error) throw error;
-
-        // Map the data to our desired format
-        const formattedData: LoanInArrears[] = (data || []).map(loan => ({
-          id: loan.loan_id,
-          borrowerName: loan.borrower ? `${loan.borrower.given_name} ${loan.borrower.surname}` : 'Unknown',
-          loanAmount: loan.principal,
-          daysOverdue: Math.floor(Math.random() * 60) + 5, // This would need proper calculation based on your business logic
-          amountOverdue: loan.arrears,
-          lastPaymentDate: new Date(loan.updated_at).toISOString().split('T')[0],
-        }));
-
-        setLoansInArrears(formattedData);
-      }
-      // Add similar implementations for "missed-payments" and "partial-payments" views
-    } catch (error) {
-      console.error('Error fetching recovery data:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Sample data - replace with actual data source
+  const loansInArrears: LoanInArrears[] = [
+    {
+      id: "L001",
+      borrowerName: "John Doe",
+      loanAmount: 10000,
+      daysOverdue: 30,
+      amountOverdue: 1200,
+      lastPaymentDate: "2024-01-15",
+    },
+    {
+      id: "L002",
+      borrowerName: "Jane Smith",
+      loanAmount: 15000,
+      daysOverdue: 45,
+      amountOverdue: 2000,
+      lastPaymentDate: "2024-01-01",
+    },
+    {
+      id: "L003",
+      borrowerName: "Bob Wilson",
+      loanAmount: 8000,
+      daysOverdue: 60,
+      amountOverdue: 3000,
+      lastPaymentDate: "2023-12-15",
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -96,13 +75,7 @@ const Recoveries = () => {
         </DropdownMenu>
       </div>
 
-      {isLoading ? (
-        <Card className="p-6">
-          <div className="flex justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-          </div>
-        </Card>
-      ) : selectedView === "loans-in-arrears" && (
+      {selectedView === "loans-in-arrears" && (
         <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4">Loans in Arrears</h2>
           <Table>
@@ -117,30 +90,20 @@ const Recoveries = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loansInArrears.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                    No loans in arrears found
-                  </TableCell>
+              {loansInArrears.map((loan) => (
+                <TableRow key={loan.id}>
+                  <TableCell>{loan.id}</TableCell>
+                  <TableCell>{loan.borrowerName}</TableCell>
+                  <TableCell>${loan.loanAmount.toLocaleString()}</TableCell>
+                  <TableCell>{loan.daysOverdue}</TableCell>
+                  <TableCell>${loan.amountOverdue.toLocaleString()}</TableCell>
+                  <TableCell>{loan.lastPaymentDate}</TableCell>
                 </TableRow>
-              ) : (
-                loansInArrears.map((loan) => (
-                  <TableRow key={loan.id}>
-                    <TableCell>{loan.id}</TableCell>
-                    <TableCell>{loan.borrowerName}</TableCell>
-                    <TableCell>${loan.loanAmount.toLocaleString()}</TableCell>
-                    <TableCell>{loan.daysOverdue}</TableCell>
-                    <TableCell>${loan.amountOverdue.toLocaleString()}</TableCell>
-                    <TableCell>{loan.lastPaymentDate}</TableCell>
-                  </TableRow>
-                ))
-              )}
+              ))}
             </TableBody>
           </Table>
         </Card>
       )}
-      
-      {/* Similar implementations for other views would go here */}
     </div>
   );
 };
