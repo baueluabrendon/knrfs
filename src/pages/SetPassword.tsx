@@ -21,13 +21,11 @@ const SetPassword = () => {
   useEffect(() => {
     if (!loading && user) {
       if (user.is_password_changed === true) {
-        console.log("SetPassword: User already has password set, redirecting");
         const redirectPath = user.role === "client" ? "/client" : "/admin";
         navigate(redirectPath, { replace: true });
       }
     } else if (!loading && !user) {
       // No user found, redirect to login
-      console.log("SetPassword: No user found, redirecting to login");
       navigate("/login", { replace: true });
     }
   }, [user, loading, navigate]);
@@ -68,7 +66,6 @@ const SetPassword = () => {
       
       // Redirect based on role
       const redirectPath = user?.role === 'client' ? '/client' : '/admin';
-      console.log("SetPassword: Password set successfully, redirecting to:", redirectPath);
       navigate(redirectPath, { replace: true });
     } catch (error: any) {
       console.error("Password update error:", error);

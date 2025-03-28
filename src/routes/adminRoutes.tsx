@@ -9,9 +9,6 @@ import AddLoan from "@/pages/AddLoan";
 import Users from "@/pages/Users";
 import Repayments from "@/pages/Repayments";
 import Applications from "@/pages/Applications";
-import LoansInArrears from "@/pages/LoansInArrears";
-import MissedPayments from "@/pages/MissedPayments";
-import PartialPayments from "@/pages/PartialPayments";
 import Analytics from "@/pages/Analytics";
 import ChartOfAccounts from "@/pages/ChartOfAccounts";
 import ProfitAndLoss from "@/pages/ProfitAndLoss";
@@ -40,18 +37,6 @@ export const adminRoutes: RouteObject[] = [
       {
         path: "loans/add",
         element: <AddLoan />
-      },
-      {
-        path: "recoveries/loans-in-arrears",
-        element: <LoansInArrears />
-      },
-      {
-        path: "recoveries/missed-payments",
-        element: <MissedPayments />
-      },
-      {
-        path: "recoveries/partial-payments",
-        element: <PartialPayments />
       },
       {
         path: "borrowers",

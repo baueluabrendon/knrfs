@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { UserProfile } from "@/types/auth";
 
 /**
- * Fetches a user profile from the database
+ * Centralized user profile fetching
  */
 export async function fetchUserProfile(userId: string): Promise<UserProfile | null> {
   try {
@@ -12,7 +12,7 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
     
     const { data: profile, error } = await supabase
       .from('user_profiles')
-      .select('user_id, email, role, first_name, last_name, is_password_changed')
+      .select('user_id, email, role, first_name, last_name, is_password_changed, borrower_id')
       .eq('user_id', userId)
       .single();
       
@@ -46,31 +46,24 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
  */
 export async function signIn(email: string, password: string): Promise<UserProfile | null> {
   try {
-    console.log("AuthService: Attempting to sign in with email:", email);
-    
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
     
     if (authError) {
-      console.error("AuthService: Auth error:", authError);
       throw authError;
     }
     
     if (!authData.user) {
-      console.error("AuthService: No user data returned");
       throw new Error("No user data returned");
     }
-    
-    console.log("AuthService: Auth successful, fetching profile for user:", authData.user.id);
     
     const profile = await fetchUserProfile(authData.user.id);
     if (!profile) {
       throw new Error("Failed to fetch user profile");
     }
     
-    console.log("AuthService: Successfully fetched profile:", profile);
     toast.success("Successfully signed in");
     return profile;
   } catch (error) {
@@ -93,8 +86,6 @@ export async function signOut(): Promise<boolean> {
     return false;
   }
 }
-
-// The getCurrentSession function has been removed as it duplicates checkExistingSession functionality
 
 /**
  * Sends a password reset email
@@ -157,16 +148,44 @@ export async function updatePassword(password: string): Promise<boolean> {
 }
 
 /**
- * Sets up an auth state change listener
+ * Check for an existing session and returns the user profile
+ */
+export async function checkSession(): Promise<{ userProfile: UserProfile | null, needsPasswordChange: boolean }> {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      return { userProfile: null, needsPasswordChange: false };
+    }
+    
+    const profile = await fetchUserProfile(session.user.id);
+    
+    if (!profile) {
+      return { userProfile: null, needsPasswordChange: false };
+    }
+    
+    return { 
+      userProfile: profile,
+      needsPasswordChange: profile.is_password_changed === false 
+    };
+  } catch (error) {
+    console.error("AuthService: Session check error:", error);
+    return { userProfile: null, needsPasswordChange: false };
+  }
+}
+
+/**
+ * Setup auth state change listener
  */
 export function setupAuthListener(callback: (user: UserProfile | null) => void): { unsubscribe: () => void } {
   const { data: { subscription } } = supabase.auth.onAuthStateChange(
     async (event, session) => {
-      console.log("AuthService: Auth state changed:", event);
-      
       if (event === 'SIGNED_IN' && session?.user) {
-        const profile = await fetchUserProfile(session.user.id);
-        callback(profile);
+        // Use setTimeout to prevent potential deadlocks with Supabase client
+        setTimeout(async () => {
+          const profile = await fetchUserProfile(session.user.id);
+          callback(profile);
+        }, 0);
       } else if (event === 'SIGNED_OUT') {
         callback(null);
       }
@@ -177,110 +196,7 @@ export function setupAuthListener(callback: (user: UserProfile | null) => void):
 }
 
 /**
- * Checks for an existing session and returns the user profile
- */
-export async function checkExistingSession() {
-  try {
-    console.log("SessionService: Checking for existing session...");
-    
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (session) {
-      console.log("SessionService: Found existing session", session.user.id);
-      
-      const profile = await fetchUserProfile(session.user.id);
-      
-      if (profile) {
-        console.log("SessionService: Found user profile", profile);
-        console.log("SessionService: User role is", profile.role);
-        
-        return { 
-          userProfile: profile,
-          needsPasswordChange: profile.is_password_changed === false 
-        };
-      }
-    }
-    
-    console.log("SessionService: No valid session found");
-    return null;
-  } catch (error) {
-    console.error("SessionService: Session check error:", error);
-    return null;
-  }
-}
-
-/**
- * Setup auth state change listener with user profile handling
- */
-export async function setupAuthStateChangeListener(
-  callback: (event: string, session: any, profile: UserProfile | null) => void
-) {
-  const { data } = await supabase.auth.onAuthStateChange(
-    async (event, session) => {
-      console.log("AuthService: Auth state changed:", event);
-      
-      if (event === 'SIGNED_IN' && session?.user) {
-        console.log("AuthService: User signed in with ID:", session.user.id);
-        
-        const profile = await fetchUserProfile(session.user.id);
-          
-        if (profile) {
-          console.log("AuthService: Profile after auth change:", profile);
-          callback(event, session, profile);
-        } else {
-          console.log("AuthService: No profile found after auth change");
-          callback(event, session, null);
-        }
-      } else {
-        callback(event, session, null);
-      }
-    }
-  );
-  
-  return data.subscription;
-}
-
-/**
- * Create a user profile
- */
-export async function createUserProfile(userId: string, email: string | null): Promise<UserProfile | null> {
-  try {
-    if (!email) {
-      console.error("AuthService: Cannot create profile without email");
-      return null;
-    }
-    
-    const newProfile = {
-      user_id: userId,
-      email,
-      role: 'client', // Default role
-      first_name: '',
-      last_name: '',
-      is_password_changed: false
-    };
-    
-    const { error } = await supabase
-      .from('user_profiles')
-      .insert(newProfile);
-      
-    if (error) {
-      console.error("AuthService: Error creating profile:", error);
-      return null;
-    }
-    
-    return {
-      ...newProfile,
-      id: userId,
-      created_at: new Date().toISOString(),
-    } as UserProfile;
-  } catch (error) {
-    console.error("AuthService: Error creating user profile:", error);
-    return null;
-  }
-}
-
-/**
- * Create a new user with admin operations
+ * Create a user with admin operations
  */
 export async function createUserWithAdmin(email: string, password: string, userData: { 
   first_name: string, 
@@ -288,8 +204,6 @@ export async function createUserWithAdmin(email: string, password: string, userD
   role: string 
 }): Promise<{ user: any; error: any }> {
   try {
-    console.log("AuthService: Creating new user with admin rights");
-    
     // Import and use the supabaseAdmin client for admin operations
     const { supabaseAdmin } = await import('@/integrations/supabase/adminClient');
     
@@ -301,7 +215,6 @@ export async function createUserWithAdmin(email: string, password: string, userD
     });
 
     if (createError) {
-      console.error("AuthService: Error creating user:", createError);
       return { user: null, error: createError };
     }
 
@@ -315,21 +228,18 @@ export async function createUserWithAdmin(email: string, password: string, userD
       .insert({
         user_id: authData.user.id,
         email: email,
-        first_name: userData.first_name, // Use userData parameter, not authData
-        last_name: userData.last_name,   // Use userData parameter, not authData
-        role: userData.role,             // Use userData parameter, not authData
+        first_name: userData.first_name,
+        last_name: userData.last_name,
+        role: userData.role,
         is_password_changed: false
       });
 
     if (profileError) {
-      console.error("AuthService: Error creating user profile:", profileError);
       return { user: null, error: profileError };
     }
 
-    console.log("AuthService: Successfully created user and profile");
     return { user: authData.user, error: null };
   } catch (error) {
-    console.error("AuthService: Error in createUserWithAdmin:", error);
     return { user: null, error };
   }
 }

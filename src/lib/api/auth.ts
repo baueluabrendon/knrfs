@@ -1,42 +1,23 @@
 
 import { ApiResponse } from './types';
-import { supabase } from '@/integrations/supabase/client';
-import type { UserProfile } from '@/types/auth';
+import { checkSession } from '@/services/authService';
 
 /**
  * API methods for authentication-related operations
+ * This file now mostly redirects to the centralized authService
  */
 export const authApi = {
   /**
    * Checks if a user is currently authenticated
    */
-  async checkSession(): Promise<ApiResponse<UserProfile | null>> {
+  async checkSession(): Promise<ApiResponse<any>> {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { userProfile, needsPasswordChange } = await checkSession();
       
-      if (!session) {
-        return { success: true, data: null };
-      }
-      
-      const { data: userProfile, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .single();
-      
-      if (error) {
-        console.error('Error fetching user profile:', error);
-        return { success: false, error: error.message };
-      }
-      
-      const profile: UserProfile = {
-        ...userProfile,
-        id: userProfile.user_id,
-        created_at: userProfile.created_at || new Date().toISOString(),
-        role: userProfile.role as UserProfile['role']
+      return { 
+        success: true, 
+        data: userProfile
       };
-      
-      return { success: true, data: profile };
     } catch (error: any) {
       console.error('Session check error:', error);
       return { success: false, error: error.message };

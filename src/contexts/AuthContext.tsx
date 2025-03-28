@@ -29,43 +29,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const checkSession = async () => {
-      try {
-        console.log("AuthProvider: Checking for existing session");
-        
-        const sessionData = await authService.checkExistingSession();
-        
-        if (!sessionData) {
-          console.log("AuthProvider: No active session");
-          setAuthState({ user: null, loading: false, error: null });
-          return;
-        }
-
-        console.log("AuthProvider: Found session for user profile:", sessionData.userProfile);
-        
-        // Set the user in state
-        setAuthState({
-          user: sessionData.userProfile,
-          loading: false,
-          error: null,
-        });
-      } catch (error: any) {
-        console.error("AuthProvider: Session check error:", error);
-        setAuthState({ user: null, loading: false, error: error.message });
-      }
-    };
-
-    checkSession();
-    
-    // Set up auth state change listener
+    // Set up auth state listener first
     const subscription = authService.setupAuthListener((user) => {
-      console.log("AuthProvider: Auth state changed, user:", user);
       setAuthState((prev) => ({ 
         ...prev, 
         user,
         loading: false
       }));
     });
+    
+    // Then check for existing session
+    const checkSession = async () => {
+      try {
+        const { userProfile } = await authService.checkSession();
+        setAuthState({
+          user: userProfile,
+          loading: false,
+          error: null,
+        });
+      } catch (error: any) {
+        setAuthState({ user: null, loading: false, error: error.message });
+      }
+    };
+
+    checkSession();
     
     // Clean up subscription on unmount
     return () => {
@@ -78,17 +65,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       const userProfile = await authService.signIn(email, password);
-      
-      if (!userProfile) {
-        throw new Error("Failed to sign in");
-      }
-      
-      console.log("AuthProvider: Sign in successful, user profile:", userProfile);
       setAuthState({ user: userProfile, loading: false, error: null });
-      
       return userProfile;
     } catch (error: any) {
-      console.error("AuthProvider: Sign in error", error);
       setAuthState({ user: null, loading: false, error: error.message });
       throw error;
     }
@@ -102,7 +81,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAuthState({ user: null, loading: false, error: null });
       navigate("/login", { replace: true });
     } catch (error: any) {
-      console.error("AuthProvider: Sign out error", error);
       setAuthState((prev) => ({ ...prev, loading: false, error: error.message }));
     }
   };
