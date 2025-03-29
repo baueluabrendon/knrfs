@@ -26,6 +26,11 @@ export const loansApi = {
         loanData.loan_id = "temporary_id";
       }
       
+      // Remove maturity_date if it exists as it will be calculated by the database trigger
+      if (loanData.maturity_date) {
+        delete loanData.maturity_date;
+      }
+      
       const response = await fetch(`${API_BASE_URL}/loans`, {
         method: 'POST',
         headers: {

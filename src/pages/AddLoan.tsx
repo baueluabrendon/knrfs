@@ -76,16 +76,6 @@ const AddLoan = () => {
       // Determine the loan term enum value.
       const loanTermEnum = `TERM_${values.loanTerm}`;
 
-      // Calculate maturity date by adding (loanTerm * 14) days to start_repayment_date
-      const maturityDate = new Date();
-      if (values.startRepaymentDate) {
-        maturityDate.setTime(values.startRepaymentDate.getTime() + (values.loanTerm * 14 * 24 * 60 * 60 * 1000));
-      } else {
-        // If no start repayment date, use disbursement date or current date as fallback
-        const startDate = values.disbursementDate || new Date();
-        maturityDate.setTime(startDate.getTime() + (values.loanTerm * 14 * 24 * 60 * 60 * 1000));
-      }
-
       console.log("Submitting loan with data:", {
         borrower_id: values.borrowerId,
         principal: values.principal,
@@ -115,7 +105,6 @@ const AddLoan = () => {
         product: values.product,
         disbursement_date: values.disbursementDate ? values.disbursementDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
         start_repayment_date: values.startRepaymentDate ? values.startRepaymentDate.toISOString().split('T')[0] : (values.disbursementDate ? values.disbursementDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0]),
-        maturity_date: maturityDate.toISOString().split('T')[0],
         gross_salary: values.grossSalary,
         net_income: values.netIncome,
       });

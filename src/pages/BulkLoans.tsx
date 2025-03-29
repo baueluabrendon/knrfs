@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { Upload, X, Download } from "lucide-react";
@@ -72,7 +71,6 @@ interface LoanInsert {
   gross_loan: number;
   disbursement_date: string;
   start_repayment_date: string;
-  maturity_date: string;
   loan_status: 'active';
   product: string;
   gross_salary: number;
@@ -253,11 +251,6 @@ const BulkLoans = () => {
         
         const loanTermEnum = getLoanTermEnum(loan.loan_term);
         
-        const startDate = loan.start_repayment_date ? new Date(loan.start_repayment_date) : 
-                         (loan.disbursement_date ? new Date(loan.disbursement_date) : new Date());
-        const maturityDate = new Date(startDate);
-        maturityDate.setDate(maturityDate.getDate() + (loanTerm * 14));
-        
         const grossSalary = loan.gross_salary ? parseFloat(loan.gross_salary) : 0;
         const netIncome = loan.net_income ? parseFloat(loan.net_income) : 0;
         const disbursementDate = loan.disbursement_date || new Date().toISOString().split('T')[0];
@@ -276,7 +269,6 @@ const BulkLoans = () => {
           gross_loan: grossLoan,
           disbursement_date: disbursementDate,
           start_repayment_date: startRepaymentDate,
-          maturity_date: maturityDate.toISOString().split('T')[0],
           loan_status: 'active',
           product: product,
           gross_salary: grossSalary,
