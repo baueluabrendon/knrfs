@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
+import { format } from "date-fns";
 
 const ClientLoans = () => {
   const { user } = useAuth();
@@ -28,6 +29,23 @@ const ClientLoans = () => {
       return data;
     },
   });
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      return format(date, 'dd/MM/yyyy');
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid date';
+    }
+  };
+
+  const getLoanTermValue = (loanTerm?: string) => {
+    if (!loanTerm) return 'N/A';
+    const termMatch = loanTerm.match(/TERM_(\d+)/);
+    return termMatch ? `${termMatch[1]} months` : loanTerm;
+  };
 
   if (isLoading) {
     return (
@@ -47,6 +65,8 @@ const ClientLoans = () => {
             <TableRow>
               <TableHead>Loan ID</TableHead>
               <TableHead>Amount</TableHead>
+              <TableHead>Loan Term</TableHead>
+              <TableHead>Fortnightly Installment</TableHead>
               <TableHead>Start Date</TableHead>
               <TableHead>End Date</TableHead>
               <TableHead>Status</TableHead>
@@ -56,7 +76,7 @@ const ClientLoans = () => {
           <TableBody>
             {!loans || loans.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                   No loans found
                 </TableCell>
               </TableRow>
@@ -65,10 +85,12 @@ const ClientLoans = () => {
                 <TableRow key={loan.loan_id}>
                   <TableCell>{loan.loan_id}</TableCell>
                   <TableCell>${loan.principal?.toLocaleString()}</TableCell>
-                  <TableCell>{loan.disbursement_date}</TableCell>
-                  <TableCell>{loan.maturity_date}</TableCell>
+                  <TableCell>{getLoanTermValue(loan.loan_term)}</TableCell>
+                  <TableCell>${loan.fortnightly_installment?.toLocaleString()}</TableCell>
+                  <TableCell>{formatDate(loan.disbursement_date)}</TableCell>
+                  <TableCell>{formatDate(loan.maturity_date)}</TableCell>
                   <TableCell>{loan.loan_status}</TableCell>
-                  <TableCell>{loan.start_repayment_date || '-'}</TableCell>
+                  <TableCell>{formatDate(loan.start_repayment_date)}</TableCell>
                 </TableRow>
               ))
             )}

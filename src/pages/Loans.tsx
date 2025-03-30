@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Table,
@@ -12,10 +12,12 @@ import {
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import LoanDetails from "@/components/loans/LoanDetails";
 import { toast } from "sonner";
-import { Plus, Loader2, Upload } from "lucide-react";
+import { Plus, Loader2, Upload, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 
 interface Loan {
   loan_id: string;
@@ -52,8 +54,10 @@ interface Loan {
 const Loans = () => {
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
   const [loans, setLoans] = useState<Loan[]>([]);
+  const [filteredLoans, setFilteredLoans] = useState<Loan[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -75,6 +79,20 @@ const Loans = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredLoans(loans);
+    } else {
+      const query = searchQuery.toLowerCase();
+      const filtered = loans.filter(loan => 
+        loan.loan_id.toLowerCase().includes(query) || 
+        (loan.borrower && 
+          `${loan.borrower.given_name} ${loan.borrower.surname}`.toLowerCase().includes(query))
+      );
+      setFilteredLoans(filtered);
+    }
+  }, [searchQuery, loans]);
+
   const fetchLoans = async () => {
     try {
       setLoading(true);
@@ -92,6 +110,7 @@ const Loans = () => {
 
       if (error) throw error;
       setLoans(data || []);
+      setFilteredLoans(data || []);
     } catch (error) {
       console.error('Error fetching loans:', error);
       toast.error('Failed to load loans');
@@ -108,6 +127,10 @@ const Loans = () => {
     toast("Loan details have been emailed successfully.");
   };
 
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
   const getBorrowerFullName = (loan: Loan) => {
     return loan.borrower ? `${loan.borrower.given_name} ${loan.borrower.surname}` : 'N/A';
   };
@@ -121,7 +144,7 @@ const Loans = () => {
   const getLoanTermValue = (loan: Loan) => {
     if (!loan.loan_term) return 'N/A';
     const termMatch = loan.loan_term.match(/TERM_(\d+)/);
-    return termMatch ? termMatch[1] : loan.loan_term;
+    return termMatch ? `${termMatch[1]} months` : loan.loan_term;
   };
 
   const getStatusBadgeClass = (status?: string) => {
@@ -143,7 +166,13 @@ const Loans = () => {
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
+    try {
+      const date = new Date(dateString);
+      return format(date, 'dd/MM/yyyy');
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid date';
+    }
   };
 
   return (
@@ -162,6 +191,26 @@ const Loans = () => {
         </div>
       </div>
       
+      <div className="flex items-center mb-4">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+          <Input
+            type="text"
+            placeholder="Search by name or loan ID..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className="pl-9 pr-4"
+          />
+        </div>
+        <div className="ml-2">
+          {searchQuery && (
+            <p className="text-sm text-gray-500">
+              Showing {filteredLoans.length} of {loans.length} loans
+            </p>
+          )}
+        </div>
+      </div>
+      
       <Card className="p-6">
         {loading ? (
           <div className="flex justify-center py-8">
@@ -177,8 +226,10 @@ const Loans = () => {
                   <TableHead>Borrower</TableHead>
                   <TableHead>Loan Amount</TableHead>
                   <TableHead>Interest</TableHead>
-                  <TableHead>Gross Loan</TableHead>
-                  <TableHead>Balance</TableHead>
+                  <TableHead className="min-w-[120px]">Gross Loan</TableHead>
+                  <TableHead className="min-w-[120px]">Balance</TableHead>
+                  <TableHead>Loan Term</TableHead>
+                  <TableHead>Fortnightly Installment</TableHead>
                   <TableHead>Loan Status</TableHead>
                   <TableHead>Repayment Status</TableHead>
                   <TableHead>Disbursement Date</TableHead>
@@ -190,12 +241,14 @@ const Loans = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loans.length === 0 ? (
+                {filteredLoans.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={15} className="text-center py-8 text-gray-500">No loans found</TableCell>
+                    <TableCell colSpan={17} className="text-center py-8 text-gray-500">
+                      {searchQuery ? 'No matching loans found' : 'No loans found'}
+                    </TableCell>
                   </TableRow>
                 ) : (
-                  loans.map((loan) => (
+                  filteredLoans.map((loan) => (
                     <TableRow 
                       key={loan.loan_id}
                       className="cursor-pointer hover:bg-gray-50"
@@ -211,8 +264,10 @@ const Loans = () => {
                       <TableCell>{getBorrowerFullName(loan)}</TableCell>
                       <TableCell>${loan.principal?.toLocaleString() || 'N/A'}</TableCell>
                       <TableCell>${loan.interest?.toLocaleString() || 'N/A'}</TableCell>
-                      <TableCell>${loan.gross_loan?.toLocaleString() || 'N/A'}</TableCell>
-                      <TableCell>${loan.outstanding_balance?.toLocaleString() || '0'}</TableCell>
+                      <TableCell className="whitespace-nowrap">${loan.gross_loan?.toLocaleString() || 'N/A'}</TableCell>
+                      <TableCell className="whitespace-nowrap">${loan.outstanding_balance?.toLocaleString() || '0'}</TableCell>
+                      <TableCell>{getLoanTermValue(loan)}</TableCell>
+                      <TableCell>${loan.fortnightly_installment?.toLocaleString() || 'N/A'}</TableCell>
                       <TableCell>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                           getStatusBadgeClass(loan.loan_status)
