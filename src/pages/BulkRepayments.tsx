@@ -282,6 +282,25 @@ const BulkRepayments = () => {
                   )}
                 </Button>
                 
+                <Button 
+                  variant="outline"
+                  onClick={handleUploadRepayments}
+                  disabled={!parsedData.length || !documentUrl || isSubmitting}
+                  className="flex-shrink-0 w-auto"
+                >
+                  <UploadIcon className="mr-2 h-4 w-4" />
+                  Upload Repayments
+                </Button>
+                
+                <Button 
+                  variant="outline"
+                  onClick={handleCancelUpload}
+                  className="flex-shrink-0 w-auto"
+                >
+                  <X className="mr-2 h-4 w-4" />
+                  Cancel
+                </Button>
+                
                 {csvFile && (
                   <div className="text-sm text-green-600 flex items-center gap-1 ml-2">
                     <FileText className="h-4 w-4" />
@@ -344,26 +363,6 @@ const BulkRepayments = () => {
                 </div>
               )}
             </div>
-          </div>
-          
-          <div className="flex justify-end gap-3">
-            <Button 
-              variant="outline"
-              onClick={handleCancelUpload}
-              className="w-auto"
-            >
-              <X className="mr-2 h-4 w-4" />
-              Cancel
-            </Button>
-            <Button 
-              variant="outline"
-              onClick={handleUploadRepayments}
-              disabled={!parsedData.length || !documentUrl || isSubmitting}
-              className="w-auto"
-            >
-              <UploadIcon className="mr-2 h-4 w-4" />
-              Upload Repayments
-            </Button>
           </div>
           
           {parsedData.length > 0 && (
