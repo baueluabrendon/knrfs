@@ -27,6 +27,7 @@ interface Borrower {
   organization: string;
   monthlyIncome: number;
   activeLoanId: string | null;
+  fileNumber: string | null;
   // Additional fields from borrowers table
   givenName?: string;
   surname?: string;
@@ -38,7 +39,6 @@ interface Borrower {
   province?: string;
   nationality?: string;
   departmentCompany?: string;
-  fileNumber?: string;
   position?: string;
   postalAddress?: string;
   workPhoneNumber?: string;
@@ -110,6 +110,26 @@ const Borrowers = () => {
         return;
       }
 
+      // Fetch active loans for each borrower
+      const borrowerIds = data.map(b => b.borrower_id);
+      const { data: loansData, error: loansError } = await supabase
+        .from('loans')
+        .select('loan_id, borrower_id')
+        .in('borrower_id', borrowerIds)
+        .eq('loan_status', 'active');
+      
+      if (loansError) {
+        console.error('Error fetching active loans:', loansError);
+      }
+
+      // Create a map of borrower_id to active loan_id
+      const activeLoanMap = new Map();
+      if (loansData) {
+        loansData.forEach(loan => {
+          activeLoanMap.set(loan.borrower_id, loan.loan_id);
+        });
+      }
+
       const mappedBorrowers: Borrower[] = data.map(b => ({
         id: b.borrower_id,
         name: `${b.given_name} ${b.surname}`,
@@ -121,7 +141,8 @@ const Borrowers = () => {
         occupation: b.position || '',
         organization: b.department_company || '',
         monthlyIncome: 0,
-        activeLoanId: null,
+        activeLoanId: activeLoanMap.get(b.borrower_id) || null,
+        fileNumber: b.file_number,
         // Map additional fields
         givenName: b.given_name,
         surname: b.surname,
@@ -133,7 +154,6 @@ const Borrowers = () => {
         province: b.province,
         nationality: b.nationality,
         departmentCompany: b.department_company,
-        fileNumber: b.file_number,
         position: b.position,
         postalAddress: b.postal_address,
         workPhoneNumber: b.work_phone_number,

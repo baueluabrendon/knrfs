@@ -66,7 +66,7 @@ const Repayments = () => {
           <Button variant="outline" asChild>
             <Link to="/admin/repayments/bulk">
               <Upload className="mr-2 h-4 w-4" />
-              Bulk Upload
+              Bulk Repayment Upload
             </Link>
           </Button>
           <RepaymentDialog 

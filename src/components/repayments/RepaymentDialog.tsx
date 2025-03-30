@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Plus, Upload } from "lucide-react";
+import { Plus, Upload, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import RepaymentBorrowerSelect from "./RepaymentBorrowerSelect";
+import { format } from "date-fns";
 
 interface RepaymentDialogProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
   const [loanId, setLoanId] = useState("");
   const [availableLoans, setAvailableLoans] = useState<{ id: string; status: string }[]>([]);
   const [amount, setAmount] = useState("");
+  const [paymentDate, setPaymentDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState("");
 
@@ -130,7 +132,7 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
   };
 
   const handleSubmit = async () => {
-    if (!loanId || !amount || !file) {
+    if (!loanId || !amount || !file || !paymentDate) {
       toast.error("Please fill in all fields and select a receipt document.");
       return;
     }
@@ -153,7 +155,7 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
           amount: parseFloat(amount),
           receipt_url: receiptUrl,
           status: 'completed',
-          payment_date: new Date().toISOString().split('T')[0]
+          payment_date: paymentDate
         });
       
       if (error) {
@@ -168,6 +170,7 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
       setBorrowerName("");
       setLoanId("");
       setAmount("");
+      setPaymentDate(format(new Date(), 'yyyy-MM-dd'));
       setFile(null);
       onOpenChange(false);
       
@@ -220,6 +223,20 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
             />
           </div>
           <div className="space-y-2">
+            <Label htmlFor="paymentDate">Payment Date</Label>
+            <div className="relative">
+              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+              <Input 
+                id="paymentDate" 
+                type="date" 
+                placeholder="Select payment date"
+                value={paymentDate}
+                onChange={(e) => setPaymentDate(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="receipt">Receipt Document</Label>
             <Input
               id="receipt"
@@ -236,7 +253,7 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
           <Button 
             className="w-full" 
             onClick={handleSubmit}
-            disabled={isUploading || !loanId || !amount || !file}
+            disabled={isUploading || !loanId || !amount || !file || !paymentDate}
           >
             {isUploading ? (
               <span>Uploading...</span>

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { 
   Table, TableBody, TableCell, TableHead, 
@@ -99,6 +100,11 @@ const LoansTable = ({
     }
   };
 
+  const formatCurrency = (amount?: number) => {
+    if (amount === undefined || amount === null) return 'N/A';
+    return `K${amount.toFixed(2)}`;
+  };
+
   return (
     <div className="space-y-4">
       <SearchBar
@@ -155,12 +161,12 @@ const LoansTable = ({
                       {loan.loan_id}
                     </TableCell>
                     <TableCell>{getBorrowerFullName(loan)}</TableCell>
-                    <TableCell>K{loan.principal?.toLocaleString() || 'N/A'}</TableCell>
-                    <TableCell>K{loan.interest?.toLocaleString() || 'N/A'}</TableCell>
-                    <TableCell className="whitespace-nowrap">K{loan.gross_loan?.toLocaleString() || 'N/A'}</TableCell>
-                    <TableCell className="whitespace-nowrap">K{loan.outstanding_balance?.toLocaleString() || '0'}</TableCell>
+                    <TableCell>{formatCurrency(loan.principal)}</TableCell>
+                    <TableCell>{formatCurrency(loan.interest)}</TableCell>
+                    <TableCell className="whitespace-nowrap">{formatCurrency(loan.gross_loan)}</TableCell>
+                    <TableCell className="whitespace-nowrap">{formatCurrency(loan.outstanding_balance)}</TableCell>
                     <TableCell>{getLoanTermValue(loan)}</TableCell>
-                    <TableCell>K{loan.fortnightly_installment?.toLocaleString() || 'N/A'}</TableCell>
+                    <TableCell>{formatCurrency(loan.fortnightly_installment)}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         getStatusBadgeClass(loan.loan_status)
@@ -175,9 +181,9 @@ const LoansTable = ({
                         {loan.loan_repayment_status?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'N/A'}
                       </span>
                     </TableCell>
-                    <TableCell>K{loan.arrears?.toLocaleString() || '0'}</TableCell>
-                    <TableCell>K{loan.default_fees_accumulated?.toLocaleString() || '0'}</TableCell>
-                    <TableCell>K{loan.total_repayment?.toLocaleString() || '0'}</TableCell>
+                    <TableCell>{formatCurrency(loan.arrears)}</TableCell>
+                    <TableCell>{formatCurrency(loan.default_fees_accumulated)}</TableCell>
+                    <TableCell>{formatCurrency(loan.total_repayment)}</TableCell>
                     <TableCell>{formatDate(loan.disbursement_date)}</TableCell>
                     <TableCell>{formatDate(loan.start_repayment_date)}</TableCell>
                     <TableCell>{formatDate(loan.maturity_date)}</TableCell>

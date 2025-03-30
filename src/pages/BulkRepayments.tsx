@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Upload, FileText, Loader2, Upload as UploadIcon, Table as TableIcon } from "lucide-react";
+import { Upload, FileText, Loader2, Upload as UploadIcon, Table as TableIcon, X } from "lucide-react";
 import { uploadGroupRepaymentDocument } from "@/contexts/loan-application/document-uploader";
 import { Repayment, BulkRepaymentData } from "@/types/repayment";
 import Papa from "papaparse";
+import { supabase } from "@/integrations/supabase/client";
 
 const BulkRepayments = () => {
   const [parsedData, setParsedData] = useState<BulkRepaymentData[]>([]);
@@ -34,11 +35,63 @@ const BulkRepayments = () => {
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
-      complete: (results) => {
+      complete: async (results) => {
         try {
           validateCSVHeaders(results.meta.fields || []);
-          const parsedResults = results.data as BulkRepaymentData[];
-          setParsedData(parsedResults);
+          
+          // Process each row to add loan_id based on borrower name
+          const processedData: BulkRepaymentData[] = [];
+          for (const row of results.data as any[]) {
+            const borrowerName = row.borrower;
+            const amount = parseFloat(row.amount);
+            const date = row.date;
+            
+            if (!borrowerName || isNaN(amount) || !date) {
+              continue; // Skip invalid rows
+            }
+            
+            let loanId = '';
+            
+            // Get borrower ID from name
+            const names = borrowerName.split(' ');
+            if (names.length >= 2) {
+              const given_name = names[0];
+              const surname = names.slice(1).join(' ');
+              
+              const { data: borrowerData } = await supabase
+                .from('borrowers')
+                .select('borrower_id')
+                .ilike('given_name', given_name)
+                .ilike('surname', surname)
+                .limit(1);
+                
+              if (borrowerData && borrowerData.length > 0) {
+                const borrowerId = borrowerData[0].borrower_id;
+                
+                // Get active loan for this borrower
+                const { data: loanData } = await supabase
+                  .from('loans')
+                  .select('loan_id')
+                  .eq('borrower_id', borrowerId)
+                  .eq('loan_status', 'active')
+                  .limit(1);
+                  
+                if (loanData && loanData.length > 0) {
+                  loanId = loanData[0].loan_id;
+                }
+              }
+            }
+            
+            processedData.push({
+              borrowerName,
+              amount,
+              date,
+              loanId,
+              status: loanId ? 'pending' : 'failed'
+            });
+          }
+          
+          setParsedData(processedData);
           toast.success("CSV file parsed successfully");
         } catch (error: any) {
           console.error("Error parsing CSV:", error);
@@ -58,7 +111,7 @@ const BulkRepayments = () => {
   };
 
   const validateCSVHeaders = (headers: string[]) => {
-    const requiredHeaders = ['date', 'amount', 'loanId', 'borrowerName', 'payPeriod'];
+    const requiredHeaders = ['borrower', 'amount', 'date'];
     const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
     
     if (missingHeaders.length > 0) {
@@ -118,16 +171,33 @@ const BulkRepayments = () => {
     setIsSubmitting(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Create repayment entries
+      const repaymentsToInsert = parsedData
+        .filter(item => item.loanId) // Only include items with valid loan IDs
+        .map(item => ({
+          loan_id: item.loanId,
+          amount: item.amount,
+          payment_date: item.date,
+          status: 'completed',
+          receipt_url: documentUrl
+        }));
       
-      toast.success(`Successfully processed ${parsedData.length} repayments`);
-      setParsedData([]);
-      setCsvFile(null);
-      setDocumentFile(null);
-      setDocumentUrl(null);
+      if (repaymentsToInsert.length === 0) {
+        toast.error("No valid repayments to submit");
+        setIsSubmitting(false);
+        return;
+      }
       
-      if (csvFileInputRef.current) csvFileInputRef.current.value = '';
-      if (documentFileInputRef.current) documentFileInputRef.current.value = '';
+      const { error } = await supabase
+        .from('repayments')
+        .insert(repaymentsToInsert);
+        
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      toast.success(`Successfully processed ${repaymentsToInsert.length} repayments`);
+      resetForm();
     } catch (error) {
       console.error("Error submitting repayments:", error);
       toast.error("Failed to submit repayments. Please try again.");
@@ -146,6 +216,21 @@ const BulkRepayments = () => {
     if (documentFileInputRef.current) {
       documentFileInputRef.current.click();
     }
+  };
+
+  const resetForm = () => {
+    setParsedData([]);
+    setCsvFile(null);
+    setDocumentFile(null);
+    setDocumentUrl(null);
+    
+    if (csvFileInputRef.current) csvFileInputRef.current.value = '';
+    if (documentFileInputRef.current) documentFileInputRef.current.value = '';
+  };
+
+  const handleCancelUpload = () => {
+    resetForm();
+    toast.info("Upload process cancelled");
   };
 
   return (
@@ -202,7 +287,7 @@ const BulkRepayments = () => {
                 </Button>
               </div>
               <p className="text-sm text-gray-500">
-                Upload a CSV file with columns: date, amount, loanId, borrowerName, payPeriod
+                Upload a CSV file with columns: borrower, amount, date
               </p>
             </div>
             
@@ -251,26 +336,44 @@ const BulkRepayments = () => {
           
           {parsedData.length > 0 && (
             <div className="mt-6">
-              <h2 className="text-lg font-semibold mb-4">Preview ({parsedData.length} repayments)</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold">Preview ({parsedData.length} repayments)</h2>
+                <Button 
+                  variant="outline" 
+                  onClick={handleCancelUpload}
+                  size="sm"
+                >
+                  <X className="mr-2 h-4 w-4" />
+                  Cancel
+                </Button>
+              </div>
               <div className="rounded-md border overflow-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Loan ID</TableHead>
                       <TableHead>Borrower Name</TableHead>
-                      <TableHead>Pay Period</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Loan ID</TableHead>
+                      <TableHead>Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {parsedData.map((repayment, index) => (
                       <TableRow key={index}>
-                        <TableCell>{repayment.date}</TableCell>
-                        <TableCell>${Number(repayment.amount).toFixed(2)}</TableCell>
-                        <TableCell>{repayment.loanId}</TableCell>
                         <TableCell>{repayment.borrowerName}</TableCell>
-                        <TableCell>{repayment.payPeriod}</TableCell>
+                        <TableCell>K{Number(repayment.amount).toFixed(2)}</TableCell>
+                        <TableCell>{repayment.date}</TableCell>
+                        <TableCell>{repayment.loanId || 'Not found'}</TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            repayment.loanId 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {repayment.loanId ? 'Valid' : 'Invalid loan'}
+                          </span>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
