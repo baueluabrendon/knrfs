@@ -106,7 +106,7 @@ const LoansTable = ({ loans, loading, onSelectLoan }: LoansTableProps) => {
             <TableHead>Interest</TableHead>
             <TableHead className="min-w-[120px]">Gross Loan</TableHead>
             <TableHead className="min-w-[120px]">Balance</TableHead>
-            <TableHead>Loan Term</TableHead>
+            <TableHead>Loan Term (Fortnights)</TableHead>
             <TableHead>Fortnightly Installment</TableHead>
             <TableHead>Loan Status</TableHead>
             <TableHead>Repayment Status</TableHead>

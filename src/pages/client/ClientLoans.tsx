@@ -65,7 +65,7 @@ const ClientLoans = () => {
             <TableRow>
               <TableHead>Loan ID</TableHead>
               <TableHead>Amount</TableHead>
-              <TableHead>Loan Term</TableHead>
+              <TableHead>Loan Term (Fortnights)</TableHead>
               <TableHead>Fortnightly Installment</TableHead>
               <TableHead>Start Date</TableHead>
               <TableHead>End Date</TableHead>
