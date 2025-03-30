@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Upload, FileText, Loader2, Upload as UploadIcon, Table as TableIcon, X, Download } from "lucide-react";
+import { FileText, Loader2, Table as TableIcon, X, Download } from "lucide-react";
 import { uploadGroupRepaymentDocument } from "@/contexts/loan-application/document-uploader";
 import { Repayment, BulkRepaymentData } from "@/types/repayment";
 import Papa from "papaparse";
@@ -140,20 +140,6 @@ const BulkRepayments = () => {
     }
   };
 
-  const handleUploadRepayments = () => {
-    if (!parsedData.length) {
-      toast.error("Please select and parse CSV data first");
-      return;
-    }
-    
-    if (!documentUrl) {
-      toast.error("Please upload the repayment group document first");
-      return;
-    }
-    
-    toast.success("Repayments uploaded to the system");
-  };
-
   const handleSubmitRepayments = async () => {
     if (parsedData.length === 0) {
       toast.error("No repayment data to submit");
@@ -282,26 +268,14 @@ const BulkRepayments = () => {
                   )}
                 </Button>
                 
-                <Button 
+                <Button
                   variant="outline"
-                  onClick={handleUploadRepayments}
-                  disabled={!parsedData.length || !documentUrl || isSubmitting}
+                  onClick={downloadCSVTemplate}
                   className="flex-shrink-0 w-auto"
                 >
-                  <UploadIcon className="mr-2 h-4 w-4" />
-                  Upload Repayments
+                  <Download className="mr-2 h-4 w-4" />
+                  Download Template
                 </Button>
-                
-                {(parsedData.length > 0 || csvFile) && (
-                  <Button 
-                    variant="outline"
-                    onClick={handleCancelUpload}
-                    className="flex-shrink-0 w-auto"
-                  >
-                    <X className="mr-2 h-4 w-4" />
-                    Cancel
-                  </Button>
-                )}
                 
                 {csvFile && (
                   <div className="text-sm text-green-600 flex items-center gap-1 ml-2">
@@ -343,15 +317,6 @@ const BulkRepayments = () => {
                       Upload Document
                     </>
                   )}
-                </Button>
-
-                <Button
-                  variant="outline"
-                  onClick={downloadCSVTemplate}
-                  className="flex-shrink-0 w-auto"
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Download Template
                 </Button>
               </div>
               <p className="text-sm text-gray-500">
