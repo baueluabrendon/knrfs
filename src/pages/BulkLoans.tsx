@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/table";
 import { calculateLoanValues } from "@/utils/loanCalculations";
 
-// CSV expected structure
 interface CSVLoan {
   borrower_name: string;
   principal: string;
@@ -31,23 +30,21 @@ interface CSVLoan {
   gross_loan?: string;
 }
 
-// Expected CSV headers mapping
 const CSV_HEADERS = {
-  borrower_name: "borrower_name",
-  principal: "principal",
-  loan_term: "loan_term",
-  disbursement_date: "disbursement_date",
-  start_repayment_date: "start_repayment_date",
-  product: "product",
-  gross_salary: "gross_salary",
-  net_income: "net_income",
-  interest: "interest",
-  loan_risk_insurance: "loan_risk_insurance",
-  fortnightly_installment: "fortnightly_installment",
-  gross_loan: "gross_loan"
+  borrower_name: ["borrower_name", "borrowername", "borrower"],
+  principal: ["principal", "principal_amount", "loan_amount", "amount"],
+  loan_term: ["loan_term", "term", "loanterm"],
+  disbursement_date: ["disbursement_date", "disbursementdate", "disburse_date"],
+  start_repayment_date: ["start_repayment_date", "startrepaymentdate", "repayment_start_date"],
+  product: ["product", "product_type", "loan_product"],
+  gross_salary: ["gross_salary", "grosssalary", "salary_gross"],
+  net_income: ["net_income", "netincome", "income_net"],
+  interest: ["interest", "interest_amount"],
+  loan_risk_insurance: ["loan_risk_insurance", "loanriskinsurance", "risk_insurance"],
+  fortnightly_installment: ["fortnightly_installment", "fortnightlyinstallment", "installment", "biweekly_payment"],
+  gross_loan: ["gross_loan", "grossloan", "total_loan_amount", "total_amount"]
 };
 
-// Updated to match the database enum types
 type InterestRateEnum = 
   | "RATE_20" | "RATE_22" | "RATE_24" | "RATE_26" | "RATE_28" | "RATE_30" 
   | "RATE_34" | "RATE_38" | "RATE_42" | "RATE_46" | "RATE_50" | "RATE_54" 
@@ -58,9 +55,8 @@ type BiWeeklyLoanTermEnum =
   | "TERM_12" | "TERM_14" | "TERM_16" | "TERM_18" | "TERM_20" | "TERM_22" 
   | "TERM_24" | "TERM_26" | "TERM_28" | "TERM_30";
 
-// Updated LoanInsert to match required database fields
 interface LoanInsert {
-  loan_id: string; // Added to satisfy TypeScript, will be replaced by trigger
+  loan_id: string;
   borrower_id: string;
   principal: number;
   loan_term: BiWeeklyLoanTermEnum;
@@ -108,10 +104,26 @@ const BulkLoans = () => {
         }
 
         try {
-          // Check for required headers
           const headers = results.meta.fields || [];
           const requiredHeaders = ["borrower_name", "principal", "loan_term"];
-          const missingRequiredHeaders = requiredHeaders.filter(h => !headers.includes(h));
+          
+          const headerMapping: Record<string, string> = {};
+          
+          Object.entries(CSV_HEADERS).forEach(([expectedHeader, variations]) => {
+            const foundHeader = headers.find(header => 
+              typeof variations === 'string' 
+                ? header.toLowerCase() === variations.toLowerCase()
+                : variations.some(v => header.toLowerCase() === v.toLowerCase())
+            );
+            
+            if (foundHeader) {
+              headerMapping[foundHeader] = expectedHeader;
+            }
+          });
+          
+          const missingRequiredHeaders = requiredHeaders.filter(required => 
+            !Object.values(headerMapping).includes(required)
+          );
           
           if (missingRequiredHeaders.length > 0) {
             setMissingHeaders(missingRequiredHeaders);
@@ -120,20 +132,29 @@ const BulkLoans = () => {
             return;
           }
 
-          const parsedData = results.data.map((row: any) => ({
-            borrower_name: row[CSV_HEADERS.borrower_name] || "",
-            principal: row[CSV_HEADERS.principal] || "",
-            loan_term: row[CSV_HEADERS.loan_term] || "",
-            disbursement_date: row[CSV_HEADERS.disbursement_date] || "",
-            start_repayment_date: row[CSV_HEADERS.start_repayment_date] || "",
-            product: row[CSV_HEADERS.product] || "",
-            gross_salary: row[CSV_HEADERS.gross_salary] || "",
-            net_income: row[CSV_HEADERS.net_income] || "",
-            interest: row[CSV_HEADERS.interest] || "",
-            loan_risk_insurance: row[CSV_HEADERS.loan_risk_insurance] || "",
-            fortnightly_installment: row[CSV_HEADERS.fortnightly_installment] || "",
-            gross_loan: row[CSV_HEADERS.gross_loan] || "",
-          }));
+          const parsedData = results.data.map((row: any) => {
+            const mappedRow: Record<string, string> = {};
+            
+            Object.entries(row).forEach(([actualHeader, value]) => {
+              const mappedHeader = headerMapping[actualHeader] || actualHeader;
+              mappedRow[mappedHeader] = value;
+            });
+            
+            return {
+              borrower_name: mappedRow.borrower_name || "",
+              principal: mappedRow.principal || "",
+              loan_term: mappedRow.loan_term || "",
+              disbursement_date: mappedRow.disbursement_date || "",
+              start_repayment_date: mappedRow.start_repayment_date || "",
+              product: mappedRow.product || "",
+              gross_salary: mappedRow.gross_salary || "",
+              net_income: mappedRow.net_income || "",
+              interest: mappedRow.interest || "",
+              loan_risk_insurance: mappedRow.loan_risk_insurance || "",
+              fortnightly_installment: mappedRow.fortnightly_installment || "",
+              gross_loan: mappedRow.gross_loan || "",
+            };
+          });
 
           setCSVData(parsedData);
           toast.success(`Successfully parsed ${parsedData.length} loans`);
@@ -258,7 +279,7 @@ const BulkLoans = () => {
         const product = loan.product || "Others";
 
         loansToInsert.push({
-          loan_id: "temporary_id", // This will be overwritten by the database trigger
+          loan_id: "temporary_id",
           borrower_id: borrowerId,
           principal: principal,
           loan_term: loanTermEnum,
@@ -293,7 +314,6 @@ const BulkLoans = () => {
       for (let i = 0; i < loansToInsert.length; i += batchSize) {
         const batch = loansToInsert.slice(i, i + batchSize);
         
-        // Fixed: Using .insert(batch) to correctly pass an array of loans
         const { data, error } = await supabase
           .from('loans')
           .insert(batch)
@@ -331,7 +351,7 @@ const BulkLoans = () => {
   };
 
   const downloadTemplateCSV = () => {
-    const headers = Object.values(CSV_HEADERS).join(',');
+    const headers = Object.keys(CSV_HEADERS).join(',');
     const csvContent = `${headers}\n`;
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -447,17 +467,17 @@ const BulkLoans = () => {
                     {csvData.map((loan, index) => (
                       <TableRow key={index}>
                         <TableCell>{loan.borrower_name}</TableCell>
-                        <TableCell>${parseFloat(loan.principal).toFixed(2)}</TableCell>
+                        <TableCell>K{parseFloat(loan.principal).toFixed(2)}</TableCell>
                         <TableCell>{loan.loan_term} periods</TableCell>
-                        <TableCell>${loan.interest ? parseFloat(loan.interest).toFixed(2) : '-'}</TableCell>
-                        <TableCell>${loan.loan_risk_insurance ? parseFloat(loan.loan_risk_insurance).toFixed(2) : '-'}</TableCell>
-                        <TableCell>${loan.fortnightly_installment ? parseFloat(loan.fortnightly_installment).toFixed(2) : '-'}</TableCell>
-                        <TableCell>${loan.gross_loan ? parseFloat(loan.gross_loan).toFixed(2) : '-'}</TableCell>
+                        <TableCell>K{loan.interest ? parseFloat(loan.interest).toFixed(2) : '-'}</TableCell>
+                        <TableCell>K{loan.loan_risk_insurance ? parseFloat(loan.loan_risk_insurance).toFixed(2) : '-'}</TableCell>
+                        <TableCell>K{loan.fortnightly_installment ? parseFloat(loan.fortnightly_installment).toFixed(2) : '-'}</TableCell>
+                        <TableCell>K{loan.gross_loan ? parseFloat(loan.gross_loan).toFixed(2) : '-'}</TableCell>
                         <TableCell>{loan.disbursement_date || 'Today'}</TableCell>
                         <TableCell>{loan.start_repayment_date || loan.disbursement_date || 'Today'}</TableCell>
                         <TableCell>{loan.product || 'Others'}</TableCell>
-                        <TableCell>{loan.gross_salary ? `$${parseFloat(loan.gross_salary).toFixed(2)}` : '-'}</TableCell>
-                        <TableCell>{loan.net_income ? `$${parseFloat(loan.net_income).toFixed(2)}` : '-'}</TableCell>
+                        <TableCell>{loan.gross_salary ? `K${parseFloat(loan.gross_salary).toFixed(2)}` : '-'}</TableCell>
+                        <TableCell>{loan.net_income ? `K${parseFloat(loan.net_income).toFixed(2)}` : '-'}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

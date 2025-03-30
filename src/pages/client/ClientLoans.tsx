@@ -84,9 +84,9 @@ const ClientLoans = () => {
               loans.map((loan) => (
                 <TableRow key={loan.loan_id}>
                   <TableCell>{loan.loan_id}</TableCell>
-                  <TableCell>${loan.principal?.toLocaleString()}</TableCell>
+                  <TableCell>K{loan.principal?.toLocaleString()}</TableCell>
                   <TableCell>{getLoanTermValue(loan.loan_term)}</TableCell>
-                  <TableCell>${loan.fortnightly_installment?.toLocaleString()}</TableCell>
+                  <TableCell>K{loan.fortnightly_installment?.toLocaleString()}</TableCell>
                   <TableCell>{formatDate(loan.disbursement_date)}</TableCell>
                   <TableCell>{formatDate(loan.maturity_date)}</TableCell>
                   <TableCell>{loan.loan_status}</TableCell>
