@@ -71,8 +71,8 @@ const Loans = () => {
     return rateMatch ? `${rateMatch[1]}%` : loan.interest_rate;
   };
 
-  const getLoanTermValue = (loan: Loan) => {
-    if (!loan.loan_term) return 'N/A';
+  const getLoanTermValue = (loan: Loan): number => {
+    if (!loan.loan_term) return 0;
     
     // Extract the numeric value from TERM_X format
     const termMatch = loan.loan_term.match(/TERM_(\d+)/);
