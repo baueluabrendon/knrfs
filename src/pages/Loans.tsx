@@ -5,7 +5,6 @@ import { Card } from "@/components/ui/card";
 import LoanDetails from "@/components/loans/LoanDetails";
 import { toast } from "sonner";
 import LoansHeader from "@/components/loans/LoansHeader";
-import SearchBar from "@/components/loans/SearchBar";
 import LoansTable from "@/components/loans/LoansTable";
 import { useLoansList } from "@/hooks/useLoansList";
 
@@ -87,18 +86,15 @@ const Loans = () => {
     <div className="space-y-6">
       <LoansHeader />
       
-      <SearchBar 
-        searchQuery={searchQuery} 
-        onSearchChange={(e) => setSearchQuery(e.target.value)} 
-        totalCount={loans.length} 
-        filteredCount={filteredLoans.length} 
-      />
-      
       <Card className="p-6">
         <LoansTable 
           loans={filteredLoans} 
           loading={loading} 
-          onSelectLoan={handleSelectLoan} 
+          onSelectLoan={handleSelectLoan}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          totalCount={loans.length}
+          filteredCount={filteredLoans.length}
         />
       </Card>
 
