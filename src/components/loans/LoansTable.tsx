@@ -1,12 +1,11 @@
-
 import { useState } from "react";
 import { 
   Table, TableBody, TableCell, TableHead, 
   TableHeader, TableRow 
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Loader2, Search } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { format } from "date-fns";
+import SearchBar from "./SearchBar";
 
 interface Loan {
   loan_id: string;
@@ -102,25 +101,12 @@ const LoansTable = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center mb-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-          <Input
-            type="text"
-            placeholder="Search by name or loan ID..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-9 pr-4"
-          />
-        </div>
-        <div className="ml-2">
-          {searchQuery && (
-            <p className="text-sm text-gray-500">
-              Showing {filteredCount} of {totalCount} loans
-            </p>
-          )}
-        </div>
-      </div>
+      <SearchBar
+        searchQuery={searchQuery}
+        onSearchChange={onSearchChange}
+        totalCount={totalCount}
+        filteredCount={filteredCount}
+      />
 
       {loading ? (
         <div className="flex justify-center py-8">

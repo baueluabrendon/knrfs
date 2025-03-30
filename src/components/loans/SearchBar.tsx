@@ -5,9 +5,9 @@ import { Search } from "lucide-react";
 
 interface SearchBarProps {
   searchQuery: string;
-  onSearchChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  totalCount: number;
-  filteredCount: number;
+  onSearchChange: (value: string) => void;
+  totalCount?: number;
+  filteredCount?: number;
 }
 
 const SearchBar = ({ 
@@ -16,25 +16,28 @@ const SearchBar = ({
   totalCount, 
   filteredCount 
 }: SearchBarProps) => {
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
+    onSearchChange(e.target.value);
+  };
+
   return (
-    <div className="flex items-center mb-4">
-      <div className="relative flex-1 max-w-md">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-        <Input
-          type="text"
-          placeholder="Search by name or loan ID..."
+    <div className="relative space-y-4">
+      <div className="relative">
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input 
+          type="search" 
+          placeholder="Search loans by name, ID or status..." 
           value={searchQuery}
-          onChange={onSearchChange}
-          className="pl-9 pr-4"
+          onChange={handleSearchChange}
+          className="pl-8"
         />
       </div>
-      <div className="ml-2">
-        {searchQuery && (
-          <p className="text-sm text-gray-500">
-            Showing {filteredCount} of {totalCount} loans
-          </p>
-        )}
-      </div>
+      
+      {searchQuery && totalCount !== undefined && filteredCount !== undefined && (
+        <p className="text-sm text-gray-500">
+          Showing {filteredCount} of {totalCount} loans
+        </p>
+      )}
     </div>
   );
 };

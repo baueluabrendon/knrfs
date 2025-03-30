@@ -396,33 +396,6 @@ export type Database = {
           },
         ]
       }
-      pay_period: {
-        Row: {
-          end_date: string
-          pay_period: number
-          pay_period_type: string
-          period_id: number
-          start_date: string
-          year: number
-        }
-        Insert: {
-          end_date: string
-          pay_period: number
-          pay_period_type: string
-          period_id?: number
-          start_date: string
-          year: number
-        }
-        Update: {
-          end_date?: string
-          pay_period?: number
-          pay_period_type?: string
-          period_id?: number
-          start_date?: string
-          year?: number
-        }
-        Relationships: []
-      }
       repayment_document_group: {
         Row: {
           created_at: string | null
@@ -451,15 +424,7 @@ export type Database = {
           period_id?: number | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "repayment_document_group_period_id_fkey"
-            columns: ["period_id"]
-            isOneToOne: false
-            referencedRelation: "pay_period"
-            referencedColumns: ["period_id"]
-          },
-        ]
+        Relationships: []
       }
       repayment_schedule: {
         Row: {
@@ -522,15 +487,7 @@ export type Database = {
             | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "repayment_schedule_period_id_fkey"
-            columns: ["period_id"]
-            isOneToOne: false
-            referencedRelation: "pay_period"
-            referencedColumns: ["period_id"]
-          },
-        ]
+        Relationships: []
       }
       repayments: {
         Row: {
