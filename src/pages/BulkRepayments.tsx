@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Upload, FileText, Loader2, Upload as UploadIcon, Table as TableIcon, X } from "lucide-react";
+import { Upload, FileText, Loader2, Upload as UploadIcon, Table as TableIcon, X, Download } from "lucide-react";
 import { uploadGroupRepaymentDocument } from "@/contexts/loan-application/document-uploader";
 import { Repayment, BulkRepaymentData } from "@/types/repayment";
 import Papa from "papaparse";
@@ -38,7 +38,6 @@ const BulkRepayments = () => {
         try {
           validateCSVHeaders(results.meta.fields || []);
           
-          // Process each row to add loan_id based on borrower name
           const processedData: BulkRepaymentData[] = [];
           for (const row of results.data as any[]) {
             const borrowerName = row.borrower;
@@ -46,12 +45,11 @@ const BulkRepayments = () => {
             const date = row.date;
             
             if (!borrowerName || isNaN(amount) || !date) {
-              continue; // Skip invalid rows
+              continue;
             }
             
             let loanId = '';
             
-            // Get borrower ID from name
             const names = borrowerName.split(' ');
             if (names.length >= 2) {
               const given_name = names[0];
@@ -67,7 +65,6 @@ const BulkRepayments = () => {
               if (borrowerData && borrowerData.length > 0) {
                 const borrowerId = borrowerData[0].borrower_id;
                 
-                // Get active loan for this borrower
                 const { data: loanData } = await supabase
                   .from('loans')
                   .select('loan_id')
@@ -171,9 +168,8 @@ const BulkRepayments = () => {
     setIsSubmitting(true);
     
     try {
-      // Create repayment entries
       const repaymentsToInsert = parsedData
-        .filter(item => item.loanId) // Only include items with valid loan IDs
+        .filter(item => item.loanId)
         .map(item => ({
           loan_id: item.loanId,
           amount: item.amount,
@@ -233,6 +229,23 @@ const BulkRepayments = () => {
     toast.info("Upload process cancelled");
   };
 
+  const downloadCSVTemplate = () => {
+    const headers = "borrower,amount,date\n";
+    const sampleData = "John Doe,500,2024-06-15\nJane Smith,750,2024-06-15\n";
+    const csvContent = headers + sampleData;
+    
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "repayments_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success("CSV template downloaded");
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold text-gray-800">Bulk Repayments Upload</h1>
@@ -284,6 +297,15 @@ const BulkRepayments = () => {
                 >
                   <UploadIcon className="mr-2 h-4 w-4" />
                   Upload Repayments
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={downloadCSVTemplate}
+                  className="flex-shrink-0 w-auto"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download Template
                 </Button>
               </div>
               <p className="text-sm text-gray-500">
