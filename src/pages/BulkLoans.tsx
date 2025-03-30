@@ -32,133 +32,21 @@ interface CSVLoan {
   gross_loan?: string;
 }
 
-// Expected CSV headers mapping - maintain original expected headers
-const EXPECTED_HEADERS = {
-  borrower_name: "borrower_name",
-  principal: "principal",
-  loan_term: "loan_term",
-  disbursement_date: "disbursement_date",
-  start_repayment_date: "start_repayment_date",
-  product: "product",
-  gross_salary: "gross_salary",
-  net_income: "net_income",
-  interest: "interest",
-  loan_risk_insurance: "loan_risk_insurance",
-  fortnightly_installment: "fortnightly_installment",
-  gross_loan: "gross_loan"
-};
-
-// Function to normalize header names to match our expected format
-const normalizeHeaderName = (header: string): string | null => {
-  if (!header) return null;
-  
-  // Convert to lowercase and remove spaces/special characters
-  const normalized = header.toLowerCase()
-    .replace(/[-_\s]+/g, "_")
-    .replace(/[^\w]/g, "");
-  
-  // Map common variations to our expected header names
-  const headerMappings: Record<string, string> = {
-    // Original mappings
-    "borrower_name": "borrower_name",
-    "borrowername": "borrower_name",
-    "borrower": "borrower_name",
-    "name": "borrower_name",
-    "client": "borrower_name",
-    "clientname": "borrower_name",
-    "client_name": "borrower_name",
-    
-    // Principal amount
-    "principal": "principal",
-    "principalamount": "principal",
-    "principal_amount": "principal",
-    "loan_amount": "principal",
-    "loanamount": "principal",
-    "amount": "principal",
-    
-    // Loan term
-    "loan_term": "loan_term",
-    "loanterm": "loan_term",
-    "term": "loan_term",
-    "period": "loan_term",
-    "loanperiod": "loan_term",
-    "loan_period": "loan_term",
-    
-    // Disbursement date
-    "disbursement_date": "disbursement_date",
-    "disbursementdate": "disbursement_date",
-    "disbursement": "disbursement_date",
-    "date": "disbursement_date",
-    "startdate": "disbursement_date",
-    "start_date": "disbursement_date",
-    
-    // Start repayment date
-    "start_repayment_date": "start_repayment_date",
-    "startrepaymentdate": "start_repayment_date",
-    "repayment_start": "start_repayment_date",
-    "repaymentstart": "start_repayment_date",
-    "firstrepayment": "start_repayment_date",
-    "first_repayment": "start_repayment_date",
-    
-    // Product
-    "product": "product",
-    "product_type": "product",
-    "producttype": "product",
-    "loan_type": "product",
-    "loantype": "product",
-    "type": "product",
-    
-    // Gross salary
-    "gross_salary": "gross_salary",
-    "grosssalary": "gross_salary",
-    "salary_gross": "gross_salary",
-    "salarygross": "gross_salary",
-    "gross": "gross_salary",
-    "salary": "gross_salary",
-    
-    // Net income
-    "net_income": "net_income",
-    "netincome": "net_income",
-    "income": "net_income",
-    "net": "net_income",
-    "income_net": "net_income",
-    "incomenet": "net_income",
-    
-    // Interest
-    "interest": "interest",
-    "interest_amount": "interest",
-    "interestamount": "interest",
-    
-    // Loan risk insurance
-    "loan_risk_insurance": "loan_risk_insurance",
-    "loanriskinsurance": "loan_risk_insurance",
-    "risk_insurance": "loan_risk_insurance",
-    "riskinsurance": "loan_risk_insurance",
-    "insurance": "loan_risk_insurance",
-    
-    // Fortnightly installment
-    "fortnightly_installment": "fortnightly_installment",
-    "fortnightlyinstallment": "fortnightly_installment",
-    "installment": "fortnightly_installment",
-    "payment": "fortnightly_installment",
-    "repayment": "fortnightly_installment",
-    "biweekly_payment": "fortnightly_installment",
-    "biweeklypayment": "fortnightly_installment",
-    "fortnight_payment": "fortnightly_installment",
-    "fortnightpayment": "fortnightly_installment",
-    
-    // Gross loan
-    "gross_loan": "gross_loan",
-    "grossloan": "gross_loan",
-    "loan_gross": "gross_loan",
-    "loangross": "gross_loan",
-    "total": "gross_loan",
-    "total_loan": "gross_loan",
-    "totalloan": "gross_loan",
-  };
-  
-  return headerMappings[normalized] || null;
-};
+// Define a single, standard set of headers - no synonyms
+const EXPECTED_HEADERS = [
+  "borrower_name",
+  "principal",
+  "loan_term",
+  "disbursement_date",
+  "start_repayment_date",
+  "product",
+  "gross_salary",
+  "net_income",
+  "interest",
+  "loan_risk_insurance",
+  "fortnightly_installment",
+  "gross_loan"
+];
 
 // Updated to match the database enum types
 type InterestRateEnum = 
@@ -225,24 +113,12 @@ const BulkLoans = () => {
           const actualHeaders = results.meta.fields || [];
           console.log("CSV actual headers:", actualHeaders);
           
-          // Map CSV headers to our expected headers
-          const headerMap: Record<string, string> = {};
-          for (const actualHeader of actualHeaders) {
-            const normalizedHeader = normalizeHeaderName(actualHeader);
-            if (normalizedHeader) {
-              headerMap[actualHeader] = normalizedHeader;
-            }
-          }
-          console.log("Header mapping:", headerMap);
-          
           // Check for required headers
           const requiredHeaders = ["borrower_name", "principal", "loan_term"];
           const missingRequiredHeaders: string[] = [];
           
           for (const requiredHeader of requiredHeaders) {
-            // Check if any actual header maps to this required header
-            const hasHeader = Object.values(headerMap).includes(requiredHeader);
-            if (!hasHeader) {
+            if (!actualHeaders.includes(requiredHeader)) {
               missingRequiredHeaders.push(requiredHeader);
             }
           }
@@ -256,18 +132,19 @@ const BulkLoans = () => {
 
           const parsedData = results.data.map((row: any) => {
             const loan: CSVLoan = {
-              borrower_name: '',
-              principal: '',
-              loan_term: '',
+              borrower_name: row.borrower_name || '',
+              principal: row.principal || '',
+              loan_term: row.loan_term || '',
+              disbursement_date: row.disbursement_date,
+              start_repayment_date: row.start_repayment_date,
+              product: row.product,
+              gross_salary: row.gross_salary,
+              net_income: row.net_income,
+              interest: row.interest,
+              loan_risk_insurance: row.loan_risk_insurance,
+              fortnightly_installment: row.fortnightly_installment,
+              gross_loan: row.gross_loan
             };
-            
-            // For each field in the CSV, map it to our expected structure
-            for (const [csvHeader, value] of Object.entries(row)) {
-              const mappedHeader = headerMap[csvHeader];
-              if (mappedHeader) {
-                (loan as any)[mappedHeader] = value;
-              }
-            }
             
             return loan;
           });
@@ -430,7 +307,6 @@ const BulkLoans = () => {
       for (let i = 0; i < loansToInsert.length; i += batchSize) {
         const batch = loansToInsert.slice(i, i + batchSize);
         
-        // Fixed: Using .insert(batch) to correctly pass an array of loans
         const { data, error } = await supabase
           .from('loans')
           .insert(batch)
@@ -468,7 +344,7 @@ const BulkLoans = () => {
   };
 
   const downloadTemplateCSV = () => {
-    const headers = Object.values(EXPECTED_HEADERS).join(',');
+    const headers = EXPECTED_HEADERS.join(',');
     const csvContent = `${headers}\n`;
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
