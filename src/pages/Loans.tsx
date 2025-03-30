@@ -143,6 +143,8 @@ const Loans = () => {
 
   const getLoanTermValue = (loan: Loan) => {
     if (!loan.loan_term) return 'N/A';
+    
+    // Extract the numeric value from TERM_X format
     const termMatch = loan.loan_term.match(/TERM_(\d+)/);
     return termMatch ? `${termMatch[1]} months` : loan.loan_term;
   };
@@ -232,12 +234,12 @@ const Loans = () => {
                   <TableHead>Fortnightly Installment</TableHead>
                   <TableHead>Loan Status</TableHead>
                   <TableHead>Repayment Status</TableHead>
-                  <TableHead>Disbursement Date</TableHead>
-                  <TableHead>Start Repayment Date</TableHead>
-                  <TableHead>Maturity Date</TableHead>
                   <TableHead>Arrears</TableHead>
                   <TableHead>Default Fees</TableHead>
                   <TableHead>Repayments</TableHead>
+                  <TableHead>Disbursement Date</TableHead>
+                  <TableHead>Start Repayment Date</TableHead>
+                  <TableHead>Maturity Date</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -282,12 +284,12 @@ const Loans = () => {
                           {loan.loan_repayment_status?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'N/A'}
                         </span>
                       </TableCell>
-                      <TableCell>{formatDate(loan.disbursement_date)}</TableCell>
-                      <TableCell>{formatDate(loan.start_repayment_date)}</TableCell>
-                      <TableCell>{formatDate(loan.maturity_date)}</TableCell>
                       <TableCell>${loan.arrears?.toLocaleString() || '0'}</TableCell>
                       <TableCell>${loan.default_fees_accumulated?.toLocaleString() || '0'}</TableCell>
                       <TableCell>${loan.total_repayment?.toLocaleString() || '0'}</TableCell>
+                      <TableCell>{formatDate(loan.disbursement_date)}</TableCell>
+                      <TableCell>{formatDate(loan.start_repayment_date)}</TableCell>
+                      <TableCell>{formatDate(loan.maturity_date)}</TableCell>
                     </TableRow>
                   ))
                 )}
