@@ -89,7 +89,7 @@ export const useLoansList = () => {
             email
           )
         `)
-        .order('loan_id', { ascending: true }); // Changed to sort by loan_id in ascending order
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setLoans(data || []);
