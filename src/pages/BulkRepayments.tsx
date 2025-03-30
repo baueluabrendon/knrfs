@@ -346,6 +346,26 @@ const BulkRepayments = () => {
             </div>
           </div>
           
+          <div className="flex justify-end gap-3">
+            <Button 
+              variant="outline"
+              onClick={handleCancelUpload}
+              className="w-auto"
+            >
+              <X className="mr-2 h-4 w-4" />
+              Cancel
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={handleUploadRepayments}
+              disabled={!parsedData.length || !documentUrl || isSubmitting}
+              className="w-auto"
+            >
+              <UploadIcon className="mr-2 h-4 w-4" />
+              Upload Repayments
+            </Button>
+          </div>
+          
           {parsedData.length > 0 && (
             <div className="mt-6">
               <div className="flex justify-between items-center mb-4">
