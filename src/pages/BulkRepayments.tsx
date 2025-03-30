@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -87,7 +86,8 @@ const BulkRepayments = () => {
               amount,
               date,
               loanId,
-              status: loanId ? 'pending' : 'failed'
+              status: loanId ? 'pending' : 'failed',
+              payPeriod: "Current"
             });
           }
           

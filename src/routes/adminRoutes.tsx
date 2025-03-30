@@ -19,6 +19,9 @@ import BulkLoans from "@/pages/BulkLoans";
 import BulkBorrowers from "@/pages/BulkBorrowers";
 import BulkRepayments from "@/pages/BulkRepayments";
 import Recoveries from "@/pages/Recoveries";
+import LoansInArrears from "@/pages/LoansInArrears";
+import MissedPayments from "@/pages/MissedPayments";
+import PartialPayments from "@/pages/PartialPayments";
 
 // Define admin routes with proper nesting
 export const adminRoutes: RouteObject[] = [
@@ -57,6 +60,18 @@ export const adminRoutes: RouteObject[] = [
       {
         path: "recoveries",
         element: <Recoveries />
+      },
+      {
+        path: "recoveries/loans-in-arrears",
+        element: <LoansInArrears />
+      },
+      {
+        path: "recoveries/missed-payments",
+        element: <MissedPayments />
+      },
+      {
+        path: "recoveries/partial-payments",
+        element: <PartialPayments />
       },
       {
         path: "analytics",
