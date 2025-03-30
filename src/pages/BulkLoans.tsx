@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { toast } from "sonner";
 import { Upload, X, Download } from "lucide-react";
@@ -31,8 +32,8 @@ interface CSVLoan {
   gross_loan?: string;
 }
 
-// Expected CSV headers mapping
-const CSV_HEADERS = {
+// Expected CSV headers mapping - maintain original expected headers
+const EXPECTED_HEADERS = {
   borrower_name: "borrower_name",
   principal: "principal",
   loan_term: "loan_term",
@@ -45,6 +46,118 @@ const CSV_HEADERS = {
   loan_risk_insurance: "loan_risk_insurance",
   fortnightly_installment: "fortnightly_installment",
   gross_loan: "gross_loan"
+};
+
+// Function to normalize header names to match our expected format
+const normalizeHeaderName = (header: string): string | null => {
+  if (!header) return null;
+  
+  // Convert to lowercase and remove spaces/special characters
+  const normalized = header.toLowerCase()
+    .replace(/[-_\s]+/g, "_")
+    .replace(/[^\w]/g, "");
+  
+  // Map common variations to our expected header names
+  const headerMappings: Record<string, string> = {
+    // Original mappings
+    "borrower_name": "borrower_name",
+    "borrowername": "borrower_name",
+    "borrower": "borrower_name",
+    "name": "borrower_name",
+    "client": "borrower_name",
+    "clientname": "borrower_name",
+    "client_name": "borrower_name",
+    
+    // Principal amount
+    "principal": "principal",
+    "principalamount": "principal",
+    "principal_amount": "principal",
+    "loan_amount": "principal",
+    "loanamount": "principal",
+    "amount": "principal",
+    
+    // Loan term
+    "loan_term": "loan_term",
+    "loanterm": "loan_term",
+    "term": "loan_term",
+    "period": "loan_term",
+    "loanperiod": "loan_term",
+    "loan_period": "loan_term",
+    
+    // Disbursement date
+    "disbursement_date": "disbursement_date",
+    "disbursementdate": "disbursement_date",
+    "disbursement": "disbursement_date",
+    "date": "disbursement_date",
+    "startdate": "disbursement_date",
+    "start_date": "disbursement_date",
+    
+    // Start repayment date
+    "start_repayment_date": "start_repayment_date",
+    "startrepaymentdate": "start_repayment_date",
+    "repayment_start": "start_repayment_date",
+    "repaymentstart": "start_repayment_date",
+    "firstrepayment": "start_repayment_date",
+    "first_repayment": "start_repayment_date",
+    
+    // Product
+    "product": "product",
+    "product_type": "product",
+    "producttype": "product",
+    "loan_type": "product",
+    "loantype": "product",
+    "type": "product",
+    
+    // Gross salary
+    "gross_salary": "gross_salary",
+    "grosssalary": "gross_salary",
+    "salary_gross": "gross_salary",
+    "salarygross": "gross_salary",
+    "gross": "gross_salary",
+    "salary": "gross_salary",
+    
+    // Net income
+    "net_income": "net_income",
+    "netincome": "net_income",
+    "income": "net_income",
+    "net": "net_income",
+    "income_net": "net_income",
+    "incomenet": "net_income",
+    
+    // Interest
+    "interest": "interest",
+    "interest_amount": "interest",
+    "interestamount": "interest",
+    
+    // Loan risk insurance
+    "loan_risk_insurance": "loan_risk_insurance",
+    "loanriskinsurance": "loan_risk_insurance",
+    "risk_insurance": "loan_risk_insurance",
+    "riskinsurance": "loan_risk_insurance",
+    "insurance": "loan_risk_insurance",
+    
+    // Fortnightly installment
+    "fortnightly_installment": "fortnightly_installment",
+    "fortnightlyinstallment": "fortnightly_installment",
+    "installment": "fortnightly_installment",
+    "payment": "fortnightly_installment",
+    "repayment": "fortnightly_installment",
+    "biweekly_payment": "fortnightly_installment",
+    "biweeklypayment": "fortnightly_installment",
+    "fortnight_payment": "fortnightly_installment",
+    "fortnightpayment": "fortnightly_installment",
+    
+    // Gross loan
+    "gross_loan": "gross_loan",
+    "grossloan": "gross_loan",
+    "loan_gross": "gross_loan",
+    "loangross": "gross_loan",
+    "total": "gross_loan",
+    "total_loan": "gross_loan",
+    "totalloan": "gross_loan",
+  };
+  
+  return headerMappings[normalized] || null;
 };
 
 // Updated to match the database enum types
@@ -108,10 +221,31 @@ const BulkLoans = () => {
         }
 
         try {
+          // Get actual headers from the CSV
+          const actualHeaders = results.meta.fields || [];
+          console.log("CSV actual headers:", actualHeaders);
+          
+          // Map CSV headers to our expected headers
+          const headerMap: Record<string, string> = {};
+          for (const actualHeader of actualHeaders) {
+            const normalizedHeader = normalizeHeaderName(actualHeader);
+            if (normalizedHeader) {
+              headerMap[actualHeader] = normalizedHeader;
+            }
+          }
+          console.log("Header mapping:", headerMap);
+          
           // Check for required headers
-          const headers = results.meta.fields || [];
           const requiredHeaders = ["borrower_name", "principal", "loan_term"];
-          const missingRequiredHeaders = requiredHeaders.filter(h => !headers.includes(h));
+          const missingRequiredHeaders: string[] = [];
+          
+          for (const requiredHeader of requiredHeaders) {
+            // Check if any actual header maps to this required header
+            const hasHeader = Object.values(headerMap).includes(requiredHeader);
+            if (!hasHeader) {
+              missingRequiredHeaders.push(requiredHeader);
+            }
+          }
           
           if (missingRequiredHeaders.length > 0) {
             setMissingHeaders(missingRequiredHeaders);
@@ -120,20 +254,23 @@ const BulkLoans = () => {
             return;
           }
 
-          const parsedData = results.data.map((row: any) => ({
-            borrower_name: row[CSV_HEADERS.borrower_name] || "",
-            principal: row[CSV_HEADERS.principal] || "",
-            loan_term: row[CSV_HEADERS.loan_term] || "",
-            disbursement_date: row[CSV_HEADERS.disbursement_date] || "",
-            start_repayment_date: row[CSV_HEADERS.start_repayment_date] || "",
-            product: row[CSV_HEADERS.product] || "",
-            gross_salary: row[CSV_HEADERS.gross_salary] || "",
-            net_income: row[CSV_HEADERS.net_income] || "",
-            interest: row[CSV_HEADERS.interest] || "",
-            loan_risk_insurance: row[CSV_HEADERS.loan_risk_insurance] || "",
-            fortnightly_installment: row[CSV_HEADERS.fortnightly_installment] || "",
-            gross_loan: row[CSV_HEADERS.gross_loan] || "",
-          }));
+          const parsedData = results.data.map((row: any) => {
+            const loan: CSVLoan = {
+              borrower_name: '',
+              principal: '',
+              loan_term: '',
+            };
+            
+            // For each field in the CSV, map it to our expected structure
+            for (const [csvHeader, value] of Object.entries(row)) {
+              const mappedHeader = headerMap[csvHeader];
+              if (mappedHeader) {
+                (loan as any)[mappedHeader] = value;
+              }
+            }
+            
+            return loan;
+          });
 
           setCSVData(parsedData);
           toast.success(`Successfully parsed ${parsedData.length} loans`);
@@ -331,7 +468,7 @@ const BulkLoans = () => {
   };
 
   const downloadTemplateCSV = () => {
-    const headers = Object.values(CSV_HEADERS).join(',');
+    const headers = Object.values(EXPECTED_HEADERS).join(',');
     const csvContent = `${headers}\n`;
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -447,17 +584,17 @@ const BulkLoans = () => {
                     {csvData.map((loan, index) => (
                       <TableRow key={index}>
                         <TableCell>{loan.borrower_name}</TableCell>
-                        <TableCell>${parseFloat(loan.principal).toFixed(2)}</TableCell>
+                        <TableCell>K{parseFloat(loan.principal).toFixed(2)}</TableCell>
                         <TableCell>{loan.loan_term} periods</TableCell>
-                        <TableCell>${loan.interest ? parseFloat(loan.interest).toFixed(2) : '-'}</TableCell>
-                        <TableCell>${loan.loan_risk_insurance ? parseFloat(loan.loan_risk_insurance).toFixed(2) : '-'}</TableCell>
-                        <TableCell>${loan.fortnightly_installment ? parseFloat(loan.fortnightly_installment).toFixed(2) : '-'}</TableCell>
-                        <TableCell>${loan.gross_loan ? parseFloat(loan.gross_loan).toFixed(2) : '-'}</TableCell>
+                        <TableCell>K{loan.interest ? parseFloat(loan.interest).toFixed(2) : '-'}</TableCell>
+                        <TableCell>K{loan.loan_risk_insurance ? parseFloat(loan.loan_risk_insurance).toFixed(2) : '-'}</TableCell>
+                        <TableCell>K{loan.fortnightly_installment ? parseFloat(loan.fortnightly_installment).toFixed(2) : '-'}</TableCell>
+                        <TableCell>K{loan.gross_loan ? parseFloat(loan.gross_loan).toFixed(2) : '-'}</TableCell>
                         <TableCell>{loan.disbursement_date || 'Today'}</TableCell>
                         <TableCell>{loan.start_repayment_date || loan.disbursement_date || 'Today'}</TableCell>
                         <TableCell>{loan.product || 'Others'}</TableCell>
-                        <TableCell>{loan.gross_salary ? `$${parseFloat(loan.gross_salary).toFixed(2)}` : '-'}</TableCell>
-                        <TableCell>{loan.net_income ? `$${parseFloat(loan.net_income).toFixed(2)}` : '-'}</TableCell>
+                        <TableCell>{loan.gross_salary ? `K${parseFloat(loan.gross_salary).toFixed(2)}` : '-'}</TableCell>
+                        <TableCell>{loan.net_income ? `K${parseFloat(loan.net_income).toFixed(2)}` : '-'}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
