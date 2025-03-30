@@ -72,7 +72,7 @@ const LoansTable = ({ loans, loading, onSelectLoan }: LoansTableProps) => {
     
     // Extract the numeric value from TERM_X format
     const termMatch = loan.loan_term.match(/TERM_(\d+)/);
-    return termMatch ? `${termMatch[1]} months` : loan.loan_term;
+    return termMatch ? `${termMatch[1]} bi-weekly` : loan.loan_term;
   };
 
   const formatDate = (dateString?: string) => {

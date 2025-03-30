@@ -1,5 +1,5 @@
 
-import { useState, useEffect, ChangeEvent } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
 import LoanDetails from "@/components/loans/LoanDetails";
@@ -52,10 +52,6 @@ const Loans = () => {
     loans 
   } = useLoansList();
 
-  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-
   const handleSelectLoan = (loan: Loan) => {
     setSelectedLoan(loan);
     setIsDetailsOpen(true);
@@ -80,7 +76,7 @@ const Loans = () => {
     
     // Extract the numeric value from TERM_X format
     const termMatch = loan.loan_term.match(/TERM_(\d+)/);
-    return termMatch ? `${termMatch[1]} months` : loan.loan_term;
+    return termMatch ? parseInt(termMatch[1], 10) : 0;
   };
 
   const getBorrowerFullName = (loan: Loan) => {
@@ -93,7 +89,7 @@ const Loans = () => {
       
       <SearchBar 
         searchQuery={searchQuery} 
-        onSearchChange={handleSearchChange} 
+        onSearchChange={(e) => setSearchQuery(e.target.value)} 
         totalCount={loans.length} 
         filteredCount={filteredLoans.length} 
       />
@@ -121,7 +117,7 @@ const Loans = () => {
                 borrowerId: selectedLoan.borrower_id,
                 borrowerEmail: selectedLoan.borrower?.email || '',
                 borrowerPhone: '', // Add if available
-                term: parseInt(getLoanTermValue(selectedLoan), 10) || 0
+                term: getLoanTermValue(selectedLoan)
               }}
               onClose={() => setIsDetailsOpen(false)}
               onPrint={handlePrint}

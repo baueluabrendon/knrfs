@@ -44,7 +44,7 @@ const ClientLoans = () => {
   const getLoanTermValue = (loanTerm?: string) => {
     if (!loanTerm) return 'N/A';
     const termMatch = loanTerm.match(/TERM_(\d+)/);
-    return termMatch ? `${termMatch[1]} months` : loanTerm;
+    return termMatch ? `${termMatch[1]} bi-weekly` : loanTerm;
   };
 
   if (isLoading) {
