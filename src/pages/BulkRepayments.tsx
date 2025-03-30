@@ -288,25 +288,6 @@ const BulkRepayments = () => {
                     {csvFile.name}
                   </div>
                 )}
-                
-                <Button
-                  variant="outline"
-                  onClick={handleUploadRepayments}
-                  disabled={!parsedData.length || !documentUrl || isSubmitting}
-                  className="flex-shrink-0 w-auto"
-                >
-                  <UploadIcon className="mr-2 h-4 w-4" />
-                  Upload Repayments
-                </Button>
-
-                <Button
-                  variant="outline"
-                  onClick={downloadCSVTemplate}
-                  className="flex-shrink-0 w-auto"
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Download Template
-                </Button>
               </div>
               <p className="text-sm text-gray-500">
                 Upload a CSV file with columns: borrower, amount, date
@@ -341,6 +322,15 @@ const BulkRepayments = () => {
                       Upload Document
                     </>
                   )}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={downloadCSVTemplate}
+                  className="flex-shrink-0 w-auto"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download Template
                 </Button>
               </div>
               <p className="text-sm text-gray-500">
@@ -402,7 +392,15 @@ const BulkRepayments = () => {
                 </Table>
               </div>
               
-              <div className="mt-6 flex justify-end">
+              <div className="mt-6 flex justify-end gap-3">
+                <Button 
+                  variant="outline"
+                  onClick={handleCancelUpload}
+                  className="w-full md:w-auto"
+                >
+                  <X className="mr-2 h-4 w-4" />
+                  Cancel
+                </Button>
                 <Button 
                   onClick={handleSubmitRepayments} 
                   disabled={isSubmitting || !documentUrl}
