@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Upload, X, Download } from "lucide-react";
+import { Upload, X, Download, Loader2 } from "lucide-react";
 import Papa from "papaparse";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -418,20 +418,6 @@ const BulkLoans = () => {
                 <Upload className="mr-2 h-4 w-4" />
                 Select CSV File
               </Button>
-              <Button
-                onClick={handleSubmit}
-                disabled={csvData.length === 0 || isLoading}
-              >
-                {isLoading ? "Uploading..." : "Upload Loans"}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleCancel}
-                disabled={isLoading}
-              >
-                <X className="mr-2 h-4 w-4" />
-                Cancel
-              </Button>
             </div>
           </div>
 
@@ -475,6 +461,30 @@ const BulkLoans = () => {
                     ))}
                   </TableBody>
                 </Table>
+              </div>
+              
+              <div className="mt-6 flex justify-end gap-3">
+                <Button 
+                  variant="outline"
+                  onClick={handleCancel}
+                  disabled={isLoading}
+                  className="w-full md:w-auto"
+                >
+                  <X className="mr-2 h-4 w-4" />
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSubmit}
+                  disabled={csvData.length === 0 || isLoading}
+                  className="w-full md:w-auto"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : "Submit Loans"}
+                </Button>
               </div>
             </div>
           )}

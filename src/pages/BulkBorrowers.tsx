@@ -1,10 +1,9 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Upload, X } from "lucide-react";
+import { Upload, X, Download } from "lucide-react";
 import Papa from "papaparse";
 import { supabase } from "@/integrations/supabase/client";
-import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -260,6 +259,22 @@ const BulkBorrowers = () => {
     setIsLoading(false);
   };
 
+  const downloadTemplateCSV = () => {
+    const headers = "surname,given_name,date_of_birth,gender,mobile_number,email,village,district,province,nationality,department_company,file_number,position,postal_address,work_phone_number,fax,date_employed,paymaster,lot,section,suburb,street_name,marital_status,spouse_last_name,spouse_first_name,spouse_employer_name,spouse_contact_details,company_branch,bank,bank_branch,bsb_code,account_name,account_number,account_type";
+    const csvContent = `${headers}\n`;
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'borrowers_template.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success("CSV template downloaded");
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -288,18 +303,11 @@ const BulkBorrowers = () => {
                 Select CSV File
               </Button>
               <Button
-                onClick={handleSubmit}
-                disabled={csvData.length === 0 || isLoading}
-              >
-                {isLoading ? "Uploading..." : "Upload Borrowers"}
-              </Button>
-              <Button
                 variant="outline"
-                onClick={handleCancel}
-                disabled={isLoading}
+                onClick={downloadTemplateCSV}
               >
-                <X className="mr-2 h-4 w-4" />
-                Cancel
+                <Download className="mr-2 h-4 w-4" />
+                Download Template
               </Button>
             </div>
           </div>
@@ -388,6 +396,25 @@ const BulkBorrowers = () => {
                     ))}
                   </TableBody>
                 </Table>
+              </div>
+              
+              <div className="mt-6 flex justify-end gap-3">
+                <Button 
+                  variant="outline"
+                  onClick={handleCancel}
+                  disabled={isLoading}
+                  className="w-full md:w-auto"
+                >
+                  <X className="mr-2 h-4 w-4" />
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSubmit}
+                  disabled={csvData.length === 0 || isLoading}
+                  className="w-full md:w-auto"
+                >
+                  {isLoading ? "Processing..." : "Submit Borrowers"}
+                </Button>
               </div>
             </div>
           )}
