@@ -75,7 +75,7 @@ const BorrowersTable = ({
 
   return (
     <div className="space-y-4">
-      <div className="relative space-y-4">
+      <div className="sticky top-0 z-10 bg-white pt-4 pb-2 border-b">
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input 
@@ -88,54 +88,56 @@ const BorrowersTable = ({
         </div>
         
         {localSearchQuery && (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 mt-2">
             Showing {filteredCount} of {totalCount} borrowers
           </p>
         )}
       </div>
       
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Phone</TableHead>
-            <TableHead>Organization</TableHead>
-            <TableHead>Occupation</TableHead>
-            <TableHead>File Number</TableHead>
-            <TableHead>Active Loan ID</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filteredBorrowers.map((borrower) => (
-            <TableRow key={borrower.id}>
-              <TableCell>
-                <button 
-                  className="text-blue-600 hover:underline"
-                  onClick={() => onBorrowerClick(borrower)}
-                >
-                  {borrower.id}
-                </button>
-              </TableCell>
-              <TableCell>
-                <button 
-                  className="text-blue-600 hover:underline"
-                  onClick={() => onBorrowerClick(borrower)}
-                >
-                  {borrower.name}
-                </button>
-              </TableCell>
-              <TableCell>{borrower.email}</TableCell>
-              <TableCell>{borrower.phone}</TableCell>
-              <TableCell>{borrower.organization}</TableCell>
-              <TableCell>{borrower.occupation}</TableCell>
-              <TableCell>{borrower.fileNumber || 'N/A'}</TableCell>
-              <TableCell>{borrower.activeLoanId || 'No active loan'}</TableCell>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader className="sticky top-[72px] z-10 bg-white">
+            <TableRow>
+              <TableHead>ID</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Phone</TableHead>
+              <TableHead>Organization</TableHead>
+              <TableHead>Occupation</TableHead>
+              <TableHead>File Number</TableHead>
+              <TableHead>Active Loan ID</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {filteredBorrowers.map((borrower) => (
+              <TableRow key={borrower.id}>
+                <TableCell>
+                  <button 
+                    className="text-blue-600 hover:underline"
+                    onClick={() => onBorrowerClick(borrower)}
+                  >
+                    {borrower.id}
+                  </button>
+                </TableCell>
+                <TableCell>
+                  <button 
+                    className="text-blue-600 hover:underline"
+                    onClick={() => onBorrowerClick(borrower)}
+                  >
+                    {borrower.name}
+                  </button>
+                </TableCell>
+                <TableCell>{borrower.email}</TableCell>
+                <TableCell>{borrower.phone}</TableCell>
+                <TableCell>{borrower.organization}</TableCell>
+                <TableCell>{borrower.occupation}</TableCell>
+                <TableCell>{borrower.fileNumber || 'N/A'}</TableCell>
+                <TableCell>{borrower.activeLoanId || 'No active loan'}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 };

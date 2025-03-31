@@ -278,7 +278,7 @@ const Borrowers = () => {
         </div>
       </div>
 
-      <Card className="p-6">
+      <Card className="p-6 max-h-[calc(100vh-170px)] overflow-hidden">
         {isLoading ? (
           <div className="text-center py-10">Loading borrowers...</div>
         ) : (
