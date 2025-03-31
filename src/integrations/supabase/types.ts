@@ -429,51 +429,54 @@ export type Database = {
       repayment_schedule: {
         Row: {
           created_at: string | null
-          documentation_fee: number
-          due_date: string
-          gst_amount: number
-          interest: number
+          documentation_feers: number | null
+          due_date: string | null
+          gst_amountrs: number | null
+          interestrs: number | null
           loan_id: string
-          loan_risk_insurance: number
-          payment_number: number
-          principal: number
-          repayment: number
+          loan_risk_insurancers: number | null
+          pay_period: string | null
+          payment_number: number | null
+          principalrs: number | null
+          repaymentrs: number | null
           schedule_id: number
-          status:
+          statusrs:
             | Database["public"]["Enums"]["repayment_schedule_status_enum"]
             | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
-          documentation_fee: number
-          due_date: string
-          gst_amount: number
-          interest: number
+          documentation_feers?: number | null
+          due_date?: string | null
+          gst_amountrs?: number | null
+          interestrs?: number | null
           loan_id: string
-          loan_risk_insurance: number
-          payment_number: number
-          principal: number
-          repayment: number
+          loan_risk_insurancers?: number | null
+          pay_period?: string | null
+          payment_number?: number | null
+          principalrs?: number | null
+          repaymentrs?: number | null
           schedule_id?: number
-          status?:
+          statusrs?:
             | Database["public"]["Enums"]["repayment_schedule_status_enum"]
             | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
-          documentation_fee?: number
-          due_date?: string
-          gst_amount?: number
-          interest?: number
+          documentation_feers?: number | null
+          due_date?: string | null
+          gst_amountrs?: number | null
+          interestrs?: number | null
           loan_id?: string
-          loan_risk_insurance?: number
-          payment_number?: number
-          principal?: number
-          repayment?: number
+          loan_risk_insurancers?: number | null
+          pay_period?: string | null
+          payment_number?: number | null
+          principalrs?: number | null
+          repaymentrs?: number | null
           schedule_id?: number
-          status?:
+          statusrs?:
             | Database["public"]["Enums"]["repayment_schedule_status_enum"]
             | null
           updated_at?: string | null

@@ -86,7 +86,8 @@ const ClientRepaymentVerification = () => {
   const fetchRepayments = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      // First, fetch the repayments
+      const { data: repaymentsData, error: repaymentsError } = await supabase
         .from('repayments')
         .select(`
           repayment_id, 
@@ -94,30 +95,60 @@ const ClientRepaymentVerification = () => {
           payment_date, 
           loan_id, 
           status, 
-          receipt_url,
-          loans!inner(borrower_id),
-          borrowers!inner(given_name, surname)
+          receipt_url
         `)
         .order('payment_date', { ascending: false });
       
-      if (error) {
-        console.error('Error fetching repayments:', error);
+      if (repaymentsError) {
+        console.error('Error fetching repayments:', repaymentsError);
         toast.error("Failed to fetch repayments");
         return;
       }
       
-      if (data) {
-        const mappedData: ClientRepayment[] = data.map(item => ({
-          id: item.repayment_id,
-          loanId: item.loan_id,
-          borrowerName: `${item.borrowers.given_name} ${item.borrowers.surname}`,
-          date: item.payment_date,
-          amount: Number(item.amount),
-          status: item.status as "pending" | "verified" | "approved" | "rejected",
-          receiptUrl: item.receipt_url
-        }));
-        setRepayments(mappedData);
+      if (!repaymentsData || repaymentsData.length === 0) {
+        setRepayments([]);
+        setIsLoading(false);
+        return;
       }
+      
+      // For each repayment, we need to fetch the borrower information
+      const enrichedRepayments: ClientRepayment[] = await Promise.all(
+        repaymentsData.map(async (repayment) => {
+          // Fetch loan to get borrower_id
+          const { data: loanData, error: loanError } = await supabase
+            .from('loans')
+            .select('borrower_id')
+            .eq('loan_id', repayment.loan_id)
+            .single();
+          
+          let borrowerName = "Unknown Borrower";
+          
+          if (!loanError && loanData && loanData.borrower_id) {
+            // Fetch borrower name using borrower_id
+            const { data: borrowerData, error: borrowerError } = await supabase
+              .from('borrowers')
+              .select('given_name, surname')
+              .eq('borrower_id', loanData.borrower_id)
+              .single();
+            
+            if (!borrowerError && borrowerData) {
+              borrowerName = `${borrowerData.given_name} ${borrowerData.surname}`;
+            }
+          }
+          
+          return {
+            id: repayment.repayment_id,
+            loanId: repayment.loan_id || "Unknown",
+            borrowerName,
+            date: repayment.payment_date || new Date().toISOString(),
+            amount: Number(repayment.amount),
+            status: (repayment.status as "pending" | "verified" | "approved" | "rejected") || "pending",
+            receiptUrl: repayment.receipt_url
+          };
+        })
+      );
+      
+      setRepayments(enrichedRepayments);
     } catch (error) {
       console.error('Error in fetchRepayments:', error);
       toast.error("An unexpected error occurred");
