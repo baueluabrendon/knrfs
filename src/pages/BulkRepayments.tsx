@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -146,6 +147,11 @@ const BulkRepayments = () => {
       return;
     }
     
+    if (!documentUrl) {
+      toast.error("Please upload a repayment group document");
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
@@ -156,7 +162,7 @@ const BulkRepayments = () => {
           amount: item.amount,
           payment_date: item.date,
           status: 'completed',
-          receipt_url: documentUrl || null
+          receipt_url: documentUrl
         }));
       
       if (repaymentsToInsert.length === 0) {
@@ -285,7 +291,7 @@ const BulkRepayments = () => {
             </div>
             
             <div className="space-y-4">
-              <Label className="text-base font-medium">Repayment Group Document (Optional)</Label>
+              <Label className="text-base font-medium">Repayment Group Document</Label>
               <div className="flex items-center gap-4">
                 <Input
                   type="file"
@@ -315,7 +321,7 @@ const BulkRepayments = () => {
                 </Button>
               </div>
               <p className="text-sm text-gray-500">
-                Upload the source document for this group of repayments (optional)
+                Upload the source document for this group of repayments
               </p>
               
               {documentFile && (
@@ -376,7 +382,7 @@ const BulkRepayments = () => {
                 </Button>
                 <Button 
                   onClick={handleSubmitRepayments} 
-                  disabled={isSubmitting || parsedData.length === 0}
+                  disabled={isSubmitting || !documentUrl}
                   className="w-full md:w-auto"
                 >
                   {isSubmitting ? (
