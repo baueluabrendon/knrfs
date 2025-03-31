@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Plus, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -278,7 +277,7 @@ const Borrowers = () => {
         </div>
       </div>
 
-      <Card className="p-6 max-h-[calc(100vh-170px)] overflow-hidden">
+      <Card className="p-6">
         {isLoading ? (
           <div className="text-center py-10">Loading borrowers...</div>
         ) : (
