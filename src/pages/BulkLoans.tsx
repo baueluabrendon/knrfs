@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { Upload, X, Download, Loader2 } from "lucide-react";
@@ -366,24 +365,14 @@ const BulkLoans = () => {
       <Card className="p-6">
         <div className="space-y-4">
           <div className="flex flex-col space-y-2">
-            <div className="flex justify-between items-center">
-              <p className="text-muted-foreground">
-                Upload a CSV file with the following columns: 
-                <span className="font-semibold"> borrower_name</span>*, 
-                <span className="font-semibold"> principal</span>*, 
-                <span className="font-semibold"> loan_term</span>*,
-                disbursement_date, start_repayment_date, product, gross_salary, net_income,
-                interest, loan_risk_insurance, fortnightly_installment, gross_loan
-              </p>
-              <Button
-                variant="outline"
-                onClick={downloadTemplateCSV}
-                className="ml-2"
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Download Template
-              </Button>
-            </div>
+            <p className="text-muted-foreground">
+              Upload a CSV file with the following columns: 
+              <span className="font-semibold"> borrower_name</span>*, 
+              <span className="font-semibold"> principal</span>*, 
+              <span className="font-semibold"> loan_term</span>*,
+              disbursement_date, start_repayment_date, product, gross_salary, net_income,
+              interest, loan_risk_insurance, fortnightly_installment, gross_loan
+            </p>
             
             {missingHeaders.length > 0 && (
               <div className="bg-red-50 text-red-700 p-3 rounded-md my-2">
@@ -417,6 +406,14 @@ const BulkLoans = () => {
                 />
                 <Upload className="mr-2 h-4 w-4" />
                 Select CSV File
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={downloadTemplateCSV}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Download Template
               </Button>
             </div>
           </div>
