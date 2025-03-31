@@ -429,16 +429,13 @@ export type Database = {
       repayment_schedule: {
         Row: {
           created_at: string | null
-          default_fee: number
           documentation_fee: number
+          due_date: string
           gst_amount: number
           interest: number
           loan_id: string
           loan_risk_insurance: number
-          partial_payment_penalty_fee: number
-          payment_date: string
           payment_number: number
-          period_id: number
           principal: number
           repayment: number
           schedule_id: number
@@ -449,16 +446,13 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
-          default_fee: number
           documentation_fee: number
+          due_date: string
           gst_amount: number
           interest: number
           loan_id: string
           loan_risk_insurance: number
-          partial_payment_penalty_fee: number
-          payment_date: string
           payment_number: number
-          period_id: number
           principal: number
           repayment: number
           schedule_id?: number
@@ -469,16 +463,13 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
-          default_fee?: number
           documentation_fee?: number
+          due_date?: string
           gst_amount?: number
           interest?: number
           loan_id?: string
           loan_risk_insurance?: number
-          partial_payment_penalty_fee?: number
-          payment_date?: string
           payment_number?: number
-          period_id?: number
           principal?: number
           repayment?: number
           schedule_id?: number
@@ -487,7 +478,15 @@ export type Database = {
             | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "repayment_schedule_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans"
+            referencedColumns: ["loan_id"]
+          },
+        ]
       }
       repayments: {
         Row: {

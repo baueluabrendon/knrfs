@@ -22,6 +22,7 @@ import Recoveries from "@/pages/Recoveries";
 import LoansInArrears from "@/pages/LoansInArrears";
 import MissedPayments from "@/pages/MissedPayments";
 import PartialPayments from "@/pages/PartialPayments";
+import ClientRepaymentVerification from "@/pages/ClientRepaymentVerification";
 
 // Define admin routes with proper nesting
 export const adminRoutes: RouteObject[] = [
@@ -56,6 +57,10 @@ export const adminRoutes: RouteObject[] = [
       {
         path: "repayments",
         element: <Repayments />
+      },
+      {
+        path: "client-repayments",
+        element: <ClientRepaymentVerification />
       },
       {
         path: "recoveries",

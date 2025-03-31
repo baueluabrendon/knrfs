@@ -16,6 +16,7 @@ import {
   Table, // Changed from FileSpreadsheet
   TrendingUp, // Changed from LineChart
   ArrowUpDown, // Changed from ArrowDownUp
+  Check,
 } from "lucide-react";
 
 export const menuItems = [
@@ -52,8 +53,11 @@ export const menuItems = [
   { 
     icon: RefreshCcw, 
     label: "Repayments", 
-    path: "/admin/repayments",
-    subItems: [] 
+    path: "#",
+    subItems: [
+      { icon: RefreshCcw, label: "All Repayments", path: "/admin/repayments" },
+      { icon: Check, label: "Client Repayment Verification", path: "/admin/client-repayments" }
+    ] 
   },
   { 
     icon: PiggyBank, 
