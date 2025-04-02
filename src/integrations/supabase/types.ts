@@ -173,30 +173,47 @@ export type Database = {
       }
       defaults: {
         Row: {
+          arrear_amount: number | null
           arrear_id: number
           created_at: string | null
           date: string | null
           default_amount: number | null
-          loan_id: string
+          reason_code: string | null
+          schedule_id: string | null
+          status: Database["public"]["Enums"]["default_status_enum"] | null
           updated_at: string | null
         }
         Insert: {
+          arrear_amount?: number | null
           arrear_id?: number
           created_at?: string | null
           date?: string | null
           default_amount?: number | null
-          loan_id: string
+          reason_code?: string | null
+          schedule_id?: string | null
+          status?: Database["public"]["Enums"]["default_status_enum"] | null
           updated_at?: string | null
         }
         Update: {
+          arrear_amount?: number | null
           arrear_id?: number
           created_at?: string | null
           date?: string | null
           default_amount?: number | null
-          loan_id?: string
+          reason_code?: string | null
+          schedule_id?: string | null
+          status?: Database["public"]["Enums"]["default_status_enum"] | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "defaults_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "repayment_schedule"
+            referencedColumns: ["schedule_id"]
+          },
+        ]
       }
       documents: {
         Row: {
@@ -279,6 +296,7 @@ export type Database = {
           default_fees_accumulated: number | null
           disbursement_date: string
           documentation_fee: number | null
+          early_settlement: boolean | null
           fortnightly_installment: number
           gross_loan: number
           gross_salary: number
@@ -287,6 +305,7 @@ export type Database = {
           interest_rate:
             | Database["public"]["Enums"]["interest_rate_enum"]
             | null
+          last_payment_date: string | null
           loan_id: string
           loan_repayment_status:
             | Database["public"]["Enums"]["repayment_status_enum"]
@@ -299,6 +318,7 @@ export type Database = {
           maturity_date: string | null
           missed_payments_count: number | null
           net_income: number
+          next_due_date: string | null
           outstanding_balance: number | null
           partial_payments_count: number | null
           principal: number
@@ -306,6 +326,7 @@ export type Database = {
           refinanced_by: string | null
           repayment_completion_percentage: number | null
           repayment_count: number | null
+          settled_date: string | null
           start_repayment_date: string
           total_repayment: number | null
           updated_at: string | null
@@ -317,6 +338,7 @@ export type Database = {
           default_fees_accumulated?: number | null
           disbursement_date: string
           documentation_fee?: number | null
+          early_settlement?: boolean | null
           fortnightly_installment: number
           gross_loan: number
           gross_salary: number
@@ -325,6 +347,7 @@ export type Database = {
           interest_rate?:
             | Database["public"]["Enums"]["interest_rate_enum"]
             | null
+          last_payment_date?: string | null
           loan_id: string
           loan_repayment_status?:
             | Database["public"]["Enums"]["repayment_status_enum"]
@@ -337,6 +360,7 @@ export type Database = {
           maturity_date?: string | null
           missed_payments_count?: number | null
           net_income: number
+          next_due_date?: string | null
           outstanding_balance?: number | null
           partial_payments_count?: number | null
           principal: number
@@ -344,6 +368,7 @@ export type Database = {
           refinanced_by?: string | null
           repayment_completion_percentage?: number | null
           repayment_count?: number | null
+          settled_date?: string | null
           start_repayment_date: string
           total_repayment?: number | null
           updated_at?: string | null
@@ -355,6 +380,7 @@ export type Database = {
           default_fees_accumulated?: number | null
           disbursement_date?: string
           documentation_fee?: number | null
+          early_settlement?: boolean | null
           fortnightly_installment?: number
           gross_loan?: number
           gross_salary?: number
@@ -363,6 +389,7 @@ export type Database = {
           interest_rate?:
             | Database["public"]["Enums"]["interest_rate_enum"]
             | null
+          last_payment_date?: string | null
           loan_id?: string
           loan_repayment_status?:
             | Database["public"]["Enums"]["repayment_status_enum"]
@@ -375,6 +402,7 @@ export type Database = {
           maturity_date?: string | null
           missed_payments_count?: number | null
           net_income?: number
+          next_due_date?: string | null
           outstanding_balance?: number | null
           partial_payments_count?: number | null
           principal?: number
@@ -382,6 +410,7 @@ export type Database = {
           refinanced_by?: string | null
           repayment_completion_percentage?: number | null
           repayment_count?: number | null
+          settled_date?: string | null
           start_repayment_date?: string
           total_repayment?: number | null
           updated_at?: string | null
@@ -428,6 +457,7 @@ export type Database = {
       }
       repayment_schedule: {
         Row: {
+          balance: number | null
           created_at: string | null
           documentation_feers: number | null
           due_date: string | null
@@ -437,15 +467,24 @@ export type Database = {
           loan_risk_insurancers: number | null
           pay_period: string | null
           payment_number: number | null
+          payroll_type: string | null
           principalrs: number | null
+          received_documentation_fee: number | null
+          received_gst_amount: number | null
+          received_interest: number | null
+          received_loan_risk_insurance: number | null
+          received_principal: number | null
+          repayment_received: number | null
           repaymentrs: number | null
-          schedule_id: number
+          schedule_id: string
+          settled_date: string | null
           statusrs:
             | Database["public"]["Enums"]["repayment_schedule_status_enum"]
             | null
           updated_at: string | null
         }
         Insert: {
+          balance?: number | null
           created_at?: string | null
           documentation_feers?: number | null
           due_date?: string | null
@@ -455,15 +494,24 @@ export type Database = {
           loan_risk_insurancers?: number | null
           pay_period?: string | null
           payment_number?: number | null
+          payroll_type?: string | null
           principalrs?: number | null
+          received_documentation_fee?: number | null
+          received_gst_amount?: number | null
+          received_interest?: number | null
+          received_loan_risk_insurance?: number | null
+          received_principal?: number | null
+          repayment_received?: number | null
           repaymentrs?: number | null
-          schedule_id?: number
+          schedule_id?: string
+          settled_date?: string | null
           statusrs?:
             | Database["public"]["Enums"]["repayment_schedule_status_enum"]
             | null
           updated_at?: string | null
         }
         Update: {
+          balance?: number | null
           created_at?: string | null
           documentation_feers?: number | null
           due_date?: string | null
@@ -473,9 +521,17 @@ export type Database = {
           loan_risk_insurancers?: number | null
           pay_period?: string | null
           payment_number?: number | null
+          payroll_type?: string | null
           principalrs?: number | null
+          received_documentation_fee?: number | null
+          received_gst_amount?: number | null
+          received_interest?: number | null
+          received_loan_risk_insurance?: number | null
+          received_principal?: number | null
+          repayment_received?: number | null
           repaymentrs?: number | null
-          schedule_id?: number
+          schedule_id?: string
+          settled_date?: string | null
           statusrs?:
             | Database["public"]["Enums"]["repayment_schedule_status_enum"]
             | null
@@ -495,6 +551,8 @@ export type Database = {
         Row: {
           amount: number
           created_at: string | null
+          due_status_change_date: string | null
+          is_defaulted: boolean | null
           loan_id: string | null
           payment_date: string | null
           receipt_url: string | null
@@ -504,6 +562,8 @@ export type Database = {
         Insert: {
           amount: number
           created_at?: string | null
+          due_status_change_date?: string | null
+          is_defaulted?: boolean | null
           loan_id?: string | null
           payment_date?: string | null
           receipt_url?: string | null
@@ -513,13 +573,23 @@ export type Database = {
         Update: {
           amount?: number
           created_at?: string | null
+          due_status_change_date?: string | null
+          is_defaulted?: boolean | null
           loan_id?: string | null
           payment_date?: string | null
           receipt_url?: string | null
           repayment_id?: string
           status?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "repayments_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans"
+            referencedColumns: ["loan_id"]
+          },
+        ]
       }
       user_profiles: {
         Row: {
@@ -600,6 +670,7 @@ export type Database = {
         | "TERM_26"
         | "TERM_28"
         | "TERM_30"
+      default_status_enum: "active" | "waived" | "cleared"
       document_type_enum:
         | "Terms and Conditions"
         | "Pay Slip 1"
@@ -630,7 +701,12 @@ export type Database = {
         | "RATE_62"
         | "RATE_66"
         | "RATE_70"
-      loan_status_enum: "active" | "settled" | "overdue" | "written_off"
+      loan_status_enum:
+        | "active"
+        | "settled"
+        | "overdue"
+        | "written_off"
+        | "default"
       repayment_group_enum:
         | "itd finance"
         | "nicta"

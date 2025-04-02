@@ -109,10 +109,10 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}_${loanId}.${fileExt}`;
-      const filePath = `receipts/${fileName}`;
+      const filePath = `repayments/${fileName}`;
       
       const { error: uploadError } = await supabase.storage
-        .from('repayment_receipts')
+        .from('application_documents')
         .upload(filePath, file);
         
       if (uploadError) {
@@ -121,7 +121,7 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
       }
       
       const { data } = supabase.storage
-        .from('repayment_receipts')
+        .from('application_documents')
         .getPublicUrl(filePath);
         
       return data.publicUrl;

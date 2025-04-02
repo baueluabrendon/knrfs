@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -82,7 +81,10 @@ const ClientRepaymentVerification = () => {
   const [actionNotes, setActionNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch repayments from Supabase - this would replace the sample data above
+  useEffect(() => {
+    fetchRepayments();
+  }, []);
+
   const fetchRepayments = async () => {
     setIsLoading(true);
     try {
@@ -95,7 +97,8 @@ const ClientRepaymentVerification = () => {
           payment_date, 
           loan_id, 
           status, 
-          receipt_url
+          receipt_url,
+          notes
         `)
         .order('payment_date', { ascending: false });
       
@@ -143,7 +146,8 @@ const ClientRepaymentVerification = () => {
             date: repayment.payment_date || new Date().toISOString(),
             amount: Number(repayment.amount),
             status: (repayment.status as "pending" | "verified" | "approved" | "rejected") || "pending",
-            receiptUrl: repayment.receipt_url
+            receiptUrl: repayment.receipt_url,
+            notes: repayment.notes
           };
         })
       );
@@ -157,25 +161,21 @@ const ClientRepaymentVerification = () => {
     }
   };
 
-  // Filter repayments based on status
   const filteredRepayments = repayments.filter(repayment => 
     filterStatus === "all" || repayment.status === filterStatus
   );
 
-  // View repayment details
   const handleViewDetails = (repayment: ClientRepayment) => {
     setSelectedRepayment(repayment);
     setIsDetailsOpen(true);
     setActionNotes("");
   };
 
-  // View repayment document
   const handleViewDocument = (repayment: ClientRepayment) => {
     setSelectedRepayment(repayment);
     setIsViewDocumentOpen(true);
   };
 
-  // Update repayment status
   const updateRepaymentStatus = async (newStatus: "verified" | "approved" | "rejected") => {
     if (!selectedRepayment) return;
     
@@ -212,7 +212,6 @@ const ClientRepaymentVerification = () => {
     }
   };
 
-  // Status badge component
   const StatusBadge = ({ status }: { status: string }) => {
     let bgColor = "bg-gray-100";
     let textColor = "text-gray-800";
