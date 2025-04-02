@@ -554,6 +554,7 @@ export type Database = {
           due_status_change_date: string | null
           is_defaulted: boolean | null
           loan_id: string | null
+          notes: string | null
           payment_date: string | null
           receipt_url: string | null
           repayment_id: string
@@ -565,6 +566,7 @@ export type Database = {
           due_status_change_date?: string | null
           is_defaulted?: boolean | null
           loan_id?: string | null
+          notes?: string | null
           payment_date?: string | null
           receipt_url?: string | null
           repayment_id?: string
@@ -576,6 +578,7 @@ export type Database = {
           due_status_change_date?: string | null
           is_defaulted?: boolean | null
           loan_id?: string | null
+          notes?: string | null
           payment_date?: string | null
           receipt_url?: string | null
           repayment_id?: string

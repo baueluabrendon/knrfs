@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import RepaymentBorrowerSelect from "./RepaymentBorrowerSelect";
 import { format } from "date-fns";
+import { Textarea } from "@/components/ui/textarea";
 
 interface RepaymentDialogProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
   const [paymentDate, setPaymentDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState("");
+  const [notes, setNotes] = useState("");
 
   useEffect(() => {
     // When borrower is selected, fetch their active loans
@@ -155,7 +157,8 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
           amount: parseFloat(amount),
           receipt_url: receiptUrl,
           status: 'completed',
-          payment_date: paymentDate
+          payment_date: paymentDate,
+          notes: notes || null
         });
       
       if (error) {
@@ -172,6 +175,7 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
       setAmount("");
       setPaymentDate(format(new Date(), 'yyyy-MM-dd'));
       setFile(null);
+      setNotes("");
       onOpenChange(false);
       
     } catch (error) {
@@ -235,6 +239,16 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
                 className="pl-10"
               />
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notes (Optional)</Label>
+            <Textarea
+              id="notes"
+              placeholder="Add any additional notes about this repayment"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="receipt">Receipt Document</Label>
