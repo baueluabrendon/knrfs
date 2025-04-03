@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { UserProfile } from "@/types/auth";
 import { useNavigate } from "react-router-dom";
@@ -60,60 +59,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const signIn = async (email: string, password: string): Promise<UserProfile | null> => {
-    setAuthState((prev) => ({ ...prev, loading: true, error: null }));
-
-    try {
-      const userProfile = await authService.signIn(email, password);
-      setAuthState({ user: userProfile, loading: false, error: null });
-      return userProfile;
-    } catch (error: any) {
-      setAuthState({ user: null, loading: false, error: error.message });
-      throw error;
-    }
-  };
-
-  const signOut = async () => {
-    setAuthState((prev) => ({ ...prev, loading: true }));
-
-    try {
-      await authService.signOut();
-      setAuthState({ user: null, loading: false, error: null });
-      navigate("/login", { replace: true });
-    } catch (error: any) {
-      setAuthState((prev) => ({ ...prev, loading: false, error: error.message }));
-    }
-  };
-
-  const sendPasswordResetEmail = async (email: string) => {
-    setAuthState((prev) => ({ ...prev, loading: true }));
-
-    try {
-      await authService.sendPasswordResetEmail(email);
-    } catch (error: any) {
-      console.error("AuthProvider: Password reset error:", error);
-    } finally {
-      setAuthState((prev) => ({ ...prev, loading: false }));
-    }
-  };
-
-  const updateUserProfile = (userData: Partial<UserProfile>) => {
-    setAuthState(prev => ({
-      ...prev,
-      user: prev.user ? { ...prev.user, ...userData } : null
-    }));
-  };
-
   return (
     <AuthContext.Provider
       value={{
         user: authState.user,
         loading: authState.loading,
         error: authState.error,
-        signIn,
-        signOut,
-        sendPasswordResetEmail,
-        updateUserProfile
+        signIn: async (email, password) => {
+          setAuthState((prev) => ({ ...prev, loading: true, error: null }));
+          try {
+            const userProfile = await authService.signIn(email, password);
+            setAuthState({ user: userProfile, loading: false, error: null });
+            return userProfile;
+          } catch (error: any) {
+            setAuthState({ user: null, loading: false, error: error.message });
+            throw error;
+          }
+        },
+        signOut: async () => {
+          setAuthState((prev) => ({ ...prev, loading: true }));
+          try {
+            await authService.signOut();
+            setAuthState({ user: null, loading: false, error: null });
+            navigate("/login", { replace: true });
+          } catch (error: any) {
+            setAuthState((prev) => ({ ...prev, loading: false, error: error.message }));
+          }
+        },
+        sendPasswordResetEmail: async (email) => {
+          setAuthState((prev) => ({ ...prev, loading: true }));
+          try {
+            await authService.sendPasswordResetEmail(email);
+          } catch (error: any) {
+            console.error("AuthProvider: Password reset error:", error);
+          } finally {
+            setAuthState((prev) => ({ ...prev, loading: false }));
+          }
+        },
+        updateUserProfile: (userData) => {
+          setAuthState(prev => ({
+            ...prev,
+            user: prev.user ? { ...prev.user, ...userData } : null
+          }));
+        }
       }}
     >
       {children}

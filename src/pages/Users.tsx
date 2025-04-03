@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Dialog,
@@ -216,15 +215,12 @@ const Users = () => {
     setIsProcessing(true);
     
     try {
-      const { error: metadataError } = await supabase.auth.admin.updateUserById(
-        editingUser.user_id,
-        {
-          user_metadata: {
-            first_name: formData.firstName,
-            last_name: formData.lastName
-          }
+      const { error: metadataError } = await supabase.auth.updateUser({
+        data: {
+          first_name: formData.firstName,
+          last_name: formData.lastName
         }
-      );
+      });
       
       if (metadataError) throw metadataError;
       

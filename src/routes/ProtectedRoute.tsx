@@ -1,5 +1,5 @@
 
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { ReactNode, useEffect } from "react";
 import { Loader2 } from "lucide-react";
@@ -11,6 +11,7 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
   
   if (loading) {
     return (
@@ -24,7 +25,7 @@ export const ProtectedRoute = ({ allowedRoles, children }: ProtectedRouteProps) 
   // No user -> redirect to login
   if (!user) {
     console.log("ProtectedRoute: No user found, redirecting to login");
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
   
   // User needs to set password -> redirect to password setup

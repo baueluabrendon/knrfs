@@ -46,7 +46,7 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
  */
 export async function signIn(email: string, password: string): Promise<UserProfile | null> {
   try {
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+    const { data: authData, error: authError } = await supabase.auth.signInWithEmailPassword({
       email,
       password,
     });
@@ -122,9 +122,9 @@ export async function updatePassword(password: string): Promise<boolean> {
     if (passwordError) throw passwordError;
     
     // Get current user to ensure we have the latest session
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    const { data: userData } = await supabase.auth.getUser();
     
-    if (!currentUser) {
+    if (!userData.user) {
       throw new Error("User session not found after password update");
     }
     
@@ -132,7 +132,7 @@ export async function updatePassword(password: string): Promise<boolean> {
     const { error: profileError } = await supabase
       .from('user_profiles')
       .update({ is_password_changed: true })
-      .eq('user_id', currentUser.id);
+      .eq('user_id', userData.user.id);
     
     if (profileError) {
       throw profileError;
@@ -152,13 +152,13 @@ export async function updatePassword(password: string): Promise<boolean> {
  */
 export async function checkSession(): Promise<{ userProfile: UserProfile | null, needsPasswordChange: boolean }> {
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data } = await supabase.auth.getSession();
     
-    if (!session) {
+    if (!data.session) {
       return { userProfile: null, needsPasswordChange: false };
     }
     
-    const profile = await fetchUserProfile(session.user.id);
+    const profile = await fetchUserProfile(data.session.user.id);
     
     if (!profile) {
       return { userProfile: null, needsPasswordChange: false };
@@ -178,7 +178,7 @@ export async function checkSession(): Promise<{ userProfile: UserProfile | null,
  * Setup auth state change listener
  */
 export function setupAuthListener(callback: (user: UserProfile | null) => void): { unsubscribe: () => void } {
-  const { data: { subscription } } = supabase.auth.onAuthStateChange(
+  const { data } = supabase.auth.onAuthStateChange(
     async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         // Use setTimeout to prevent potential deadlocks with Supabase client
@@ -192,7 +192,7 @@ export function setupAuthListener(callback: (user: UserProfile | null) => void):
     }
   );
   
-  return subscription;
+  return data.subscription;
 }
 
 /**
@@ -204,11 +204,8 @@ export async function createUserWithAdmin(email: string, password: string, userD
   role: string 
 }): Promise<{ user: any; error: any }> {
   try {
-    // Import and use the supabaseAdmin client for admin operations
-    const { supabaseAdmin } = await import('@/integrations/supabase/adminClient');
-    
-    // Create user with admin client
-    const { data: authData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+    // Create user with auth API
+    const { data: authData, error: createError } = await supabase.auth.admin.createUser({
       email,
       password,
       email_confirm: true
@@ -218,7 +215,7 @@ export async function createUserWithAdmin(email: string, password: string, userD
       return { user: null, error: createError };
     }
 
-    if (!authData.user) {
+    if (!authData?.user) {
       return { user: null, error: new Error("No user data returned") };
     }
 

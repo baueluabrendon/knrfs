@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { Upload } from "lucide-react";
 import RepaymentDialog from "@/components/repayments/RepaymentDialog";
 import RepaymentsTable from "@/components/repayments/RepaymentsTable";
@@ -32,20 +31,18 @@ const Repayments = () => {
         return;
       }
       
-      // First, initialize the mapped repayments with placeholder borrower names
       let mappedRepayments: Repayment[] = data.map(item => ({
         id: item.repayment_id,
         date: item.payment_date || item.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
         amount: Number(item.amount),
         loanId: item.loan_id || 'Unknown',
-        borrowerName: 'Loading...', // Placeholder, will be updated
+        borrowerName: 'Loading...',
         status: item.status as any || "pending",
-        payPeriod: "Current", // Default value
+        payPeriod: "Current",
         receiptUrl: item.receipt_url || undefined,
         notes: item.notes || undefined
       }));
       
-      // Then, fetch borrower names for each repayment
       for (let i = 0; i < mappedRepayments.length; i++) {
         if (mappedRepayments[i].loanId && mappedRepayments[i].loanId !== 'Unknown') {
           try {
@@ -93,7 +90,6 @@ const Repayments = () => {
   const handleDialogOpenChange = (open: boolean) => {
     setIsDialogOpen(open);
     if (!open) {
-      // Refresh repayments when dialog is closed
       fetchRepayments();
     }
   };
@@ -104,10 +100,10 @@ const Repayments = () => {
         <h1 className="text-2xl font-semibold text-gray-800">Repayments Management</h1>
         <div className="flex items-center gap-2">
           <Button variant="outline" asChild>
-            <Link to="/admin/repayments/bulk">
+            <NavLink to="/admin/repayments/bulk">
               <Upload className="mr-2 h-4 w-4" />
               Bulk Repayment Upload
-            </Link>
+            </NavLink>
           </Button>
           <RepaymentDialog 
             isOpen={isDialogOpen} 

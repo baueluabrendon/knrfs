@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate, NavLink } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -107,13 +107,13 @@ const Recoveries = () => {
         </p>
         <div className="flex flex-wrap gap-3 mb-6">
           <Button variant="outline" asChild>
-            <Link to="/admin/recoveries/loans-in-arrears">Loans in Arrears</Link>
+            <NavLink to="/admin/recoveries/loans-in-arrears">Loans in Arrears</NavLink>
           </Button>
           <Button variant="outline" asChild>
-            <Link to="/admin/recoveries/missed-payments">Missed Payments</Link>
+            <NavLink to="/admin/recoveries/missed-payments">Missed Payments</NavLink>
           </Button>
           <Button variant="outline" asChild>
-            <Link to="/admin/recoveries/partial-payments">Partial Payments</Link>
+            <NavLink to="/admin/recoveries/partial-payments">Partial Payments</NavLink>
           </Button>
         </div>
         <Table>
