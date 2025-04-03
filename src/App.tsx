@@ -21,57 +21,82 @@ import { adminRoutes } from "./routes/adminRoutes";
 import { clientRoutes } from "./routes/clientRoutes";
 
 // Define the admin roles array
-const adminRoles = ["administrator", "super user", "sales officer", "accounts officer", "administration officer", "recoveries officer"];
+const adminRoles = [
+  "administrator", 
+  "super user", 
+  "sales officer", 
+  "accounts officer", 
+  "administration officer", 
+  "recoveries officer"
+];
 // Define the client roles array
 const clientRoles = ["client"];
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
 
+// Layout component that wraps the authenticated context providers
+const AppLayout = () => {
+  return (
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <Outlet />
+      </TooltipProvider>
+    </AuthProvider>
+  );
+};
+
 // Create routes array
 const routes: RouteObject[] = [
-  // Authentication & Verification
+  // Root layout with auth provider
   {
-    path: "/",
-    element: <div><Outlet /></div>,
+    element: <AppLayout />,
     children: [
+      // Authentication & Verification
       {
-        index: true,
+        path: "/",
+        children: [
+          {
+            index: true,
+            element: <Navigate to="/login" replace />
+          },
+          {
+            path: "login",
+            element: <AuthForm />,
+          },
+          {
+            path: "set-password",
+            element: <SetPassword />,
+          }
+        ]
+      },
+      
+      // Public loan application
+      {
+        path: "/apply",
+        element: <LoanApplicationSteps />,
+      },
+
+      // Client Routes with protection
+      {
+        element: <ProtectedRoute allowedRoles={clientRoles} />,
+        children: clientRoutes,
+      },
+
+      // Admin Routes with protection
+      {
+        element: <ProtectedRoute allowedRoles={adminRoles} />,
+        children: adminRoutes,
+      },
+
+      // Catch-all: Redirect to login
+      {
+        path: "*",
         element: <Navigate to="/login" replace />
-      },
-      {
-        path: "login",
-        element: <AuthForm />,
-      },
-      {
-        path: "set-password",
-        element: <SetPassword />,
       }
     ]
-  },
-  
-  // Public loan application
-  {
-    path: "/apply",
-    element: <LoanApplicationSteps />,
-  },
-
-  // Client Routes with protection
-  {
-    element: <ProtectedRoute allowedRoles={clientRoles} />,
-    children: clientRoutes,
-  },
-
-  // Admin Routes with protection
-  {
-    element: <ProtectedRoute allowedRoles={adminRoles} />,
-    children: adminRoutes,
-  },
-
-  // Catch-all: Redirect to login
-  {
-    path: "*",
-    element: <Navigate to="/login" replace />
   }
 ];
 
@@ -81,13 +106,7 @@ const router = createBrowserRouter(routes);
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <RouterProvider router={router} />
-        </TooltipProvider>
-      </AuthProvider>
+      <RouterProvider router={router} />
     </QueryClientProvider>
   );
 };
