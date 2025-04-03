@@ -77,7 +77,9 @@ export async function signIn(email: string, password: string): Promise<UserProfi
  */
 export async function signOut(): Promise<boolean> {
   try {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    
     toast.success("Successfully signed out");
     return true;
   } catch (error) {
@@ -196,7 +198,7 @@ export function setupAuthListener(callback: (user: UserProfile | null) => void):
     }
   );
   
-  return data.subscription;
+  return data;
 }
 
 /**

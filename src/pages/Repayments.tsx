@@ -7,6 +7,7 @@ import RepaymentDialog from "@/components/repayments/RepaymentDialog";
 import RepaymentsTable from "@/components/repayments/RepaymentsTable";
 import { supabase } from "@/integrations/supabase/client";
 import { Repayment } from "@/types/repayment";
+import { toast } from "sonner";
 
 const Repayments = () => {
   const [repayments, setRepayments] = useState<Repayment[]>([]);
@@ -22,6 +23,7 @@ const Repayments = () => {
       
       if (error) {
         console.error('Error fetching repayments:', error);
+        toast.error("Failed to fetch repayments");
         throw error;
       }
       
@@ -71,6 +73,7 @@ const Repayments = () => {
             mappedRepayments[i].borrowerName = `${borrowerData.given_name} ${borrowerData.surname}`;
           } catch (err) {
             console.error('Error in borrower name fetch loop:', err);
+            // Keep the "Loading..." label on error
           }
         }
       }
@@ -78,6 +81,7 @@ const Repayments = () => {
       setRepayments(mappedRepayments);
     } catch (error) {
       console.error('Error in fetchRepayments:', error);
+      toast.error("Failed to load repayments data");
     } finally {
       setIsLoading(false);
     }
@@ -115,8 +119,10 @@ const Repayments = () => {
       <Card className="p-6">
         {isLoading ? (
           <div className="text-center py-8">Loading repayments...</div>
-        ) : (
+        ) : repayments.length > 0 ? (
           <RepaymentsTable repayments={repayments} />
+        ) : (
+          <div className="text-center py-8">No repayments found.</div>
         )}
       </Card>
     </div>

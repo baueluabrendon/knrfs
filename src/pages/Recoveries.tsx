@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
@@ -128,16 +129,22 @@ const Recoveries = () => {
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8">Loading...</TableCell>
               </TableRow>
-            ) : loansInArrears.map((loan) => (
-              <TableRow key={loan.id}>
-                <TableCell>{loan.id}</TableCell>
-                <TableCell>{loan.borrowerName}</TableCell>
-                <TableCell>K{loan.loanAmount.toFixed(2)}</TableCell>
-                <TableCell>{loan.daysOverdue}</TableCell>
-                <TableCell>K{loan.amountOverdue.toFixed(2)}</TableCell>
-                <TableCell>{loan.lastPaymentDate}</TableCell>
+            ) : loansInArrears.length > 0 ? (
+              loansInArrears.map((loan) => (
+                <TableRow key={loan.id}>
+                  <TableCell>{loan.id}</TableCell>
+                  <TableCell>{loan.borrowerName}</TableCell>
+                  <TableCell>K{loan.loanAmount.toFixed(2)}</TableCell>
+                  <TableCell>{loan.daysOverdue}</TableCell>
+                  <TableCell>K{loan.amountOverdue.toFixed(2)}</TableCell>
+                  <TableCell>{loan.lastPaymentDate}</TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8">No loans in arrears found.</TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </Card>

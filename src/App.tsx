@@ -4,9 +4,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { 
-  createBrowserRouter as createRouter, 
+  createBrowserRouter, 
   RouterProvider, 
-  redirect, 
+  Navigate, 
   RouteObject,
   Outlet
 } from "react-router-dom";
@@ -37,7 +37,7 @@ const routes: RouteObject[] = [
     children: [
       {
         index: true,
-        loader: () => redirect("/login"),
+        element: <Navigate to="/login" replace />
       },
       {
         path: "login",
@@ -71,12 +71,12 @@ const routes: RouteObject[] = [
   // Catch-all: Redirect to login
   {
     path: "*",
-    loader: () => redirect("/login"),
+    element: <Navigate to="/login" replace />
   }
 ];
 
 // Create router with routes
-const router = createRouter(routes);
+const router = createBrowserRouter(routes);
 
 const App = () => {
   return (
