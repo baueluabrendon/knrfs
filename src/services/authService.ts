@@ -198,7 +198,7 @@ export function setupAuthListener(callback: (user: UserProfile | null) => void):
     }
   );
   
-  return data;
+  return { unsubscribe: () => data.subscription.unsubscribe() };
 }
 
 /**
