@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
-import { useNavigate, NavLink } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,15 +28,12 @@ const Recoveries = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Load initial data for loans in arrears
     fetchLoansInArrears();
   }, []);
 
   const fetchLoansInArrears = async () => {
     try {
       setIsLoading(true);
-      // In a real implementation, fetch from API
-      // For now, use sample data
       setLoansInArrears([
         {
           id: "L001",
@@ -107,13 +103,13 @@ const Recoveries = () => {
         </p>
         <div className="flex flex-wrap gap-3 mb-6">
           <Button variant="outline" asChild>
-            <NavLink to="/admin/recoveries/loans-in-arrears">Loans in Arrears</NavLink>
+            <Link to="/admin/recoveries/loans-in-arrears">Loans in Arrears</Link>
           </Button>
           <Button variant="outline" asChild>
-            <NavLink to="/admin/recoveries/missed-payments">Missed Payments</NavLink>
+            <Link to="/admin/recoveries/missed-payments">Missed Payments</Link>
           </Button>
           <Button variant="outline" asChild>
-            <NavLink to="/admin/recoveries/partial-payments">Partial Payments</NavLink>
+            <Link to="/admin/recoveries/partial-payments">Partial Payments</Link>
           </Button>
         </div>
         <Table>

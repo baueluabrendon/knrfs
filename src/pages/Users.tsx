@@ -174,7 +174,12 @@ const Users = () => {
         }
       );
       
-      if (error) throw error;
+      if (error) {
+        toast.error("Admin operations require a server-side function. This feature needs to be updated.");
+        console.error("Error creating user:", error);
+        setIsAddingUser(false);
+        return;
+      }
       
       if (!user) {
         throw new Error("Failed to create user account");
@@ -222,7 +227,9 @@ const Users = () => {
         }
       });
       
-      if (metadataError) throw metadataError;
+      if (metadataError) {
+        console.error("Metadata update error:", metadataError);
+      }
       
       const { error: profileError } = await supabase
         .from('user_profiles')
@@ -235,7 +242,7 @@ const Users = () => {
       
       if (profileError) throw profileError;
       
-      toast.success("User updated successfully");
+      toast.success("User profile updated successfully");
       setEditDialogOpen(false);
       fetchUsers();
     } catch (error: any) {
@@ -252,15 +259,10 @@ const Users = () => {
     setIsProcessing(true);
     
     try {
-      const { error } = await supabase.auth.admin.deleteUser(
-        userToDelete.user_id
-      );
+      toast.error("User deletion requires admin privileges and must be done server-side.");
+      console.error("User deletion requires admin privileges and should be done via an edge function");
       
-      if (error) throw error;
-      
-      toast.success("User deleted successfully");
       setDeleteDialogOpen(false);
-      fetchUsers();
     } catch (error: any) {
       console.error("Error deleting user:", error);
       toast.error(error.message || "Failed to delete user");

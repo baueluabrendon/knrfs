@@ -3,7 +3,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createBrowserRouter, RouterProvider, Navigate, Route, createRoutesFromElements } from "react-router-dom";
+import { 
+  createBrowserRouter as createRouter, 
+  RouterProvider, 
+  redirect, 
+  RouteObject,
+  Outlet
+} from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import AuthForm from "@/components/auth/AuthForm";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
@@ -22,63 +28,55 @@ const clientRoles = ["client"];
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
 
-// Create router with routes from elements
-const router = createBrowserRouter(
-  createRoutesFromElements(
-    <>
-      {/* Authentication & Verification */}
-      <Route path="/" element={<Navigate to="/login" />} />
-      <Route path="/login" element={<AuthForm />} />
-      <Route path="/set-password" element={<SetPassword />} />
-      
-      {/* Public loan application */}
-      <Route path="/apply" element={<LoanApplicationSteps />} />
+// Create routes array
+const routes: RouteObject[] = [
+  // Authentication & Verification
+  {
+    path: "/",
+    element: <div><Outlet /></div>,
+    children: [
+      {
+        index: true,
+        loader: () => redirect("/login"),
+      },
+      {
+        path: "login",
+        element: <AuthForm />,
+      },
+      {
+        path: "set-password",
+        element: <SetPassword />,
+      }
+    ]
+  },
+  
+  // Public loan application
+  {
+    path: "/apply",
+    element: <LoanApplicationSteps />,
+  },
 
-      {/* Client Routes with protection */}
-      <Route element={<ProtectedRoute allowedRoles={clientRoles} />}>
-        {clientRoutes.map((route) => (
-          <Route
-            key={route.path}
-            path={route.path}
-            element={route.element}
-          >
-            {route.children?.map((childRoute) => (
-              <Route
-                key={childRoute.path || 'index'}
-                path={childRoute.path}
-                element={childRoute.element}
-                index={childRoute.index}
-              />
-            ))}
-          </Route>
-        ))}
-      </Route>
+  // Client Routes with protection
+  {
+    element: <ProtectedRoute allowedRoles={clientRoles} />,
+    children: clientRoutes,
+  },
 
-      {/* Admin Routes with protection */}
-      <Route element={<ProtectedRoute allowedRoles={adminRoles} />}>
-        {adminRoutes.map((route) => (
-          <Route
-            key={route.path}
-            path={route.path}
-            element={route.element}
-          >
-            {route.children?.map((childRoute) => (
-              <Route
-                key={childRoute.path || 'index'}
-                path={childRoute.path}
-                element={childRoute.element}
-                index={childRoute.index}
-              />
-            ))}
-          </Route>
-        ))}
-      </Route>
+  // Admin Routes with protection
+  {
+    element: <ProtectedRoute allowedRoles={adminRoles} />,
+    children: adminRoutes,
+  },
 
-      {/* Catch-all: Redirect to login */}
-      <Route path="*" element={<Navigate to="/login" />} />
-    </>
-  )
-);
+  // Catch-all: Redirect to login
+  {
+    path: "*",
+    loader: () => redirect("/login"),
+  }
+];
+
+// Create router with routes
+const router = createRouter(routes);
 
 const App = () => {
   return (

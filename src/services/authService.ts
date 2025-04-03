@@ -46,7 +46,7 @@ export async function fetchUserProfile(userId: string): Promise<UserProfile | nu
  */
 export async function signIn(email: string, password: string): Promise<UserProfile | null> {
   try {
-    const { data: authData, error: authError } = await supabase.auth.signInWithEmailPassword({
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -122,7 +122,9 @@ export async function updatePassword(password: string): Promise<boolean> {
     if (passwordError) throw passwordError;
     
     // Get current user to ensure we have the latest session
-    const { data: userData } = await supabase.auth.getUser();
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    
+    if (userError) throw userError;
     
     if (!userData.user) {
       throw new Error("User session not found after password update");
@@ -152,7 +154,9 @@ export async function updatePassword(password: string): Promise<boolean> {
  */
 export async function checkSession(): Promise<{ userProfile: UserProfile | null, needsPasswordChange: boolean }> {
   try {
-    const { data } = await supabase.auth.getSession();
+    const { data, error } = await supabase.auth.getSession();
+    
+    if (error) throw error;
     
     if (!data.session) {
       return { userProfile: null, needsPasswordChange: false };
@@ -197,6 +201,7 @@ export function setupAuthListener(callback: (user: UserProfile | null) => void):
 
 /**
  * Create a user with admin operations
+ * Note: this function requires service_role key and should be used server-side only
  */
 export async function createUserWithAdmin(email: string, password: string, userData: { 
   first_name: string, 
@@ -204,38 +209,15 @@ export async function createUserWithAdmin(email: string, password: string, userD
   role: string 
 }): Promise<{ user: any; error: any }> {
   try {
-    // Create user with auth API
-    const { data: authData, error: createError } = await supabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true
-    });
-
-    if (createError) {
-      return { user: null, error: createError };
-    }
-
-    if (!authData?.user) {
-      return { user: null, error: new Error("No user data returned") };
-    }
-
-    // Create user profile
-    const { data: profileData, error: profileError } = await supabase
-      .from('user_profiles')
-      .insert({
-        user_id: authData.user.id,
-        email: email,
-        first_name: userData.first_name,
-        last_name: userData.last_name,
-        role: userData.role,
-        is_password_changed: false
-      });
-
-    if (profileError) {
-      return { user: null, error: profileError };
-    }
-
-    return { user: authData.user, error: null };
+    // This function should ideally be moved to a server-side edge function
+    // as admin operations are not available in the client-side SDK
+    console.warn("Warning: createUserWithAdmin should be used server-side only with service_role key");
+    
+    // Here we'll return a mock error to indicate this function needs to be moved
+    return { 
+      user: null, 
+      error: new Error("Admin operations are not available in the client-side SDK. Move this function to a server-side edge function.") 
+    };
   } catch (error) {
     return { user: null, error };
   }
