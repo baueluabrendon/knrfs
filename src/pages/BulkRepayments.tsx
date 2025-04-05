@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { FileText, Loader2, Table as TableIcon, X, Download } from "lucide-react";
+import { FileText, Loader2, Table as TableIcon, X, Download, FileEdit } from "lucide-react";
 import { uploadGroupRepaymentDocument } from "@/contexts/loan-application/document-uploader";
 import { Repayment, BulkRepaymentData } from "@/types/repayment";
 import Papa from "papaparse";
@@ -44,6 +44,7 @@ const BulkRepayments = () => {
             const borrowerName = row.borrower;
             const amount = parseFloat(row.amount);
             const date = row.date;
+            const notes = row.notes || ''; // Get notes from CSV or default to empty string
             
             if (!borrowerName || isNaN(amount) || !date) {
               continue;
@@ -85,7 +86,8 @@ const BulkRepayments = () => {
               date,
               loanId,
               status: loanId ? 'pending' : 'failed',
-              payPeriod: "Current"
+              payPeriod: "Current",
+              notes // Include notes in processed data
             });
           }
           
@@ -162,7 +164,8 @@ const BulkRepayments = () => {
           amount: item.amount,
           payment_date: item.date,
           status: 'completed',
-          receipt_url: documentUrl
+          receipt_url: documentUrl,
+          notes: item.notes // Include notes in the database insert
         }));
       
       if (repaymentsToInsert.length === 0) {
@@ -217,8 +220,8 @@ const BulkRepayments = () => {
   };
 
   const downloadCSVTemplate = () => {
-    const headers = "borrower,amount,date\n";
-    const sampleData = "John Doe,500,2024-06-15\nJane Smith,750,2024-06-15\n";
+    const headers = "borrower,amount,date,notes\n";
+    const sampleData = "John Doe,500,2024-06-15,First payment\nJane Smith,750,2024-06-15,Monthly payment\n";
     const csvContent = headers + sampleData;
     
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -286,7 +289,7 @@ const BulkRepayments = () => {
                 )}
               </div>
               <p className="text-sm text-gray-500">
-                Upload a CSV file with columns: borrower, amount, date
+                Upload a CSV file with columns: borrower, amount, date, notes (optional)
               </p>
             </div>
             
@@ -347,6 +350,7 @@ const BulkRepayments = () => {
                       <TableHead>Date</TableHead>
                       <TableHead>Loan ID</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Notes</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -364,6 +368,16 @@ const BulkRepayments = () => {
                           }`}>
                             {repayment.loanId ? 'Valid' : 'Invalid loan'}
                           </span>
+                        </TableCell>
+                        <TableCell>
+                          {repayment.notes ? (
+                            <div className="flex items-center">
+                              <FileEdit className="h-4 w-4 mr-1 text-gray-500" />
+                              <span className="truncate max-w-[150px]">{repayment.notes}</span>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">No notes</span>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}

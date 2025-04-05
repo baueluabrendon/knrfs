@@ -4,7 +4,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { Button } from "@/components/ui/button";
 import { Repayment } from "@/types/repayment";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { FileText, Info } from "lucide-react";
+import { FileText, Info, FileEdit } from "lucide-react";
 
 interface RepaymentsTableProps {
   repayments: Repayment[];
@@ -64,14 +64,19 @@ const RepaymentsTable: React.FC<RepaymentsTableProps> = ({ repayments }) => {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger>
-                          <Info className="h-4 w-4 text-gray-500" />
+                          <div className="flex items-center text-gray-600">
+                            <FileEdit className="h-4 w-4 mr-1" />
+                            <span className="truncate max-w-[100px]">{repayment.notes}</span>
+                          </div>
                         </TooltipTrigger>
                         <TooltipContent>
                           <p className="max-w-xs">{repayment.notes}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
-                  ) : null}
+                  ) : (
+                    <span className="text-gray-400">-</span>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

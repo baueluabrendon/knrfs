@@ -173,7 +173,6 @@ export type Database = {
       }
       defaults: {
         Row: {
-          arrear_amount: number | null
           arrear_id: number
           created_at: string | null
           date: string | null
@@ -184,7 +183,6 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          arrear_amount?: number | null
           arrear_id?: number
           created_at?: string | null
           date?: string | null
@@ -195,7 +193,6 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          arrear_amount?: number | null
           arrear_id?: number
           created_at?: string | null
           date?: string | null
@@ -296,12 +293,15 @@ export type Database = {
           default_fees_accumulated: number | null
           disbursement_date: string
           documentation_fee: number | null
+          documentation_fee_accumulated: number | null
           early_settlement: boolean | null
           fortnightly_installment: number
           gross_loan: number
           gross_salary: number
+          gst_accumulated: number | null
           gst_amount: number | null
           interest: number
+          interest_accumulated: number | null
           interest_rate:
             | Database["public"]["Enums"]["interest_rate_enum"]
             | null
@@ -311,6 +311,7 @@ export type Database = {
             | Database["public"]["Enums"]["repayment_status_enum"]
             | null
           loan_risk_insurance: number
+          loan_risk_insurance_accumulated: number | null
           loan_status: Database["public"]["Enums"]["loan_status_enum"] | null
           loan_term:
             | Database["public"]["Enums"]["bi_weekly_loan_term_enum"]
@@ -322,6 +323,7 @@ export type Database = {
           outstanding_balance: number | null
           partial_payments_count: number | null
           principal: number
+          principal_accumulated: number | null
           product: string
           refinanced_by: string | null
           repayment_completion_percentage: number | null
@@ -338,12 +340,15 @@ export type Database = {
           default_fees_accumulated?: number | null
           disbursement_date: string
           documentation_fee?: number | null
+          documentation_fee_accumulated?: number | null
           early_settlement?: boolean | null
           fortnightly_installment: number
           gross_loan: number
           gross_salary: number
+          gst_accumulated?: number | null
           gst_amount?: number | null
           interest: number
+          interest_accumulated?: number | null
           interest_rate?:
             | Database["public"]["Enums"]["interest_rate_enum"]
             | null
@@ -353,6 +358,7 @@ export type Database = {
             | Database["public"]["Enums"]["repayment_status_enum"]
             | null
           loan_risk_insurance: number
+          loan_risk_insurance_accumulated?: number | null
           loan_status?: Database["public"]["Enums"]["loan_status_enum"] | null
           loan_term?:
             | Database["public"]["Enums"]["bi_weekly_loan_term_enum"]
@@ -364,6 +370,7 @@ export type Database = {
           outstanding_balance?: number | null
           partial_payments_count?: number | null
           principal: number
+          principal_accumulated?: number | null
           product: string
           refinanced_by?: string | null
           repayment_completion_percentage?: number | null
@@ -380,12 +387,15 @@ export type Database = {
           default_fees_accumulated?: number | null
           disbursement_date?: string
           documentation_fee?: number | null
+          documentation_fee_accumulated?: number | null
           early_settlement?: boolean | null
           fortnightly_installment?: number
           gross_loan?: number
           gross_salary?: number
+          gst_accumulated?: number | null
           gst_amount?: number | null
           interest?: number
+          interest_accumulated?: number | null
           interest_rate?:
             | Database["public"]["Enums"]["interest_rate_enum"]
             | null
@@ -395,6 +405,7 @@ export type Database = {
             | Database["public"]["Enums"]["repayment_status_enum"]
             | null
           loan_risk_insurance?: number
+          loan_risk_insurance_accumulated?: number | null
           loan_status?: Database["public"]["Enums"]["loan_status_enum"] | null
           loan_term?:
             | Database["public"]["Enums"]["bi_weekly_loan_term_enum"]
@@ -406,6 +417,7 @@ export type Database = {
           outstanding_balance?: number | null
           partial_payments_count?: number | null
           principal?: number
+          principal_accumulated?: number | null
           product?: string
           refinanced_by?: string | null
           repayment_completion_percentage?: number | null
@@ -643,6 +655,12 @@ export type Database = {
       generate_account_id: {
         Args: {
           p_account_type: Database["public"]["Enums"]["accounts_enum"]
+        }
+        Returns: string
+      }
+      generate_repayment_id: {
+        Args: {
+          p_loan_id: string
         }
         Returns: string
       }
