@@ -28,12 +28,12 @@ const RepaymentsTable: React.FC<RepaymentsTableProps> = ({ repayments }) => {
         </TableHeader>
         <TableBody>
           {repayments
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+            .sort((a, b) => new Date(b.payment_date).getTime() - new Date(a.payment_date).getTime())
             .map((repayment) => (
-              <TableRow key={repayment.id}>
-                <TableCell>{new Date(repayment.date).toLocaleDateString()}</TableCell>
+              <TableRow key={repayment.repayment_id}>
+                <TableCell>{new Date(repayment.payment_date).toLocaleDateString()}</TableCell>
                 <TableCell>{repayment.payPeriod}</TableCell>
-                <TableCell>{repayment.loanId}</TableCell>
+                <TableCell>{repayment.loan_id}</TableCell>
                 <TableCell>{repayment.borrowerName}</TableCell>
                 <TableCell className="text-right">
                   ${repayment.amount.toFixed(2)}
@@ -49,9 +49,9 @@ const RepaymentsTable: React.FC<RepaymentsTableProps> = ({ repayments }) => {
                   </span>
                 </TableCell>
                 <TableCell>
-                  {repayment.receiptUrl && (
+                  {repayment.receipt_url && (
                     <Button variant="outline" size="sm" asChild>
-                      <a href={repayment.receiptUrl} target="_blank" rel="noopener noreferrer">
+                      <a href={repayment.receipt_url} target="_blank" rel="noopener noreferrer">
                         <FileText className="h-4 w-4 mr-1" />
                         View
                       </a>
