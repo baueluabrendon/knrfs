@@ -59,18 +59,7 @@ const ClientRepaymentVerification = () => {
   const fetchRepayments = async () => {
     setIsLoading(true);
     try {
-      // Check if source column exists by querying a single row first
-      const { data: columnCheck, error: columnCheckError } = await supabase
-        .from('repayments')
-        .select(`*`)
-        .limit(1);
-      
-      // If there's an error regarding the source column, fetch without it
-      const hasSourceColumn = !columnCheckError || 
-        !columnCheckError.message.includes("column 'source' does not exist");
-      
-      // Only fetch repayments that need verification
-      // If source column doesn't exist, we'll fetch all and filter in the client
+      // Fetch repayments with source='client' that need verification
       const { data: repaymentsData, error: repaymentsError } = await supabase
         .from('repayments')
         .select(`
@@ -81,9 +70,10 @@ const ClientRepaymentVerification = () => {
           status, 
           receipt_url,
           notes,
-          verification_status
-          ${hasSourceColumn ? ', source' : ''}
+          verification_status,
+          source
         `)
+        .eq('source', 'client')
         .order('payment_date', { ascending: false });
       
       if (repaymentsError) {
@@ -98,18 +88,10 @@ const ClientRepaymentVerification = () => {
         setIsLoading(false);
         return;
       }
-      
-      // Filter client repayments if the source column exists
-      let clientRepayments = repaymentsData;
-      if (hasSourceColumn) {
-        clientRepayments = repaymentsData.filter(
-          repayment => repayment.source === 'client'
-        );
-      }
-      
+
       // For each repayment, we need to fetch the borrower information
       const enrichedRepayments: ClientRepayment[] = await Promise.all(
-        clientRepayments.map(async (repayment) => {
+        repaymentsData.map(async (repayment) => {
           // Fetch loan to get borrower_id
           const { data: loanData, error: loanError } = await supabase
             .from('loans')
@@ -153,7 +135,7 @@ const ClientRepaymentVerification = () => {
             status: uiStatus as "pending" | "verified" | "approved" | "rejected",
             receiptUrl: repayment.receipt_url,
             notes: repayment.notes,
-            source: hasSourceColumn ? repayment.source : 'unknown'
+            source: repayment.source
           };
         })
       );

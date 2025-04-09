@@ -158,35 +158,20 @@ const BulkRepayments = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      const { error: columnCheckError } = await supabase
-        .from('repayments')
-        .select(`status, source`)
-        .limit(1);
-      
-      const hasSourceColumn = !columnCheckError || 
-        !columnCheckError.message?.includes("column 'source' does not exist");
-      
       const repaymentsToInsert = parsedData
         .filter(item => item.loanId)
-        .map(item => {
-          const repayment = {
-            loan_id: item.loanId,
-            amount: item.amount,
-            payment_date: item.date,
-            status: 'completed',
-            receipt_url: documentUrl,
-            notes: item.notes,
-            verification_status: 'approved',
-            verified_at: new Date().toISOString(),
-            verified_by: user?.email
-          };
-          
-          if (hasSourceColumn) {
-            return { ...repayment, source: 'admin' };
-          }
-          
-          return repayment;
-        });
+        .map(item => ({
+          loan_id: item.loanId,
+          amount: item.amount,
+          payment_date: item.date,
+          status: 'completed',
+          receipt_url: documentUrl,
+          notes: item.notes,
+          source: 'admin',
+          verification_status: 'approved',
+          verified_at: new Date().toISOString(),
+          verified_by: user?.email
+        }));
       
       if (repaymentsToInsert.length === 0) {
         toast.error("No valid repayments to submit");
