@@ -192,7 +192,7 @@ const BulkRepayments = () => {
       resetForm();
     } catch (error) {
       console.error("Error submitting repayments:", error);
-      toast.error("Failed to submit repayments. Please try again.");
+      toast.error(`Failed to submit repayments: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsSubmitting(false);
     }

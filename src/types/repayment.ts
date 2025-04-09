@@ -1,13 +1,13 @@
 
 export interface Repayment {
-  id: string;
-  date: string;
+  repayment_id: string; // Changed from id: string to match database column name
+  payment_date: string; // Changed from date: string to match database column name
   amount: number;
-  loanId: string;
+  loan_id: string; // Changed from loanId: string to match database column name
   borrowerName: string;
   status: "pending" | "completed" | "failed" | "approved" | "rejected";
   payPeriod: string;
-  receiptUrl?: string;
+  receipt_url?: string; // Changed from receiptUrl?: string to match database column name
   notes?: string;
 }
 
