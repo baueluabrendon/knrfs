@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,7 @@ interface ClientRepayment {
   status: "pending" | "verified" | "approved" | "rejected";
   receiptUrl?: string;
   notes?: string;
-  source?: string;
+  source?: "system" | "client";
 }
 
 const ClientRepaymentVerification = () => {
@@ -115,7 +116,9 @@ const ClientRepaymentVerification = () => {
           }
           
           // Map verification_status to status for UI consistency
-          let uiStatus = repayment.status;
+          let uiStatus: "pending" | "verified" | "approved" | "rejected" = "pending";
+          
+          // Fixed the TypeScript error by properly handling status mapping
           if (repayment.verification_status === 'pending') {
             uiStatus = 'pending';
           } else if (repayment.verification_status === 'verified') {
@@ -132,10 +135,10 @@ const ClientRepaymentVerification = () => {
             borrowerName,
             date: repayment.payment_date || new Date().toISOString(),
             amount: Number(repayment.amount),
-            status: uiStatus as "pending" | "verified" | "approved" | "rejected",
+            status: uiStatus,
             receiptUrl: repayment.receipt_url,
             notes: repayment.notes,
-            source: repayment.source
+            source: repayment.source as "system" | "client"
           };
         })
       );

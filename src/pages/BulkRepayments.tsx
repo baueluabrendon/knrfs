@@ -43,7 +43,7 @@ const BulkRepayments = () => {
             const borrowerName = row.borrower;
             const amount = parseFloat(row.amount);
             const date = row.date;
-            const notes = row.notes || ''; // Get notes from CSV or default to empty string
+            const notes = row.notes || '';
             
             if (!borrowerName || isNaN(amount) || !date) {
               continue;
@@ -167,7 +167,7 @@ const BulkRepayments = () => {
           status: 'completed',
           receipt_url: documentUrl,
           notes: item.notes,
-          source: 'admin',
+          source: 'system' as const,
           verification_status: 'approved',
           verified_at: new Date().toISOString(),
           verified_by: user?.email
