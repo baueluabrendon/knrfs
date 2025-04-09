@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -34,13 +35,13 @@ const Repayments = () => {
       }
       
       let mappedRepayments: Repayment[] = data.map(item => ({
-        repayment_id: item.repayment_id,
+        repayment_id: item.repayment_id || `temp-${Date.now()}`,
         payment_date: item.payment_date || item.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
         amount: Number(item.amount),
         loan_id: item.loan_id || 'Unknown',
         borrowerName: 'Loading...',
         status: item.status as any || "pending",
-        payPeriod: "Current",
+        payPeriod: item.pay_period || "Current",
         receipt_url: item.receipt_url || undefined,
         notes: item.notes || undefined
       }));

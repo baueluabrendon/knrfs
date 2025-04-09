@@ -25,7 +25,7 @@ const RepaymentPreviewTable = ({ repayments }: RepaymentPreviewTableProps) => {
           {repayments.map((repayment, index) => (
             <TableRow key={index}>
               <TableCell>{repayment.borrowerName}</TableCell>
-              <TableCell>K{Number(repayment.amount).toFixed(2)}</TableCell>
+              <TableCell>${Number(repayment.amount).toFixed(2)}</TableCell>
               <TableCell>{repayment.payment_date}</TableCell>
               <TableCell>{repayment.loan_id || 'Not found'}</TableCell>
               <TableCell>

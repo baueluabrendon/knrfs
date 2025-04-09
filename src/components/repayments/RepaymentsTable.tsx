@@ -5,12 +5,30 @@ import { Button } from "@/components/ui/button";
 import { Repayment } from "@/types/repayment";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { FileText, FileEdit } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface RepaymentsTableProps {
   repayments: Repayment[];
 }
 
 const RepaymentsTable: React.FC<RepaymentsTableProps> = ({ repayments }) => {
+  // Function to get badge style based on status
+  const getStatusBadgeStyle = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'approved':
+        return 'bg-emerald-100 text-emerald-800';
+      case 'rejected':
+      case 'failed':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   return (
     <div className="rounded-md border">
       <Table>
@@ -39,12 +57,7 @@ const RepaymentsTable: React.FC<RepaymentsTableProps> = ({ repayments }) => {
                   ${repayment.amount.toFixed(2)}
                 </TableCell>
                 <TableCell>
-                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold
-                    ${repayment.status === 'completed' ? 'bg-green-100 text-green-800' : 
-                      repayment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                      repayment.status === 'approved' ? 'bg-emerald-100 text-emerald-800' :
-                      repayment.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                      'bg-red-100 text-red-800'}`}>
+                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getStatusBadgeStyle(repayment.status)}`}>
                     {repayment.status.charAt(0).toUpperCase() + repayment.status.slice(1)}
                   </span>
                 </TableCell>
