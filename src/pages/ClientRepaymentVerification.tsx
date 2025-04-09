@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,7 +37,7 @@ interface ClientRepayment {
   borrowerName: string;
   date: string;
   amount: number;
-  status: "pending" | "verified" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected";
   receiptUrl?: string;
   notes?: string;
   source?: "system" | "client";
@@ -116,13 +115,10 @@ const ClientRepaymentVerification = () => {
           }
           
           // Map verification_status to status for UI consistency
-          let uiStatus: "pending" | "verified" | "approved" | "rejected" = "pending";
+          let uiStatus: "pending" | "approved" | "rejected" = "pending";
           
-          // Fixed the TypeScript error by properly handling status mapping
           if (repayment.verification_status === 'pending') {
             uiStatus = 'pending';
-          } else if (repayment.verification_status === 'verified') {
-            uiStatus = 'verified';
           } else if (repayment.verification_status === 'approved') {
             uiStatus = 'approved';
           } else if (repayment.verification_status === 'rejected') {
@@ -167,7 +163,7 @@ const ClientRepaymentVerification = () => {
     setIsViewDocumentOpen(true);
   };
 
-  const updateRepaymentStatus = async (newStatus: "verified" | "approved" | "rejected") => {
+  const updateRepaymentStatus = async (newStatus: "approved" | "rejected") => {
     if (!selectedRepayment) return;
     
     setIsLoading(true);
@@ -392,11 +388,11 @@ const ClientRepaymentVerification = () => {
               {selectedRepayment?.status === "pending" && (
                 <Button 
                   variant="outline" 
-                  onClick={() => updateRepaymentStatus("verified")}
+                  onClick={() => updateRepaymentStatus("approved")}
                   disabled={isLoading}
                 >
                   <Check className="h-4 w-4 mr-1" />
-                  Verify
+                  Approve
                 </Button>
               )}
               {(selectedRepayment?.status === "pending" || selectedRepayment?.status === "verified") && (

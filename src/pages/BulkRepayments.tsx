@@ -167,7 +167,7 @@ const BulkRepayments = () => {
           status: 'completed',
           receipt_url: documentUrl,
           notes: item.notes,
-          source: 'system' as const,
+          source: 'system',
           verification_status: 'approved',
           verified_at: new Date().toISOString(),
           verified_by: user?.email
