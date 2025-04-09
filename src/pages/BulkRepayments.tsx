@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -42,7 +43,7 @@ const BulkRepayments = () => {
           for (const row of results.data as any[]) {
             const borrowerName = row.borrower;
             const amount = parseFloat(row.amount);
-            const date = row.date;
+            const date = row.payment_date; // Changed from row.date to row.payment_date
             const notes = row.notes || '';
             
             if (!borrowerName || isNaN(amount) || !date) {
@@ -110,7 +111,7 @@ const BulkRepayments = () => {
   };
 
   const validateCSVHeaders = (headers: string[]) => {
-    const requiredHeaders = ['borrower', 'amount', 'date'];
+    const requiredHeaders = ['borrower', 'amount', 'payment_date']; // Changed from 'date' to 'payment_date'
     const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
     
     if (missingHeaders.length > 0) {
@@ -225,7 +226,7 @@ const BulkRepayments = () => {
   };
 
   const downloadCSVTemplate = () => {
-    const headers = "borrower,amount,date,notes\n";
+    const headers = "borrower,amount,payment_date,notes\n"; // Changed from "date" to "payment_date"
     const sampleData = "John Doe,500,2024-06-15,First payment\nJane Smith,750,2024-06-15,Monthly payment\n";
     const csvContent = headers + sampleData;
     
@@ -294,7 +295,7 @@ const BulkRepayments = () => {
                 )}
               </div>
               <p className="text-sm text-gray-500">
-                Upload a CSV file with columns: borrower, amount, date, notes (optional)
+                Upload a CSV file with columns: borrower, amount, payment_date, notes (optional) {/* Changed from "date" to "payment_date" */}
               </p>
             </div>
             
@@ -352,7 +353,7 @@ const BulkRepayments = () => {
                     <TableRow>
                       <TableHead>Borrower Name</TableHead>
                       <TableHead>Amount</TableHead>
-                      <TableHead>Date</TableHead>
+                      <TableHead>Payment Date</TableHead> {/* Changed from "Date" to "Payment Date" */}
                       <TableHead>Loan ID</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Notes</TableHead>
