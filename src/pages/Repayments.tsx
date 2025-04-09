@@ -34,24 +34,24 @@ const Repayments = () => {
       }
       
       let mappedRepayments: Repayment[] = data.map(item => ({
-        id: item.repayment_id,
-        date: item.payment_date || item.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+        repayment_id: item.repayment_id,
+        payment_date: item.payment_date || item.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
         amount: Number(item.amount),
-        loanId: item.loan_id || 'Unknown',
+        loan_id: item.loan_id || 'Unknown',
         borrowerName: 'Loading...',
         status: item.status as any || "pending",
         payPeriod: "Current",
-        receiptUrl: item.receipt_url || undefined,
+        receipt_url: item.receipt_url || undefined,
         notes: item.notes || undefined
       }));
       
       for (let i = 0; i < mappedRepayments.length; i++) {
-        if (mappedRepayments[i].loanId && mappedRepayments[i].loanId !== 'Unknown') {
+        if (mappedRepayments[i].loan_id && mappedRepayments[i].loan_id !== 'Unknown') {
           try {
             const { data: loanData, error: loanError } = await supabase
               .from('loans')
               .select('borrower_id')
-              .eq('loan_id', mappedRepayments[i].loanId)
+              .eq('loan_id', mappedRepayments[i].loan_id)
               .single();
             
             if (loanError || !loanData) {

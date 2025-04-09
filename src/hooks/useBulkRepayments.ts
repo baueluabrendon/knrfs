@@ -30,11 +30,11 @@ export function useBulkRepayments() {
       const { data: { user } } = await supabase.auth.getUser();
       
       const repaymentsToInsert = parsedData
-        .filter(item => item.loanId)
+        .filter(item => item.loan_id)
         .map(item => ({
-          loan_id: item.loanId,
+          loan_id: item.loan_id,
           amount: item.amount,
-          payment_date: item.date,
+          payment_date: item.payment_date,
           status: 'completed',
           receipt_url: documentUrl,
           notes: item.notes,

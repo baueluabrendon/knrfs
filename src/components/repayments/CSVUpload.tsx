@@ -53,14 +53,14 @@ const CSVUpload = ({
           for (const row of results.data as any[]) {
             const borrowerName = row.borrower;
             const amount = parseFloat(row.amount);
-            const date = row.payment_date;
+            const payment_date = row.payment_date;
             const notes = row.notes || '';
             
-            if (!borrowerName || isNaN(amount) || !date) {
+            if (!borrowerName || isNaN(amount) || !payment_date) {
               continue;
             }
             
-            let loanId = '';
+            let loan_id = '';
             
             const names = borrowerName.split(' ');
             if (names.length >= 2) {
@@ -85,7 +85,7 @@ const CSVUpload = ({
                   .limit(1);
                   
                 if (loanData && loanData.length > 0) {
-                  loanId = loanData[0].loan_id;
+                  loan_id = loanData[0].loan_id;
                 }
               }
             }
@@ -93,9 +93,9 @@ const CSVUpload = ({
             processedData.push({
               borrowerName,
               amount,
-              date,
-              loanId,
-              status: loanId ? 'pending' : 'failed',
+              payment_date,
+              loan_id,
+              status: loan_id ? 'pending' : 'failed',
               payPeriod: "Current",
               notes
             });

@@ -3,32 +3,32 @@ import { Repayment } from "@/types/repayment";
 
 export const sampleRepayments: Repayment[] = [
   {
-    id: "1",
-    date: "2024-01-15",
+    repayment_id: "1",
+    payment_date: "2024-01-15",
     amount: 1500.00,
-    loanId: "LOAN-001",
+    loan_id: "LOAN-001",
     borrowerName: "John Doe",
     status: "completed",
     payPeriod: "January 2024",
-    receiptUrl: "#"
+    receipt_url: "#"
   },
   {
-    id: "2",
-    date: "2024-01-14",
+    repayment_id: "2",
+    payment_date: "2024-01-14",
     amount: 2500.00,
-    loanId: "LOAN-002",
+    loan_id: "LOAN-002",
     borrowerName: "Jane Smith",
     status: "pending",
     payPeriod: "January 2024"
   },
   {
-    id: "3",
-    date: "2024-01-13",
+    repayment_id: "3",
+    payment_date: "2024-01-13",
     amount: 1000.00,
-    loanId: "LOAN-003",
+    loan_id: "LOAN-003",
     borrowerName: "Bob Wilson",
     status: "completed",
     payPeriod: "January 2024",
-    receiptUrl: "#"
+    receipt_url: "#"
   }
 ];

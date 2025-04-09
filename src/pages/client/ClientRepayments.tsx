@@ -43,14 +43,14 @@ const ClientRepayments = () => {
         
         // Map database fields to our Repayment type
         const mappedRepayments: Repayment[] = data.map(item => ({
-          id: item.repayment_id,
-          date: item.payment_date || item.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+          repayment_id: item.repayment_id,
+          payment_date: item.payment_date || item.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
           amount: Number(item.amount),
-          loanId: item.loan_id || 'Unknown',
+          loan_id: item.loan_id || 'Unknown',
           borrowerName: 'Client', // Default for client view
           status: item.status as any || "pending",
           payPeriod: "Current", // Default value
-          receiptUrl: item.receipt_url || undefined,
+          receipt_url: item.receipt_url || undefined,
           notes: item.notes || undefined
         }));
         
@@ -91,9 +91,9 @@ const ClientRepayments = () => {
               </TableRow>
             ) : repayments && repayments.length > 0 ? (
               repayments.map((repayment) => (
-                <TableRow key={repayment.id}>
-                  <TableCell>{repayment.id}</TableCell>
-                  <TableCell>{new Date(repayment.date).toLocaleDateString()}</TableCell>
+                <TableRow key={repayment.repayment_id}>
+                  <TableCell>{repayment.repayment_id}</TableCell>
+                  <TableCell>{new Date(repayment.payment_date).toLocaleDateString()}</TableCell>
                   <TableCell>${repayment.amount.toFixed(2)}</TableCell>
                   <TableCell>
                     <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold
@@ -105,11 +105,11 @@ const ClientRepayments = () => {
                       {repayment.status.charAt(0).toUpperCase() + repayment.status.slice(1)}
                     </span>
                   </TableCell>
-                  <TableCell>{new Date(repayment.date).toLocaleDateString()}</TableCell>
+                  <TableCell>{new Date(repayment.payment_date).toLocaleDateString()}</TableCell>
                   <TableCell>
-                    {repayment.receiptUrl && (
+                    {repayment.receipt_url && (
                       <a 
-                        href={repayment.receiptUrl} 
+                        href={repayment.receipt_url} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="text-blue-500 hover:underline"

@@ -26,15 +26,15 @@ const RepaymentPreviewTable = ({ repayments }: RepaymentPreviewTableProps) => {
             <TableRow key={index}>
               <TableCell>{repayment.borrowerName}</TableCell>
               <TableCell>K{Number(repayment.amount).toFixed(2)}</TableCell>
-              <TableCell>{repayment.date}</TableCell>
-              <TableCell>{repayment.loanId || 'Not found'}</TableCell>
+              <TableCell>{repayment.payment_date}</TableCell>
+              <TableCell>{repayment.loan_id || 'Not found'}</TableCell>
               <TableCell>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  repayment.loanId 
+                  repayment.loan_id 
                     ? 'bg-green-100 text-green-800' 
                     : 'bg-red-100 text-red-800'
                 }`}>
-                  {repayment.loanId ? 'Valid' : 'Invalid loan'}
+                  {repayment.loan_id ? 'Valid' : 'Invalid loan'}
                 </span>
               </TableCell>
               <TableCell>

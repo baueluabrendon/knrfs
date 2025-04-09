@@ -1,20 +1,20 @@
 
 export interface Repayment {
-  repayment_id: string; // Changed from id: string to match database column name
-  payment_date: string; // Changed from date: string to match database column name
+  repayment_id: string;
+  payment_date: string;
   amount: number;
-  loan_id: string; // Changed from loanId: string to match database column name
+  loan_id: string;
   borrowerName: string;
   status: "pending" | "completed" | "failed" | "approved" | "rejected";
   payPeriod: string;
-  receipt_url?: string; // Changed from receiptUrl?: string to match database column name
+  receipt_url?: string;
   notes?: string;
 }
 
 export interface BulkRepaymentData {
-  date: string;
+  payment_date: string;
   amount: number;
-  loanId: string;
+  loan_id: string;
   borrowerName: string;
   payPeriod: string;
   status?: "pending" | "completed" | "failed" | "approved" | "rejected";
