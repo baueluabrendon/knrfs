@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Repayment } from "@/types/repayment";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { FileText, FileEdit } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 
 interface RepaymentsTableProps {
   repayments: Repayment[];
@@ -35,7 +34,6 @@ const RepaymentsTable: React.FC<RepaymentsTableProps> = ({ repayments }) => {
         <TableHeader>
           <TableRow>
             <TableHead>Date</TableHead>
-            <TableHead>Pay Period</TableHead>
             <TableHead>Loan ID</TableHead>
             <TableHead>Borrower</TableHead>
             <TableHead className="text-right">Amount</TableHead>
@@ -50,7 +48,6 @@ const RepaymentsTable: React.FC<RepaymentsTableProps> = ({ repayments }) => {
             .map((repayment) => (
               <TableRow key={repayment.repayment_id}>
                 <TableCell>{new Date(repayment.payment_date).toLocaleDateString()}</TableCell>
-                <TableCell>{repayment.payPeriod}</TableCell>
                 <TableCell>{repayment.loan_id}</TableCell>
                 <TableCell>{repayment.borrowerName}</TableCell>
                 <TableCell className="text-right">

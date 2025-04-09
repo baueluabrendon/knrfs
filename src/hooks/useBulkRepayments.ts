@@ -38,11 +38,10 @@ export function useBulkRepayments() {
           status: 'completed',
           receipt_url: documentUrl,
           notes: item.notes,
-          source: 'system',
-          verification_status: 'approved',
+          source: 'system' as "system" | "client",
+          verification_status: 'approved' as "pending" | "approved" | "rejected",
           verified_at: new Date().toISOString(),
-          verified_by: user?.email,
-          pay_period: item.payPeriod
+          verified_by: user?.email
         }));
       
       if (repaymentsToInsert.length === 0) {

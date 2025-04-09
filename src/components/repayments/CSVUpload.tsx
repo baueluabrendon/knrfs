@@ -1,10 +1,9 @@
-
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { FileText, Loader2, TableIcon, Download, X } from "lucide-react";
+import { FileText, Loader2, TableIcon, Download } from "lucide-react";
 import Papa from "papaparse";
 import { supabase } from "@/integrations/supabase/client";
 import { BulkRepaymentData } from "@/types/repayment";
@@ -96,7 +95,6 @@ const CSVUpload = ({
               payment_date,
               loan_id,
               status: loan_id ? 'pending' : 'failed',
-              payPeriod: "Current",
               notes
             });
           }

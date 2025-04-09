@@ -49,9 +49,12 @@ const ClientRepayments = () => {
           loan_id: item.loan_id || 'Unknown',
           borrowerName: 'Client', // Default for client view
           status: item.status as any || "pending",
-          payPeriod: item.pay_period || "Current",
           receipt_url: item.receipt_url || undefined,
-          notes: item.notes || undefined
+          notes: item.notes || undefined,
+          source: item.source,
+          verification_status: item.verification_status,
+          verified_at: item.verified_at,
+          verified_by: item.verified_by
         }));
         
         setRepayments(mappedRepayments);

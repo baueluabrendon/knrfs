@@ -6,9 +6,12 @@ export interface Repayment {
   loan_id: string;
   borrowerName: string;
   status: "pending" | "completed" | "failed" | "approved" | "rejected";
-  payPeriod: string;
   receipt_url?: string;
   notes?: string;
+  source?: "system" | "client";
+  verification_status?: "pending" | "approved" | "rejected";
+  verified_at?: string;
+  verified_by?: string;
 }
 
 export interface BulkRepaymentData {
@@ -16,7 +19,6 @@ export interface BulkRepaymentData {
   amount: number;
   loan_id: string;
   borrowerName: string;
-  payPeriod: string;
-  status?: "pending" | "completed" | "failed" | "approved" | "rejected";
   notes?: string;
+  status?: "pending" | "completed" | "failed" | "approved" | "rejected";
 }
