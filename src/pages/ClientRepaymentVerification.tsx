@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,40 +41,11 @@ interface ClientRepayment {
   status: "pending" | "verified" | "approved" | "rejected";
   receiptUrl?: string;
   notes?: string;
+  source?: string;
 }
 
 const ClientRepaymentVerification = () => {
-  const [repayments, setRepayments] = useState<ClientRepayment[]>([
-    // Sample data - will be replaced with real data from Supabase
-    {
-      id: "rep-001",
-      loanId: "k&rfs 0000123",
-      borrowerName: "John Doe",
-      date: "2024-06-15",
-      amount: 350.00,
-      status: "pending",
-      receiptUrl: "https://example.com/receipt1.pdf"
-    },
-    {
-      id: "rep-002",
-      loanId: "k&rfs 0000456",
-      borrowerName: "Jane Smith",
-      date: "2024-06-14",
-      amount: 275.50,
-      status: "pending",
-      receiptUrl: "https://example.com/receipt2.pdf"
-    },
-    {
-      id: "rep-003",
-      loanId: "k&rfs 0000789",
-      borrowerName: "Robert Johnson",
-      date: "2024-06-12",
-      amount: 420.00,
-      status: "verified",
-      receiptUrl: "https://example.com/receipt3.pdf"
-    }
-  ]);
-  
+  const [repayments, setRepayments] = useState<ClientRepayment[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [selectedRepayment, setSelectedRepayment] = useState<ClientRepayment | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -88,7 +60,7 @@ const ClientRepaymentVerification = () => {
   const fetchRepayments = async () => {
     setIsLoading(true);
     try {
-      // First, fetch the repayments
+      // Only fetch repayments with source 'client' that need verification
       const { data: repaymentsData, error: repaymentsError } = await supabase
         .from('repayments')
         .select(`
@@ -98,8 +70,11 @@ const ClientRepaymentVerification = () => {
           loan_id, 
           status, 
           receipt_url,
-          notes
+          notes,
+          source,
+          verification_status
         `)
+        .eq('source', 'client')
         .order('payment_date', { ascending: false });
       
       if (repaymentsError) {
@@ -139,15 +114,28 @@ const ClientRepaymentVerification = () => {
             }
           }
           
+          // Map verification_status to status for UI consistency
+          let uiStatus = repayment.status;
+          if (repayment.verification_status === 'pending') {
+            uiStatus = 'pending';
+          } else if (repayment.verification_status === 'verified') {
+            uiStatus = 'verified';
+          } else if (repayment.verification_status === 'approved') {
+            uiStatus = 'approved';
+          } else if (repayment.verification_status === 'rejected') {
+            uiStatus = 'rejected';
+          }
+          
           return {
             id: repayment.repayment_id,
             loanId: repayment.loan_id || "Unknown",
             borrowerName,
             date: repayment.payment_date || new Date().toISOString(),
             amount: Number(repayment.amount),
-            status: (repayment.status as "pending" | "verified" | "approved" | "rejected") || "pending",
+            status: uiStatus as "pending" | "verified" | "approved" | "rejected",
             receiptUrl: repayment.receipt_url,
-            notes: repayment.notes
+            notes: repayment.notes,
+            source: repayment.source
           };
         })
       );
@@ -185,7 +173,10 @@ const ClientRepaymentVerification = () => {
         .from('repayments')
         .update({ 
           status: newStatus,
-          notes: actionNotes || null
+          verification_status: newStatus,
+          notes: actionNotes || selectedRepayment.notes,
+          verified_at: new Date().toISOString(),
+          verified_by: (await supabase.auth.getUser()).data.user?.email
         })
         .eq('repayment_id', selectedRepayment.id);
       
@@ -198,7 +189,7 @@ const ClientRepaymentVerification = () => {
       // Update local state
       setRepayments(repayments.map(rep => 
         rep.id === selectedRepayment.id 
-          ? { ...rep, status: newStatus, notes: actionNotes } 
+          ? { ...rep, status: newStatus, notes: actionNotes || rep.notes } 
           : rep
       ));
       
@@ -277,6 +268,7 @@ const ClientRepaymentVerification = () => {
                 <TableHead>Borrower</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Amount</TableHead>
+                <TableHead>Notes</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -284,7 +276,7 @@ const ClientRepaymentVerification = () => {
             <TableBody>
               {filteredRepayments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-6">
+                  <TableCell colSpan={7} className="text-center py-6">
                     No repayments found
                   </TableCell>
                 </TableRow>
@@ -295,6 +287,13 @@ const ClientRepaymentVerification = () => {
                     <TableCell>{repayment.borrowerName}</TableCell>
                     <TableCell>{new Date(repayment.date).toLocaleDateString()}</TableCell>
                     <TableCell>${repayment.amount.toFixed(2)}</TableCell>
+                    <TableCell>
+                      {repayment.notes ? (
+                        <span className="truncate max-w-[150px] block">{repayment.notes}</span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <StatusBadge status={repayment.status} />
                     </TableCell>
@@ -365,15 +364,21 @@ const ClientRepaymentVerification = () => {
                     <StatusBadge status={selectedRepayment.status} />
                   </p>
                 </div>
+                {selectedRepayment.notes && (
+                  <div className="col-span-2">
+                    <Label>Client Notes</Label>
+                    <p className="text-sm">{selectedRepayment.notes}</p>
+                  </div>
+                )}
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="notes">Notes</Label>
+                <Label htmlFor="notes">Verification Notes</Label>
                 <Input
                   id="notes"
                   value={actionNotes}
                   onChange={(e) => setActionNotes(e.target.value)}
-                  placeholder="Add notes about this repayment"
+                  placeholder="Add notes about this verification"
                 />
               </div>
             </div>

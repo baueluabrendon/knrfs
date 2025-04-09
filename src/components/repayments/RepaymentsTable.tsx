@@ -4,7 +4,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { Button } from "@/components/ui/button";
 import { Repayment } from "@/types/repayment";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { FileText, Info, FileEdit } from "lucide-react";
+import { FileText, FileEdit } from "lucide-react";
 
 interface RepaymentsTableProps {
   repayments: Repayment[];

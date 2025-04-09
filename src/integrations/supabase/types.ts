@@ -173,7 +173,7 @@ export type Database = {
       }
       defaults: {
         Row: {
-          arrear_id: number
+          arrear_id: string
           created_at: string | null
           date: string | null
           default_amount: number | null
@@ -183,7 +183,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          arrear_id?: number
+          arrear_id?: string
           created_at?: string | null
           date?: string | null
           default_amount?: number | null
@@ -193,7 +193,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          arrear_id?: number
+          arrear_id?: string
           created_at?: string | null
           date?: string | null
           default_amount?: number | null
@@ -570,7 +570,14 @@ export type Database = {
           payment_date: string | null
           receipt_url: string | null
           repayment_id: string
+          source: Database["public"]["Enums"]["source_enum"] | null
           status: string | null
+          user_id: string | null
+          verification_status:
+            | Database["public"]["Enums"]["verification_status_enum"]
+            | null
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
           amount: number
@@ -582,7 +589,14 @@ export type Database = {
           payment_date?: string | null
           receipt_url?: string | null
           repayment_id?: string
+          source?: Database["public"]["Enums"]["source_enum"] | null
           status?: string | null
+          user_id?: string | null
+          verification_status?:
+            | Database["public"]["Enums"]["verification_status_enum"]
+            | null
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
           amount?: number
@@ -594,7 +608,14 @@ export type Database = {
           payment_date?: string | null
           receipt_url?: string | null
           repayment_id?: string
+          source?: Database["public"]["Enums"]["source_enum"] | null
           status?: string | null
+          user_id?: string | null
+          verification_status?:
+            | Database["public"]["Enums"]["verification_status_enum"]
+            | null
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Relationships: [
           {
@@ -603,6 +624,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "loans"
             referencedColumns: ["loan_id"]
+          },
+          {
+            foreignKeyName: "repayments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -653,15 +681,15 @@ export type Database = {
     }
     Functions: {
       generate_account_id: {
-        Args: {
-          p_account_type: Database["public"]["Enums"]["accounts_enum"]
-        }
+        Args: { p_account_type: Database["public"]["Enums"]["accounts_enum"] }
+        Returns: string
+      }
+      generate_arrear_id: {
+        Args: { p_loan_id: string }
         Returns: string
       }
       generate_repayment_id: {
-        Args: {
-          p_loan_id: string
-        }
+        Args: { p_loan_id: string }
         Returns: string
       }
     }
@@ -745,6 +773,8 @@ export type Database = {
         | "default"
         | "partial"
       repayment_status_enum: "paid" | "on time" | "late" | "default" | "partial"
+      source_enum: "system" | "client"
+      verification_status_enum: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -752,27 +782,29 @@ export type Database = {
   }
 }
 
-type PublicSchema = Database[Extract<keyof Database, "public">]
+type DefaultSchema = Database[Extract<keyof Database, "public">]
 
 export type Tables<
-  PublicTableNameOrOptions extends
-    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-        Database[PublicTableNameOrOptions["schema"]]["Views"])
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
-        PublicSchema["Views"])
-    ? (PublicSchema["Tables"] &
-        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -780,20 +812,22 @@ export type Tables<
     : never
 
 export type TablesInsert<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -801,20 +835,22 @@ export type TablesInsert<
     : never
 
 export type TablesUpdate<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -822,21 +858,23 @@ export type TablesUpdate<
     : never
 
 export type Enums<
-  PublicEnumNameOrOptions extends
-    | keyof PublicSchema["Enums"]
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
     | { schema: keyof Database },
-  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = PublicEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
-    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof PublicSchema["CompositeTypes"]
+    | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof Database },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof Database
@@ -845,6 +883,101 @@ export type CompositeTypes<
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
   ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
-    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      accounts_enum: ["Revenue", "Expense", "Asset", "Liability", "Equity"],
+      application_status_enum: [
+        "pending",
+        "in_review",
+        "approved",
+        "declined",
+        "cancelled",
+        "additional_documents_required",
+      ],
+      bi_weekly_loan_term_enum: [
+        "TERM_5",
+        "TERM_6",
+        "TERM_7",
+        "TERM_8",
+        "TERM_9",
+        "TERM_10",
+        "TERM_12",
+        "TERM_14",
+        "TERM_16",
+        "TERM_18",
+        "TERM_20",
+        "TERM_22",
+        "TERM_24",
+        "TERM_26",
+        "TERM_28",
+        "TERM_30",
+      ],
+      default_status_enum: ["active", "waived", "cleared"],
+      document_type_enum: [
+        "Terms and Conditions",
+        "Pay Slip 1",
+        "Pay Slip 2",
+        "Pay Slip 3",
+        "3 Months Bank Statement",
+        "ID Document",
+        "Irrevocable Salary Deduction Authority",
+        "Employment Confirmation Letter",
+        "Data Entry Form",
+        "Permanent Variation Advice",
+        "Nasfund Account Statement",
+        "Salary Deduction Confirmation Letter",
+      ],
+      interest_rate_enum: [
+        "RATE_20",
+        "RATE_22",
+        "RATE_24",
+        "RATE_26",
+        "RATE_28",
+        "RATE_30",
+        "RATE_34",
+        "RATE_38",
+        "RATE_42",
+        "RATE_46",
+        "RATE_50",
+        "RATE_54",
+        "RATE_58",
+        "RATE_62",
+        "RATE_66",
+        "RATE_70",
+      ],
+      loan_status_enum: [
+        "active",
+        "settled",
+        "overdue",
+        "written_off",
+        "default",
+      ],
+      repayment_group_enum: [
+        "itd finance",
+        "nicta",
+        "png power",
+        "nfa",
+        "water png",
+        "westpac",
+        "bsp",
+        "kina bank",
+        "others",
+      ],
+      repayment_schedule_status_enum: [
+        "paid",
+        "pending",
+        "late",
+        "default",
+        "partial",
+      ],
+      repayment_status_enum: ["paid", "on time", "late", "default", "partial"],
+      source_enum: ["system", "client"],
+      verification_status_enum: ["pending", "approved", "rejected"],
+    },
+  },
+} as const

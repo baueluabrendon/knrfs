@@ -157,6 +157,9 @@ const BulkRepayments = () => {
     setIsSubmitting(true);
     
     try {
+      // Get current user to track who created these repayments
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const repaymentsToInsert = parsedData
         .filter(item => item.loanId)
         .map(item => ({
@@ -165,7 +168,12 @@ const BulkRepayments = () => {
           payment_date: item.date,
           status: 'completed',
           receipt_url: documentUrl,
-          notes: item.notes // Include notes in the database insert
+          notes: item.notes,
+          // Set source to 'admin' and verification_status to 'approved' for admin uploads
+          source: 'admin',
+          verification_status: 'approved',
+          verified_at: new Date().toISOString(),
+          verified_by: user?.email
         }));
       
       if (repaymentsToInsert.length === 0) {
