@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -211,10 +212,6 @@ const ClientRepaymentVerification = () => {
         bgColor = "bg-yellow-100";
         textColor = "text-yellow-800";
         break;
-      case "verified":
-        bgColor = "bg-blue-100";
-        textColor = "text-blue-800";
-        break;
       case "approved":
         bgColor = "bg-green-100";
         textColor = "text-green-800";
@@ -247,7 +244,6 @@ const ClientRepaymentVerification = () => {
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="verified">Verified</SelectItem>
               <SelectItem value="approved">Approved</SelectItem>
               <SelectItem value="rejected">Rejected</SelectItem>
             </SelectContent>
@@ -395,7 +391,7 @@ const ClientRepaymentVerification = () => {
                   Approve
                 </Button>
               )}
-              {(selectedRepayment?.status === "pending" || selectedRepayment?.status === "verified") && (
+              {selectedRepayment?.status === "pending" && (
                 <Button 
                   variant="destructive" 
                   onClick={() => updateRepaymentStatus("rejected")}
@@ -406,17 +402,6 @@ const ClientRepaymentVerification = () => {
                 </Button>
               )}
             </div>
-            {selectedRepayment?.status === "verified" && (
-              <Button 
-                variant="default"
-                onClick={() => updateRepaymentStatus("approved")}
-                disabled={isLoading}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <Check className="h-4 w-4 mr-1" />
-                Approve
-              </Button>
-            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
