@@ -685,7 +685,7 @@ export type Database = {
         Returns: string
       }
       generate_arrear_id: {
-        Args: { p_loan_id: string }
+        Args: { p_schedule_id: string }
         Returns: string
       }
       generate_repayment_id: {

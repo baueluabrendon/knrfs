@@ -1,11 +1,12 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { Upload } from "lucide-react";
 import RepaymentDialog from "@/components/repayments/RepaymentDialog";
 import RepaymentsTable from "@/components/repayments/RepaymentsTable";
+import RepaymentsSearchBar from "@/components/repayments/RepaymentsSearchBar";
 import { supabase } from "@/integrations/supabase/client";
 import { Repayment } from "@/types/repayment";
 import { toast } from "sonner";
@@ -14,6 +15,7 @@ const Repayments = () => {
   const [repayments, setRepayments] = useState<Repayment[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchRepayments = async () => {
     setIsLoading(true);
@@ -102,6 +104,28 @@ const Repayments = () => {
     }
   };
 
+  // Filter repayments based on search query
+  const filteredRepayments = useMemo(() => {
+    if (!searchQuery.trim()) return repayments;
+    
+    const query = searchQuery.toLowerCase().trim();
+    return repayments.filter(repayment => {
+      const date = new Date(repayment.payment_date).toLocaleDateString().toLowerCase();
+      const amount = repayment.amount.toString();
+      const borrowerName = repayment.borrowerName.toLowerCase();
+      const loanId = repayment.loan_id.toLowerCase();
+      const status = repayment.status.toLowerCase();
+      
+      return (
+        date.includes(query) ||
+        amount.includes(query) ||
+        borrowerName.includes(query) ||
+        loanId.includes(query) ||
+        status.includes(query)
+      );
+    });
+  }, [repayments, searchQuery]);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
@@ -120,14 +144,23 @@ const Repayments = () => {
         </div>
       </div>
 
-      <Card className="p-6">
-        {isLoading ? (
-          <div className="text-center py-8">Loading repayments...</div>
-        ) : repayments.length > 0 ? (
-          <RepaymentsTable repayments={repayments} />
-        ) : (
-          <div className="text-center py-8">No repayments found.</div>
-        )}
+      <Card>
+        <CardContent className="p-6">
+          <div className="space-y-4">
+            <RepaymentsSearchBar 
+              searchQuery={searchQuery} 
+              onSearchChange={setSearchQuery}
+              totalCount={repayments.length}
+              filteredCount={filteredRepayments.length}
+            />
+            
+            {isLoading ? (
+              <div className="text-center py-8">Loading repayments...</div>
+            ) : (
+              <RepaymentsTable repayments={filteredRepayments} />
+            )}
+          </div>
+        </CardContent>
       </Card>
     </div>
   );
