@@ -677,7 +677,35 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      repayment_ledger_view: {
+        Row: {
+          account_name: string | null
+          account_number: string | null
+          bank: string | null
+          borrower_id: string | null
+          borrower_name: string | null
+          credit: number | null
+          debit: number | null
+          description: string | null
+          disbursement_date: string | null
+          entry_date: string | null
+          gross_loan: number | null
+          interest: number | null
+          interest_rate:
+            | Database["public"]["Enums"]["interest_rate_enum"]
+            | null
+          loan_id: string | null
+          loan_term:
+            | Database["public"]["Enums"]["bi_weekly_loan_term_enum"]
+            | null
+          maturity_date: string | null
+          principal: number | null
+          schedule_id: string | null
+          start_repayment_date: string | null
+          status: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       generate_account_id: {
