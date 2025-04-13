@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { format } from "date-fns";
 
 interface RepaymentScheduleProps {
-  schedule: never[];
+  schedule: any[]; // Changed from never[] to any[] to accept the schedule data
   loan: {
     id: string;
     borrowerName: string;
@@ -40,7 +40,7 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
         setSummary({
           borrower_name: first.borrower_name,
           mobile_number: first.mobile_number,
-          email: first.email,
+          email: first.email || 'N/A', // Added fallback if email doesn't exist
           postal_address: first.postal_address,
           department_company: first.department_company,
           file_number: first.file_number,
@@ -53,7 +53,7 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
           principal: first.principal,
           interest: first.interest,
           gross_loan: first.gross_loan,
-          loan_term: parseInt(first.loan_term.replace("TERM_", ""), 10),
+          loan_term: first.loan_term ? parseInt(first.loan_term.replace("TERM_", ""), 10) : 0,
           interest_rate: first.interest_rate,
           repayment_completion_percentage: first.repayment_completion_percentage,
           total_repayment: first.total_repayment,
@@ -112,8 +112,8 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
           </div>
           <div>
             <strong>Loan ID:</strong> {summary.loan_id}<br />
-            <strong>Start Date:</strong> {format(new Date(summary.disbursement_date), "dd/MM/yyyy")}<br />
-            <strong>End Date:</strong> {format(new Date(summary.maturity_date), "dd/MM/yyyy")}<br />
+            <strong>Start Date:</strong> {summary.disbursement_date ? format(new Date(summary.disbursement_date), "dd/MM/yyyy") : "N/A"}<br />
+            <strong>End Date:</strong> {summary.maturity_date ? format(new Date(summary.maturity_date), "dd/MM/yyyy") : "N/A"}<br />
             <strong>Status:</strong> {summary.repayment_completion_percentage}% repaid<br />
             <strong>Term:</strong> {summary.loan_term} fortnights<br />
             <strong>Fortnightly Installment:</strong> K{summary.fortnightly_installment.toLocaleString(undefined, { minimumFractionDigits: 2 })}<br />
@@ -147,7 +147,7 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
             <TableBody>
               {ledgerWithBalance.map((entry, index) => (
                 <TableRow key={index}>
-                  <TableCell>{format(new Date(entry.entry_date), "dd/MM/yyyy")}</TableCell>
+                  <TableCell>{entry.entry_date ? format(new Date(entry.entry_date), "dd/MM/yyyy") : "N/A"}</TableCell>
                   <TableCell>{entry.description}</TableCell>
                   <TableCell className="text-right">
                     {entry.debit !== null ? `K${entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "-"}

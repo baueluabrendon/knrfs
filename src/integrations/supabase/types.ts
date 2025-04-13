@@ -691,6 +691,7 @@ export type Database = {
           description: string | null
           disbursement_date: string | null
           documentation_fee: number | null
+          email: string | null
           entry_date: string | null
           file_number: string | null
           fortnightly_installment: number | null
