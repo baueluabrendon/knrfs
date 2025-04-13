@@ -105,7 +105,6 @@ const Loans = () => {
 
           {selectedLoan && (
             <RepaymentSchedule 
-              schedule={[]} 
               loan={{
                 id: selectedLoan.loan_id,
                 borrowerName: getBorrowerFullName(selectedLoan),
