@@ -703,6 +703,7 @@ export type Database = {
             | null
           loan_id: string | null
           loan_risk_insurance: number | null
+          loan_status: string | null
           loan_term:
             | Database["public"]["Enums"]["bi_weekly_loan_term_enum"]
             | null
