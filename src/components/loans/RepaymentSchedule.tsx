@@ -1,8 +1,9 @@
-
 import React, { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
+import { format } from "date-fns";
 
 interface RepaymentScheduleItem {
   paymentDate: string;
@@ -84,7 +85,6 @@ export const RepaymentSchedule = ({ schedule, loan }: RepaymentScheduleProps) =>
   const totalCredits = ledger.reduce((sum, e) => sum + (e.credit ?? 0), 0);
   const balance = summary?.gross_loan ? summary.gross_loan + totalDebits - totalCredits : 0;
 
-  // If we don't have ledger data yet, show the original schedule view
   if (!summary || ledger.length === 0) {
     return (
       <div className="rounded-lg border p-4">
@@ -138,9 +138,8 @@ export const RepaymentSchedule = ({ schedule, loan }: RepaymentScheduleProps) =>
     );
   }
 
-  // Show the ledger view if we have data
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 h-full flex flex-col">
       {summary && (
         <Card className="p-6">
           <div className="text-center mb-6">
@@ -174,37 +173,39 @@ export const RepaymentSchedule = ({ schedule, loan }: RepaymentScheduleProps) =>
         </Card>
       )}
 
-      <Card className="p-4">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead className="text-right">Debit (K)</TableHead>
-              <TableHead className="text-right">Credit (K)</TableHead>
-              <TableHead className="text-right">Balance (K)</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {ledgerWithBalance.map((entry, index) => (
-              <TableRow key={index}>
-                <TableCell>{new Date(entry.entry_date).toLocaleDateString()}</TableCell>
-                <TableCell>{entry.description}</TableCell>
-                <TableCell className="text-right">
-                  {entry.debit !== null ? `K${entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "-"}
-                </TableCell>
-                <TableCell className="text-right">
-                  {entry.credit !== null ? `K${entry.credit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "-"}
-                </TableCell>
-                <TableCell className="text-right">
-                  K{entry.running_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                </TableCell>
-                <TableCell>{entry.status}</TableCell>
+      <Card className="p-4 flex-1 flex flex-col overflow-hidden">
+        <ScrollArea className="flex-1 pr-4">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Date</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead className="text-right">Debit (K)</TableHead>
+                <TableHead className="text-right">Credit (K)</TableHead>
+                <TableHead className="text-right">Balance (K)</TableHead>
+                <TableHead>Status</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {ledgerWithBalance.map((entry, index) => (
+                <TableRow key={index}>
+                  <TableCell>{new Date(entry.entry_date).toLocaleDateString()}</TableCell>
+                  <TableCell>{entry.description}</TableCell>
+                  <TableCell className="text-right">
+                    {entry.debit !== null ? `K${entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "-"}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {entry.credit !== null ? `K${entry.credit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "-"}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    K{entry.running_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </TableCell>
+                  <TableCell>{entry.status}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </ScrollArea>
 
         <div className="flex justify-end text-sm mt-4">
           <div className="space-y-1 text-right">
