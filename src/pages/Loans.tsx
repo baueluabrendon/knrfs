@@ -8,11 +8,11 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
-import LoanDetails from "@/components/loans/LoanDetails";
 import { toast } from "sonner";
 import LoansHeader from "@/components/loans/LoansHeader";
 import LoansTable from "@/components/loans/LoansTable";
 import { useLoansList } from "@/hooks/useLoansList";
+import { RepaymentSchedule } from "@/components/loans/RepaymentSchedule";
 
 interface Loan {
   loan_id: string;
@@ -62,14 +62,6 @@ const Loans = () => {
     setIsDetailsOpen(true);
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const handleEmail = () => {
-    toast("Loan details have been emailed successfully.");
-  };
-
   const getInterestRateValue = (loan: Loan) => {
     if (!loan.interest_rate) return 'N/A';
     const rateMatch = loan.interest_rate.match(/RATE_(\d+)/);
@@ -105,14 +97,15 @@ const Loans = () => {
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Loan Details</DialogTitle>
+            <DialogTitle>Loan Repayment Schedule</DialogTitle>
             <DialogDescription>
-              This shows key financial details and repayment obligations for the selected loan.
+              This shows the repayment history and schedule for the selected loan.
             </DialogDescription>
           </DialogHeader>
 
           {selectedLoan && (
-            <LoanDetails
+            <RepaymentSchedule 
+              schedule={[]} 
               loan={{
                 id: selectedLoan.loan_id,
                 borrowerName: getBorrowerFullName(selectedLoan),
@@ -120,21 +113,8 @@ const Loans = () => {
                 interestRate: parseFloat(
                   getInterestRateValue(selectedLoan).replace("%", "")
                 ),
-                startDate: selectedLoan.disbursement_date || "",
-                endDate: selectedLoan.maturity_date || "",
-                status:
-                  (selectedLoan.loan_status as
-                    | "active"
-                    | "completed"
-                    | "defaulted") || "active",
-                borrowerId: selectedLoan.borrower_id,
-                borrowerEmail: selectedLoan.borrower?.email || "",
-                borrowerPhone: "", // Add if available
                 term: getLoanTermValue(selectedLoan),
               }}
-              onClose={() => setIsDetailsOpen(false)}
-              onPrint={handlePrint}
-              onEmail={handleEmail}
             />
           )}
         </DialogContent>
@@ -144,4 +124,3 @@ const Loans = () => {
 };
 
 export default Loans;
-
