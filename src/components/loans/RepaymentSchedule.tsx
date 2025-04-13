@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { format } from "date-fns";
 import html2pdf from "html2pdf.js";
 import { Button } from "@/components/ui/button";
+import { Download, Mail, Printer } from "lucide-react";
 
 interface RepaymentScheduleProps {
   loan: {
@@ -124,40 +125,50 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
 
   return (
     <div className="space-y-4">
+      {/* Action buttons - only visible on screen */}
       <div className="flex justify-end gap-2 print:hidden">
-        <Button onClick={() => window.print()} variant="outline">Print</Button>
-        <Button onClick={downloadPdf} variant="default">Download PDF</Button>
-        <Button onClick={() => alert("Email functionality to be implemented.")} variant="default">Email</Button>
+        <Button onClick={() => window.print()} variant="outline" size="sm">
+          <Printer className="mr-1 h-4 w-4" />
+          Print
+        </Button>
+        <Button onClick={downloadPdf} variant="default" size="sm">
+          <Download className="mr-1 h-4 w-4" />
+          Download PDF
+        </Button>
+        <Button onClick={() => alert("Email functionality to be implemented.")} variant="default" size="sm">
+          <Mail className="mr-1 h-4 w-4" />
+          Email
+        </Button>
       </div>
 
-      {/* Statement of Account and Loan Charges section */}
-      <Card className="p-6 mb-4">
+      {/* Screen preview - simplified version of the PDF */}
+      <Card className="p-6 mb-4 print:hidden">
         <div className="text-center mb-6">
-          <h2 className="text-xl font-bold uppercase">Statement of Account</h2>
+          <h2 className="text-xl font-bold">STATEMENT OF ACCOUNT</h2>
         </div>
-        <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-          <div>
-            <strong>Borrower:</strong> {summary.borrower_name}<br />
-            <strong>Email:</strong> {summary.email}<br />
-            <strong>Phone:</strong> {summary.mobile_number}<br />
-            <strong>Postal Address:</strong> {summary.postal_address}<br />
-          </div>
-          <div>
-            <strong>Loan ID:</strong> {summary.loan_id}<br />
-            <strong>Start Date:</strong> {summary.disbursement_date ? format(new Date(summary.disbursement_date), "dd/MM/yyyy") : "N/A"}<br />
-            <strong>End Date:</strong> {summary.maturity_date ? format(new Date(summary.maturity_date), "dd/MM/yyyy") : "N/A"}<br />
-            <strong>Term:</strong> {summary.loan_term} fortnights<br />
-            <strong>Status:</strong> {summary.repayment_completion_percentage}% repaid<br />
-          </div>
-        </div>
-
-        <hr className="my-4 border-t border-gray-300" />
-        <h3 className="text-lg font-semibold mb-3">Loan Charges</h3>
         
-        {/* Updated Loan Charges section - more professional list display */}
-        <div className="overflow-hidden shadow-sm border rounded-md">
-          <Table className="text-xs">
-            <TableHeader className="bg-gray-50">
+        {/* Borrower info section - 2 columns */}
+        <div className="grid grid-cols-2 gap-4 text-sm mb-6">
+          <div>
+            <p><span className="font-semibold">Borrower:</span> {summary.borrower_name}</p>
+            <p><span className="font-semibold">Email:</span> {summary.email}</p>
+            <p><span className="font-semibold">Phone:</span> {summary.mobile_number}</p>
+            <p><span className="font-semibold">Address:</span> {summary.postal_address}</p>
+          </div>
+          <div>
+            <p><span className="font-semibold">Loan ID:</span> {summary.loan_id}</p>
+            <p><span className="font-semibold">Start Date:</span> {summary.disbursement_date ? format(new Date(summary.disbursement_date), "dd/MM/yyyy") : "N/A"}</p>
+            <p><span className="font-semibold">End Date:</span> {summary.maturity_date ? format(new Date(summary.maturity_date), "dd/MM/yyyy") : "N/A"}</p>
+            <p><span className="font-semibold">Term:</span> {summary.loan_term} fortnights</p>
+            <p><span className="font-semibold">Status:</span> {summary.loan_status} ({summary.repayment_completion_percentage}% repaid)</p>
+          </div>
+        </div>
+        
+        {/* Loan charges section */}
+        <div className="mb-6">
+          <h3 className="text-md font-semibold mb-3">Loan Charges</h3>
+          <Table>
+            <TableHeader>
               <TableRow>
                 <TableHead className="font-medium">Description</TableHead>
                 <TableHead className="text-right font-medium">Amount (K)</TableHead>
@@ -197,9 +208,9 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
             </TableBody>
           </Table>
         </div>
-      </Card>
-
-      <Card className="p-4">
+        
+        {/* Transactions table */}
+        <h3 className="text-md font-semibold mb-3">Transaction History</h3>
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -214,7 +225,7 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {ledgerWithBalance.map((entry, index) => (
+              {ledgerWithBalance.slice(0, 10).map((entry, index) => (
                 <TableRow key={index}>
                   <TableCell>{entry.payment_number || '-'}</TableCell>
                   <TableCell>{entry.entry_date ? format(new Date(entry.entry_date), "dd/MM/yyyy") : "N/A"}</TableCell>
@@ -231,24 +242,30 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                   </TableCell>
                 </TableRow>
               ))}
+              {ledgerWithBalance.length > 10 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center text-sm text-gray-500">
+                    Showing first 10 transactions. Download PDF for full statement.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>
 
-        <div className="flex justify-end text-sm mt-4">
+        {/* Summary totals */}
+        <div className="flex justify-end mt-4 text-sm">
           <div className="space-y-1 text-right">
-            <div><strong>Total Debits:</strong> K{totalDebits.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-            <div><strong>Total Credits:</strong> K{totalCredits.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-            <div><strong>Outstanding Balance (Calculated):</strong> K{balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-            <div><strong>Outstanding Balance (View):</strong> K{summary.outstanding_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-            <div><strong>Total GST:</strong> K{summary.total_gst.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+            <div><span className="font-semibold">Total Debits:</span> K{totalDebits.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+            <div><span className="font-semibold">Total Credits:</span> K{totalCredits.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+            <div><span className="font-semibold">Outstanding Balance:</span> K{summary.outstanding_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
           </div>
         </div>
       </Card>
 
       {/* PDF Export View - Hidden until download */}
       <div className="hidden">
-        <div ref={printRef} className="bg-white text-[12px]">
+        <div ref={printRef} className="bg-white">
           {splitLedger.map((rows, pageIndex) => (
             <div
               key={pageIndex}
@@ -259,11 +276,13 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                 boxSizing: "border-box",
                 pageBreakAfter: "always",
                 position: "relative",
+                fontFamily: "Arial, sans-serif",
               }}
             >
-              {headerUrl && <img src={headerUrl} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "50px", objectFit: "cover" }} />}
-              {footerUrl && <img src={footerUrl} style={{ position: "absolute", bottom: 0, left: 0, width: "100%", height: "50px", objectFit: "cover" }} />}
-
+              {/* Letterhead header */}
+              {headerUrl && <img src={headerUrl} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "40px", objectFit: "cover" }} />}
+              
+              {/* Watermark */}
               <div style={{
                 position: "absolute",
                 top: "45%",
@@ -273,130 +292,205 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                 color: "rgba(0,0,0,0.05)",
                 whiteSpace: "nowrap"
               }}>
-                SYSTEM PRINTOUT
+                STATEMENT OF ACCOUNT
               </div>
-
-              <div style={{ position: "relative", zIndex: 1 }}>
+              
+              <div style={{ position: "relative", zIndex: 1, marginTop: "40px" }}>
                 {pageIndex === 0 && summary && (
-                  <div className="mb-4">
-                    <h2 className="text-lg font-bold text-center mb-2">Statement of Account</h2>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <strong>Borrower:</strong> {summary.borrower_name}<br />
-                        <strong>Email:</strong> {summary.email}<br />
-                        <strong>Phone:</strong> {summary.mobile_number}<br />
-                        <strong>Address:</strong> {summary.postal_address}<br />
-                        <strong>Organization:</strong> {summary.department_company}<br />
-                        <strong>File Number:</strong> {summary.file_number}<br />
-                        <strong>Position:</strong> {summary.position}<br />
-                      </div>
-                      <div>
-                        <strong>Loan ID:</strong> {summary.loan_id}<br />
-                        <strong>Start Date:</strong> {summary.disbursement_date ? format(new Date(summary.disbursement_date), "dd/MM/yyyy") : "N/A"}<br />
-                        <strong>End Date:</strong> {summary.maturity_date ? format(new Date(summary.maturity_date), "dd/MM/yyyy") : "N/A"}<br />
-                        <strong>Term:</strong> {summary.loan_term} fortnights<br />
-                        <strong>PVA:</strong> K{summary.fortnightly_installment?.toLocaleString()}<br />
-                        <strong>Completion:</strong> {summary.repayment_completion_percentage}%<br />
-                        <strong>Status:</strong> {summary.loan_status}<br />
-                      </div>
-                    </div>
+                  <div className="mb-6">
+                    <h2 style={{ fontSize: "18px", fontWeight: "bold", textAlign: "center", marginBottom: "12px", textTransform: "uppercase" }}>
+                      Statement of Account
+                    </h2>
                     
-                    {/* PDF Loan Charges section - using a styled table for printout */}
-                    <div className="mt-4 mb-4">
-                      <h3 className="text-md font-semibold mb-2">Loan Charges</h3>
-                      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px" }}>
-                        <thead>
-                          <tr style={{ backgroundColor: "#f3f4f6" }}>
-                            <th style={{ padding: "8px", border: "1px solid #e5e7eb", textAlign: "left" }}>Description</th>
-                            <th style={{ padding: "8px", border: "1px solid #e5e7eb", textAlign: "right" }}>Amount (K)</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr>
-                            <td style={{ padding: "6px", border: "1px solid #e5e7eb" }}>Principal Amount</td>
-                            <td style={{ padding: "6px", border: "1px solid #e5e7eb", textAlign: "right" }}>
-                              {summary.principal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td style={{ padding: "6px", border: "1px solid #e5e7eb" }}>Interest</td>
-                            <td style={{ padding: "6px", border: "1px solid #e5e7eb", textAlign: "right" }}>
-                              {summary.interest.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td style={{ padding: "6px", border: "1px solid #e5e7eb" }}>Risk Insurance</td>
-                            <td style={{ padding: "6px", border: "1px solid #e5e7eb", textAlign: "right" }}>
-                              {summary.loan_risk_insurance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td style={{ padding: "6px", border: "1px solid #e5e7eb" }}>Documentation Fee</td>
-                            <td style={{ padding: "6px", border: "1px solid #e5e7eb", textAlign: "right" }}>
-                              {summary.documentation_fee.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td style={{ padding: "6px", border: "1px solid #e5e7eb" }}>Default Fees</td>
-                            <td style={{ padding: "6px", border: "1px solid #e5e7eb", textAlign: "right" }}>
-                              {summary.default_fees_accumulated.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td style={{ padding: "6px", border: "1px solid #e5e7eb" }}>Total GST</td>
-                            <td style={{ padding: "6px", border: "1px solid #e5e7eb", textAlign: "right" }}>
-                              {summary.total_gst.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                            </td>
-                          </tr>
-                          <tr style={{ backgroundColor: "#f3f4f6", fontWeight: "bold" }}>
-                            <td style={{ padding: "6px", border: "1px solid #e5e7eb" }}>Total (Gross Loan)</td>
-                            <td style={{ padding: "6px", border: "1px solid #e5e7eb", textAlign: "right" }}>
-                              {summary.gross_loan.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
+                    {/* Borrower info in table format */}
+                    <table style={{ width: "100%", fontSize: "10px", marginBottom: "15px", borderSpacing: "4px", borderCollapse: "separate" }}>
+                      <tbody>
+                        <tr>
+                          <td style={{ width: "20%", fontWeight: "bold", verticalAlign: "top" }}>Borrower:</td>
+                          <td style={{ width: "30%", verticalAlign: "top" }}>{summary.borrower_name}</td>
+                          <td style={{ width: "20%", fontWeight: "bold", verticalAlign: "top" }}>Loan ID:</td>
+                          <td style={{ width: "30%", verticalAlign: "top" }}>{summary.loan_id}</td>
+                        </tr>
+                        <tr>
+                          <td style={{ fontWeight: "bold", verticalAlign: "top" }}>Email:</td>
+                          <td style={{ verticalAlign: "top" }}>{summary.email}</td>
+                          <td style={{ fontWeight: "bold", verticalAlign: "top" }}>Phone:</td>
+                          <td style={{ verticalAlign: "top" }}>{summary.mobile_number}</td>
+                        </tr>
+                        <tr>
+                          <td style={{ fontWeight: "bold", verticalAlign: "top" }}>Address:</td>
+                          <td style={{ verticalAlign: "top" }}>{summary.postal_address}</td>
+                          <td style={{ fontWeight: "bold", verticalAlign: "top" }}>Organization:</td>
+                          <td style={{ verticalAlign: "top" }}>{summary.department_company}</td>
+                        </tr>
+                        <tr>
+                          <td style={{ fontWeight: "bold", verticalAlign: "top" }}>File Number:</td>
+                          <td style={{ verticalAlign: "top" }}>{summary.file_number}</td>
+                          <td style={{ fontWeight: "bold", verticalAlign: "top" }}>Position:</td>
+                          <td style={{ verticalAlign: "top" }}>{summary.position}</td>
+                        </tr>
+                        <tr>
+                          <td style={{ fontWeight: "bold", verticalAlign: "top" }}>Start Date:</td>
+                          <td style={{ verticalAlign: "top" }}>
+                            {summary.disbursement_date ? format(new Date(summary.disbursement_date), "dd/MM/yyyy") : "N/A"}
+                          </td>
+                          <td style={{ fontWeight: "bold", verticalAlign: "top" }}>End Date:</td>
+                          <td style={{ verticalAlign: "top" }}>
+                            {summary.maturity_date ? format(new Date(summary.maturity_date), "dd/MM/yyyy") : "N/A"}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ fontWeight: "bold", verticalAlign: "top" }}>Term:</td>
+                          <td style={{ verticalAlign: "top" }}>{summary.loan_term} fortnights</td>
+                          <td style={{ fontWeight: "bold", verticalAlign: "top" }}>Status:</td>
+                          <td style={{ verticalAlign: "top" }}>{summary.loan_status} ({summary.repayment_completion_percentage}% repaid)</td>
+                        </tr>
+                        <tr>
+                          <td style={{ fontWeight: "bold", verticalAlign: "top" }}>PVA:</td>
+                          <td style={{ verticalAlign: "top" }}>K{summary.fortnightly_installment?.toLocaleString()}</td>
+                          <td></td>
+                          <td></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    
+                    {/* Loan charges section */}
+                    <h3 style={{ fontSize: "12px", fontWeight: "bold", marginBottom: "8px", marginTop: "15px" }}>Loan Charges</h3>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "9px", borderRadius: "4px", overflow: "hidden" }}>
+                      <thead>
+                        <tr style={{ backgroundColor: "#f3f4f6" }}>
+                          <th style={{ padding: "6px", border: "1px solid #e5e7eb", textAlign: "left", fontWeight: "bold" }}>Description</th>
+                          <th style={{ padding: "6px", border: "1px solid #e5e7eb", textAlign: "right", fontWeight: "bold" }}>Amount (K)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td style={{ padding: "4px 6px", border: "1px solid #e5e7eb" }}>Principal Amount</td>
+                          <td style={{ padding: "4px 6px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                            {summary.principal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: "4px 6px", border: "1px solid #e5e7eb" }}>Interest</td>
+                          <td style={{ padding: "4px 6px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                            {summary.interest.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: "4px 6px", border: "1px solid #e5e7eb" }}>Risk Insurance</td>
+                          <td style={{ padding: "4px 6px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                            {summary.loan_risk_insurance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: "4px 6px", border: "1px solid #e5e7eb" }}>Documentation Fee</td>
+                          <td style={{ padding: "4px 6px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                            {summary.documentation_fee.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: "4px 6px", border: "1px solid #e5e7eb" }}>Default Fees</td>
+                          <td style={{ padding: "4px 6px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                            {summary.default_fees_accumulated.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: "4px 6px", border: "1px solid #e5e7eb" }}>Total GST</td>
+                          <td style={{ padding: "4px 6px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                            {summary.total_gst.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </td>
+                        </tr>
+                        <tr style={{ backgroundColor: "#f3f4f6", fontWeight: "bold" }}>
+                          <td style={{ padding: "4px 6px", border: "1px solid #e5e7eb" }}>Total (Gross Loan)</td>
+                          <td style={{ padding: "4px 6px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                            {summary.gross_loan.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
                 )}
 
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>#</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Pay Period</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead className="text-right">Debit (K)</TableHead>
-                      <TableHead className="text-right">Credit (K)</TableHead>
-                      <TableHead className="text-right">Balance (K)</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+                {/* Transactions table */}
+                <h3 style={{ fontSize: "12px", fontWeight: "bold", marginBottom: "8px", marginTop: "15px" }}>
+                  Transaction History
+                </h3>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "8px" }}>
+                  <thead>
+                    <tr style={{ backgroundColor: "#f3f4f6" }}>
+                      <th style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "left" }}>#</th>
+                      <th style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "left" }}>Date</th>
+                      <th style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "left" }}>Pay Period</th>
+                      <th style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "left" }}>Description</th>
+                      <th style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>Debit (K)</th>
+                      <th style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>Credit (K)</th>
+                      <th style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>Balance (K)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
                     {rows.map((entry, i) => (
-                      <TableRow key={i}>
-                        <TableCell>{entry.payment_number ?? "-"}</TableCell>
-                        <TableCell>{entry.entry_date ? format(new Date(entry.entry_date), "dd/MM/yyyy") : "N/A"}</TableCell>
-                        <TableCell>{entry.pay_period || "-"}</TableCell>
-                        <TableCell>{entry.description}</TableCell>
-                        <TableCell className="text-right">{(entry.debit ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
-                        <TableCell className="text-right">{(entry.credit ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
-                        <TableCell className="text-right">{entry.running_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
-                      </TableRow>
+                      <tr key={i}>
+                        <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>{entry.payment_number ?? "-"}</td>
+                        <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>
+                          {entry.entry_date ? format(new Date(entry.entry_date), "dd/MM/yyyy") : "N/A"}
+                        </td>
+                        <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>{entry.pay_period || "-"}</td>
+                        <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>{entry.description}</td>
+                        <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                          {entry.debit !== null ? entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : "-"}
+                        </td>
+                        <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                          {entry.credit !== null ? entry.credit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : "-"}
+                        </td>
+                        <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                          {entry.running_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </td>
+                      </tr>
                     ))}
-                  </TableBody>
-                </Table>
+                  </tbody>
+                </table>
+                
+                {/* PDF footer summary */}
+                {pageIndex === pages - 1 && (
+                  <div style={{ marginTop: "15px", textAlign: "right", fontSize: "9px" }}>
+                    <div style={{ marginBottom: "2px" }}><strong>Total Debits:</strong> K{totalDebits.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                    <div style={{ marginBottom: "2px" }}><strong>Total Credits:</strong> K{totalCredits.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                    <div style={{ fontWeight: "bold" }}>
+                      <strong>Outstanding Balance:</strong> K{summary.outstanding_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </div>
+                  </div>
+                )}
               </div>
-
+              
+              {/* Page number */}
               <div style={{
                 position: "absolute",
-                bottom: "60px",
-                right: "20mm",
-                fontSize: "10px",
+                bottom: "50px",
+                right: "15mm",
+                fontSize: "8px",
                 color: "gray"
               }}>
                 Page {pageIndex + 1} of {pages}
               </div>
+              
+              {/* Signature section on last page */}
+              {pageIndex === pages - 1 && (
+                <div style={{ 
+                  position: "absolute", 
+                  bottom: "80px", 
+                  left: "15mm",
+                  fontSize: "8px", 
+                  borderTop: "1px solid #e5e7eb",
+                  width: "120px",
+                  textAlign: "center",
+                  paddingTop: "4px"
+                }}>
+                  Authorized Signature
+                </div>
+              )}
+              
+              {/* Letterhead footer */}
+              {footerUrl && <img src={footerUrl} style={{ position: "absolute", bottom: 0, left: 0, width: "100%", height: "40px", objectFit: "cover" }} />}
             </div>
           ))}
         </div>
