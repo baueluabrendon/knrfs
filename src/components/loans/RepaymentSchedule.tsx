@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
@@ -125,7 +124,6 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
 
   return (
     <div className="space-y-4">
-      {/* Action buttons - only visible on screen */}
       <div className="flex justify-end gap-2 print:hidden">
         <Button onClick={() => window.print()} variant="outline" size="sm">
           <Printer className="mr-1 h-4 w-4" />
@@ -141,13 +139,11 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
         </Button>
       </div>
 
-      {/* Screen preview - simplified version of the PDF */}
       <Card className="p-6 mb-4 print:hidden">
         <div className="text-center mb-6">
           <h2 className="text-xl font-bold">STATEMENT OF ACCOUNT</h2>
         </div>
         
-        {/* Borrower info section - 2 columns */}
         <div className="grid grid-cols-2 gap-4 text-sm mb-6">
           <div>
             <p><span className="font-semibold">Borrower:</span> {summary.borrower_name}</p>
@@ -164,48 +160,47 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
           </div>
         </div>
         
-        {/* Loan charges section - MODIFIED TO USE COLUMNS */}
         <div className="mb-6">
           <h3 className="text-md font-semibold mb-3">Loan Charges</h3>
-          <div className="grid grid-cols-3 gap-3 text-sm">
-            <div className="border rounded p-3">
-              <div className="flex justify-between">
-                <span>Principal Amount:</span>
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="border rounded p-2">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Principal Amount:</span>
                 <span className="font-medium">K{summary.principal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
             </div>
-            <div className="border rounded p-3">
-              <div className="flex justify-between">
-                <span>Interest:</span>
+            <div className="border rounded p-2">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Interest:</span>
                 <span className="font-medium">K{summary.interest.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
             </div>
-            <div className="border rounded p-3">
-              <div className="flex justify-between">
-                <span>Risk Insurance:</span>
+            <div className="border rounded p-2">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Risk Insurance:</span>
                 <span className="font-medium">K{summary.loan_risk_insurance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
             </div>
-            <div className="border rounded p-3">
-              <div className="flex justify-between">
-                <span>Documentation Fee:</span>
+            <div className="border rounded p-2">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Documentation Fee:</span>
                 <span className="font-medium">K{summary.documentation_fee.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
             </div>
-            <div className="border rounded p-3">
-              <div className="flex justify-between">
-                <span>Default Fees:</span>
+            <div className="border rounded p-2">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Default Fees:</span>
                 <span className="font-medium">K{summary.default_fees_accumulated.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
             </div>
-            <div className="border rounded p-3">
-              <div className="flex justify-between">
-                <span>GST:</span>
+            <div className="border rounded p-2">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">GST:</span>
                 <span className="font-medium">K{summary.total_gst.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
             </div>
-            <div className="col-span-3 border rounded p-3 bg-gray-50">
-              <div className="flex justify-between font-medium">
+            <div className="col-span-3 border rounded p-2 bg-gray-50">
+              <div className="flex justify-between items-center font-medium text-sm">
                 <span>Total (Gross Loan):</span>
                 <span>K{summary.gross_loan.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
@@ -213,7 +208,6 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
           </div>
         </div>
         
-        {/* Transactions table */}
         <h3 className="text-md font-semibold mb-3">Transaction History</h3>
         <div className="overflow-x-auto">
           <Table>
@@ -257,7 +251,6 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
           </Table>
         </div>
 
-        {/* Summary totals */}
         <div className="flex justify-end mt-4 text-sm">
           <div className="space-y-1 text-right">
             <div><span className="font-semibold">Total Debits:</span> K{totalDebits.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
@@ -267,7 +260,6 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
         </div>
       </Card>
 
-      {/* PDF Export View - Hidden until download */}
       <div className="hidden">
         <div ref={printRef} className="bg-white">
           {splitLedger.map((rows, pageIndex) => (
@@ -283,10 +275,8 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                 fontFamily: "Arial, sans-serif",
               }}
             >
-              {/* Letterhead header */}
               {headerUrl && <img src={headerUrl} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "40px", objectFit: "cover" }} />}
               
-              {/* Watermark */}
               <div style={{
                 position: "absolute",
                 top: "45%",
@@ -306,7 +296,6 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                       Statement of Account
                     </h2>
                     
-                    {/* Borrower info in table format */}
                     <table style={{ width: "100%", fontSize: "10px", marginBottom: "15px", borderSpacing: "4px", borderCollapse: "separate" }}>
                       <tbody>
                         <tr>
@@ -358,7 +347,6 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                       </tbody>
                     </table>
                     
-                    {/* Loan charges section - MODIFIED TO USE COLUMNS */}
                     <h3 style={{ fontSize: "12px", fontWeight: "bold", marginBottom: "8px", marginTop: "15px" }}>Loan Charges</h3>
                     <table style={{ width: "100%", borderCollapse: "separate", fontSize: "9px", borderSpacing: "4px" }}>
                       <tbody>
@@ -415,7 +403,6 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                   </div>
                 )}
 
-                {/* Transactions table */}
                 <h3 style={{ fontSize: "12px", fontWeight: "bold", marginBottom: "8px", marginTop: "15px" }}>
                   Transaction History
                 </h3>
@@ -454,7 +441,6 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                   </tbody>
                 </table>
                 
-                {/* PDF footer summary */}
                 {pageIndex === pages - 1 && (
                   <div style={{ marginTop: "15px", textAlign: "right", fontSize: "9px" }}>
                     <div style={{ marginBottom: "2px" }}><strong>Total Debits:</strong> K{totalDebits.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
@@ -466,7 +452,6 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                 )}
               </div>
               
-              {/* Page number */}
               <div style={{
                 position: "absolute",
                 bottom: "50px",
@@ -477,7 +462,6 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                 Page {pageIndex + 1} of {pages}
               </div>
               
-              {/* Signature section on last page */}
               {pageIndex === pages - 1 && (
                 <div style={{ 
                   position: "absolute", 
@@ -493,7 +477,6 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                 </div>
               )}
               
-              {/* Letterhead footer */}
               {footerUrl && <img src={footerUrl} style={{ position: "absolute", bottom: 0, left: 0, width: "100%", height: "40px", objectFit: "cover" }} />}
             </div>
           ))}
