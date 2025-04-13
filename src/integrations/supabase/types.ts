@@ -696,6 +696,7 @@ export type Database = {
           file_number: string | null
           fortnightly_installment: number | null
           gross_loan: number | null
+          gst_amount: number | null
           interest: number | null
           interest_rate:
             | Database["public"]["Enums"]["interest_rate_enum"]

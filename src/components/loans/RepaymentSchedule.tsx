@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,7 +63,7 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
           loan_risk_insurance: first.loan_risk_insurance,
           documentation_fee: first.documentation_fee,
           default_fees_accumulated: first.default_fees_accumulated,
-          total_gst: ledger.reduce((sum, e) => sum + (e.gst_amount ?? 0), 0),
+          total_gst: first.gst_amount, // Now mapping to gst_amount from the view
         });
       }
     };
@@ -97,12 +98,13 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
 
   return (
     <div className="space-y-4">
-      {/* Space for Letterhead */}
+      {/* Print and Email buttons at the top */}
       <div className="flex justify-end gap-2 print:hidden">
         <Button onClick={() => window.print()} variant="outline">Print</Button>
         <Button onClick={() => alert("Email functionality to be implemented.")} variant="default">Email</Button>
       </div>
 
+      {/* Statement of Account and Loan Charges moved to the top */}
       <Card className="p-6">
         <div className="text-center mb-6">
           <h2 className="text-xl font-bold uppercase">Statement of Account</h2>
@@ -110,7 +112,7 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
         <div className="grid grid-cols-2 gap-4 text-sm mb-4">
           <div>
             <strong>Borrower:</strong> {summary.borrower_name}<br />
-            <strong>Email:</strong> {summary.email || "N/A"}<br />
+            <strong>Email:</strong> {summary.email}<br />
             <strong>Phone:</strong> {summary.mobile_number || "N/A"}<br />
             <strong>Postal Address:</strong> {summary.postal_address || "N/A"}<br />
           </div>
