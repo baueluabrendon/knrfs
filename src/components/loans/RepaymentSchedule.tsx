@@ -1,6 +1,6 @@
+
 import React, { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { format } from "date-fns";
@@ -139,7 +139,7 @@ export const RepaymentSchedule = ({ schedule, loan }: RepaymentScheduleProps) =>
   }
 
   return (
-    <div className="space-y-4 h-full flex flex-col">
+    <div className="space-y-4">
       {summary && (
         <Card className="p-6">
           <div className="text-center mb-6">
@@ -173,8 +173,8 @@ export const RepaymentSchedule = ({ schedule, loan }: RepaymentScheduleProps) =>
         </Card>
       )}
 
-      <Card className="p-4 flex-1 flex flex-col overflow-hidden">
-        <ScrollArea className="flex-1 pr-4">
+      <Card className="p-4">
+        <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -205,7 +205,7 @@ export const RepaymentSchedule = ({ schedule, loan }: RepaymentScheduleProps) =>
               ))}
             </TableBody>
           </Table>
-        </ScrollArea>
+        </div>
 
         <div className="flex justify-end text-sm mt-4">
           <div className="space-y-1 text-right">
