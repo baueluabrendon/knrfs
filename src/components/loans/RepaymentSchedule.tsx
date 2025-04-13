@@ -59,6 +59,7 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
           default_fees_accumulated: f.default_fees_accumulated,
           total_gst: f.gst_amount,
           loan_status: f.loan_status,
+          gross_loan: f.gross_loan,
         });
 
         try {
@@ -188,16 +189,9 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                 <TableCell className="text-right">{summary.total_gst.toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
               </TableRow>
               <TableRow className="bg-gray-50 font-medium">
-                <TableCell>Total</TableCell>
+                <TableCell>Total (Gross Loan)</TableCell>
                 <TableCell className="text-right">
-                  {(
-                    summary.principal +
-                    summary.interest +
-                    summary.loan_risk_insurance +
-                    summary.documentation_fee +
-                    summary.default_fees_accumulated +
-                    summary.total_gst
-                  ).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  {summary.gross_loan.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </TableCell>
               </TableRow>
             </TableBody>
@@ -355,16 +349,9 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                             </td>
                           </tr>
                           <tr style={{ backgroundColor: "#f3f4f6", fontWeight: "bold" }}>
-                            <td style={{ padding: "6px", border: "1px solid #e5e7eb" }}>Total</td>
+                            <td style={{ padding: "6px", border: "1px solid #e5e7eb" }}>Total (Gross Loan)</td>
                             <td style={{ padding: "6px", border: "1px solid #e5e7eb", textAlign: "right" }}>
-                              {(
-                                summary.principal +
-                                summary.interest +
-                                summary.loan_risk_insurance +
-                                summary.documentation_fee +
-                                summary.default_fees_accumulated +
-                                summary.total_gst
-                              ).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                              {summary.gross_loan.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </td>
                           </tr>
                         </tbody>
