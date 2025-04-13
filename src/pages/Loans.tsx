@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
 import LoanDetails from "@/components/loans/LoanDetails";
 import { toast } from "sonner";
@@ -72,8 +72,6 @@ const Loans = () => {
 
   const getLoanTermValue = (loan: Loan): number => {
     if (!loan.loan_term) return 0;
-    
-    // Extract the numeric value from TERM_X format
     const termMatch = loan.loan_term.match(/TERM_(\d+)/);
     return termMatch ? parseInt(termMatch[1], 10) : 0;
   };
@@ -100,6 +98,13 @@ const Loans = () => {
 
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
         <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Loan Details</DialogTitle>
+            <DialogDescription>
+              This shows key financial details and repayment obligations for the selected loan.
+            </DialogDescription>
+          </DialogHeader>
+
           {selectedLoan && (
             <LoanDetails
               loan={{
