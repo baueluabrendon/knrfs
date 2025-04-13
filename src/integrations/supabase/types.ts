@@ -686,23 +686,37 @@ export type Database = {
           borrower_name: string | null
           credit: number | null
           debit: number | null
+          default_fees_accumulated: number | null
+          department_company: string | null
           description: string | null
           disbursement_date: string | null
+          documentation_fee: number | null
           entry_date: string | null
+          file_number: string | null
+          fortnightly_installment: number | null
           gross_loan: number | null
           interest: number | null
           interest_rate:
             | Database["public"]["Enums"]["interest_rate_enum"]
             | null
           loan_id: string | null
+          loan_risk_insurance: number | null
           loan_term:
             | Database["public"]["Enums"]["bi_weekly_loan_term_enum"]
             | null
           maturity_date: string | null
+          mobile_number: string | null
+          outstanding_balance: number | null
+          pay_period: string | null
+          payroll_type: string | null
+          position: string | null
+          postal_address: string | null
           principal: number | null
+          repayment_completion_percentage: number | null
           schedule_id: string | null
           start_repayment_date: string | null
           status: string | null
+          total_repayment: number | null
         }
         Relationships: []
       }

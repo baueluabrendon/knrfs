@@ -5,17 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { format } from "date-fns";
 
-interface RepaymentScheduleItem {
-  paymentDate: string;
-  principalAmount: number;
-  interestAmount: number;
-  gstAmount: number;
-  totalPayment: number;
-  remainingBalance: number;
-}
-
 interface RepaymentScheduleProps {
-  schedule: RepaymentScheduleItem[];
+  schedule: never[];
   loan: {
     id: string;
     borrowerName: string;
@@ -25,7 +16,7 @@ interface RepaymentScheduleProps {
   };
 }
 
-export const RepaymentSchedule = ({ schedule, loan }: RepaymentScheduleProps) => {
+export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
   const [ledger, setLedger] = useState<any[]>([]);
   const [summary, setSummary] = useState<any>(null);
 
@@ -48,18 +39,30 @@ export const RepaymentSchedule = ({ schedule, loan }: RepaymentScheduleProps) =>
         const first = data[0];
         setSummary({
           borrower_name: first.borrower_name,
+          mobile_number: first.mobile_number,
+          email: first.email,
+          postal_address: first.postal_address,
+          department_company: first.department_company,
+          file_number: first.file_number,
           bank: first.bank,
           account_name: first.account_name,
           account_number: first.account_number,
           loan_id: first.loan_id,
           disbursement_date: first.disbursement_date,
-          start_repayment_date: first.start_repayment_date,
           maturity_date: first.maturity_date,
           principal: first.principal,
           interest: first.interest,
           gross_loan: first.gross_loan,
-          loan_term: first.loan_term,
+          loan_term: parseInt(first.loan_term.replace("TERM_", ""), 10),
           interest_rate: first.interest_rate,
+          repayment_completion_percentage: first.repayment_completion_percentage,
+          total_repayment: first.total_repayment,
+          outstanding_balance: first.outstanding_balance,
+          fortnightly_installment: first.fortnightly_installment,
+          loan_risk_insurance: first.loan_risk_insurance,
+          documentation_fee: first.documentation_fee,
+          default_fees_accumulated: first.default_fees_accumulated,
+          total_gst: ledger.reduce((sum, e) => sum + (e.gst_amount ?? 0), 0),
         });
       }
     };
@@ -80,98 +83,53 @@ export const RepaymentSchedule = ({ schedule, loan }: RepaymentScheduleProps) =>
   };
 
   const ledgerWithBalance = calculateRunningBalance();
-
   const totalDebits = ledger.reduce((sum, e) => sum + (e.debit ?? 0), 0);
   const totalCredits = ledger.reduce((sum, e) => sum + (e.credit ?? 0), 0);
-  const balance = summary?.gross_loan ? summary.gross_loan + totalDebits - totalCredits : 0;
+  const balance = totalDebits - totalCredits;
 
   if (!summary || ledger.length === 0) {
     return (
-      <div className="rounded-lg border p-4">
-        <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-          <h3 className="text-lg font-semibold mb-2">Repayment Schedule Details</h3>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
-            <div>
-              <span className="font-medium">Loan ID:</span> {loan.id}
-            </div>
-            <div>
-              <span className="font-medium">Borrower:</span> {loan.borrowerName}
-            </div>
-            <div>
-              <span className="font-medium">Principal Amount:</span> ${loan.amount.toLocaleString()}
-            </div>
-            <div>
-              <span className="font-medium">Interest Rate:</span> {loan.interestRate}%
-            </div>
-            <div>
-              <span className="font-medium">Term:</span> {loan.term} months
-            </div>
-          </div>
-        </div>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Principal</TableHead>
-                <TableHead>Interest</TableHead>
-                <TableHead>GST</TableHead>
-                <TableHead>Total Payment</TableHead>
-                <TableHead>Remaining Balance</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {schedule.map((payment, index) => (
-                <TableRow key={index}>
-                  <TableCell>{new Date(payment.paymentDate).toLocaleDateString()}</TableCell>
-                  <TableCell>${payment.principalAmount.toLocaleString()}</TableCell>
-                  <TableCell>${payment.interestAmount.toLocaleString()}</TableCell>
-                  <TableCell>${payment.gstAmount.toLocaleString()}</TableCell>
-                  <TableCell>${payment.totalPayment.toLocaleString()}</TableCell>
-                  <TableCell>${payment.remainingBalance.toLocaleString()}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+      <div className="rounded-lg border p-4 text-sm text-muted-foreground text-center">
+        No repayment data available for this loan.
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      {summary && (
-        <Card className="p-6">
-          <div className="text-center mb-6">
-            <h2 className="text-xl font-bold uppercase">Loan Repayment Ledger</h2>
+      <Card className="p-6">
+        <div className="text-center mb-6">
+          <h2 className="text-xl font-bold uppercase">Statement of Account</h2>
+        </div>
+        <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+          <div>
+            <strong>Borrower:</strong> {summary.borrower_name}<br />
+            <strong>Email:</strong> {summary.email || "N/A"}<br />
+            <strong>Phone:</strong> {summary.mobile_number || "N/A"}<br />
+            <strong>Postal Address:</strong> {summary.postal_address || "N/A"}<br />
+            <strong>Department:</strong> {summary.department_company || "N/A"}<br />
+            <strong>File Number:</strong> {summary.file_number || "N/A"}<br />
           </div>
-          <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-            <div>
-              <strong>Borrower:</strong> {summary.borrower_name}
-              <br />
-              <strong>Loan ID:</strong> {summary.loan_id}
-              <br />
-              <strong>Term:</strong> {summary.loan_term} fortnights
-              <br />
-              <strong>Interest Rate:</strong> {summary.interest_rate?.replace("RATE_", "")}%
-            </div>
-            <div>
-              <strong>Bank:</strong> {summary.bank || "N/A"}
-              <br />
-              <strong>Account Name:</strong> {summary.account_name || "N/A"}
-              <br />
-              <strong>Account Number:</strong> {summary.account_number || "N/A"}
-              <br />
-              <strong>Disbursed:</strong> {summary.disbursement_date ? new Date(summary.disbursement_date).toLocaleDateString() : "N/A"}
-            </div>
+          <div>
+            <strong>Loan ID:</strong> {summary.loan_id}<br />
+            <strong>Start Date:</strong> {format(new Date(summary.disbursement_date), "dd/MM/yyyy")}<br />
+            <strong>End Date:</strong> {format(new Date(summary.maturity_date), "dd/MM/yyyy")}<br />
+            <strong>Status:</strong> {summary.repayment_completion_percentage}% repaid<br />
+            <strong>Term:</strong> {summary.loan_term} fortnights<br />
+            <strong>Fortnightly Installment:</strong> K{summary.fortnightly_installment.toLocaleString(undefined, { minimumFractionDigits: 2 })}<br />
           </div>
-          <div className="grid grid-cols-3 gap-4 text-sm">
-            <div><strong>Principal:</strong> K{summary.principal?.toLocaleString(undefined, { minimumFractionDigits: 2 }) || "0.00"}</div>
-            <div><strong>Interest:</strong> K{summary.interest?.toLocaleString(undefined, { minimumFractionDigits: 2 }) || "0.00"}</div>
-            <div><strong>Gross Loan:</strong> K{summary.gross_loan?.toLocaleString(undefined, { minimumFractionDigits: 2 }) || "0.00"}</div>
-          </div>
-        </Card>
-      )}
+        </div>
+
+        <hr className="my-4 border-t border-gray-300" />
+        <h3 className="text-md font-semibold mb-2">Loan Charges</h3>
+        <div className="grid grid-cols-4 gap-4 text-sm">
+          <div><strong>Principal:</strong> K{summary.principal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+          <div><strong>Interest:</strong> K{summary.interest.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+          <div><strong>Loan Risk Insurance:</strong> K{summary.loan_risk_insurance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+          <div><strong>Documentation Fee:</strong> K{summary.documentation_fee.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+          <div><strong>Default Fees Accumulated:</strong> K{summary.default_fees_accumulated.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+        </div>
+      </Card>
 
       <Card className="p-4">
         <div className="overflow-x-auto">
@@ -189,7 +147,7 @@ export const RepaymentSchedule = ({ schedule, loan }: RepaymentScheduleProps) =>
             <TableBody>
               {ledgerWithBalance.map((entry, index) => (
                 <TableRow key={index}>
-                  <TableCell>{new Date(entry.entry_date).toLocaleDateString()}</TableCell>
+                  <TableCell>{format(new Date(entry.entry_date), "dd/MM/yyyy")}</TableCell>
                   <TableCell>{entry.description}</TableCell>
                   <TableCell className="text-right">
                     {entry.debit !== null ? `K${entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "-"}
@@ -211,7 +169,10 @@ export const RepaymentSchedule = ({ schedule, loan }: RepaymentScheduleProps) =>
           <div className="space-y-1 text-right">
             <div><strong>Total Debits:</strong> K{totalDebits.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
             <div><strong>Total Credits:</strong> K{totalCredits.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-            <div><strong>Outstanding Balance:</strong> K{balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+            <div><strong>Outstanding Balance (Calculated):</strong> K{balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+            <div><strong>Outstanding Balance (View):</strong> K{summary.outstanding_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+            <div><strong>Total GST:</strong> K{summary.total_gst.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+            <div><strong>Default Fees Accumulated:</strong> K{summary.default_fees_accumulated.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
           </div>
         </div>
       </Card>
