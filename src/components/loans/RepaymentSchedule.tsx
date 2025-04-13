@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
 
 interface RepaymentScheduleProps {
   schedule: any[]; // Changed from never[] to any[] to accept the schedule data
@@ -97,6 +98,12 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
 
   return (
     <div className="space-y-4">
+      {/* Space for Letterhead */}
+      <div className="flex justify-end gap-2 print:hidden">
+        <Button onClick={() => window.print()} variant="outline">Print</Button>
+        <Button onClick={() => alert("Email functionality to be implemented.")} variant="default">Email</Button>
+      </div>
+
       <Card className="p-6">
         <div className="text-center mb-6">
           <h2 className="text-xl font-bold uppercase">Statement of Account</h2>
@@ -107,16 +114,13 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
             <strong>Email:</strong> {summary.email || "N/A"}<br />
             <strong>Phone:</strong> {summary.mobile_number || "N/A"}<br />
             <strong>Postal Address:</strong> {summary.postal_address || "N/A"}<br />
-            <strong>Department:</strong> {summary.department_company || "N/A"}<br />
-            <strong>File Number:</strong> {summary.file_number || "N/A"}<br />
           </div>
           <div>
             <strong>Loan ID:</strong> {summary.loan_id}<br />
             <strong>Start Date:</strong> {summary.disbursement_date ? format(new Date(summary.disbursement_date), "dd/MM/yyyy") : "N/A"}<br />
             <strong>End Date:</strong> {summary.maturity_date ? format(new Date(summary.maturity_date), "dd/MM/yyyy") : "N/A"}<br />
-            <strong>Status:</strong> {summary.repayment_completion_percentage}% repaid<br />
             <strong>Term:</strong> {summary.loan_term} fortnights<br />
-            <strong>Fortnightly Installment:</strong> K{summary.fortnightly_installment.toLocaleString(undefined, { minimumFractionDigits: 2 })}<br />
+            <strong>Status:</strong> {summary.repayment_completion_percentage}% repaid<br />
           </div>
         </div>
 
@@ -128,6 +132,7 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
           <div><strong>Loan Risk Insurance:</strong> K{summary.loan_risk_insurance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
           <div><strong>Documentation Fee:</strong> K{summary.documentation_fee.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
           <div><strong>Default Fees Accumulated:</strong> K{summary.default_fees_accumulated.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+          <div><strong>Total GST:</strong> K{summary.total_gst.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
         </div>
       </Card>
 
@@ -172,7 +177,6 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
             <div><strong>Outstanding Balance (Calculated):</strong> K{balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
             <div><strong>Outstanding Balance (View):</strong> K{summary.outstanding_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
             <div><strong>Total GST:</strong> K{summary.total_gst.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-            <div><strong>Default Fees Accumulated:</strong> K{summary.default_fees_accumulated.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
           </div>
         </div>
       </Card>
