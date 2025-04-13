@@ -710,6 +710,7 @@ export type Database = {
           mobile_number: string | null
           outstanding_balance: number | null
           pay_period: string | null
+          payment_number: number | null
           payroll_type: string | null
           position: string | null
           postal_address: string | null

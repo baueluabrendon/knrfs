@@ -126,14 +126,49 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
         </div>
 
         <hr className="my-4 border-t border-gray-300" />
-        <h3 className="text-md font-semibold mb-2">Loan Charges</h3>
-        <div className="grid grid-cols-4 gap-4 text-sm">
-          <div><strong>Principal:</strong> K{summary.principal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-          <div><strong>Interest:</strong> K{summary.interest.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-          <div><strong>Loan Risk Insurance:</strong> K{summary.loan_risk_insurance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-          <div><strong>Documentation Fee:</strong> K{summary.documentation_fee.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-          <div><strong>Default Fees Accumulated:</strong> K{summary.default_fees_accumulated.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-          <div><strong>Total GST:</strong> K{summary.total_gst.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+        <h3 className="text-lg font-semibold mb-4">Loan Charges</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="p-4 bg-gray-50">
+            <div className="text-center mb-2">
+              <h4 className="font-medium text-gray-700">Principal Amount</h4>
+              <p className="text-xl font-bold">K{summary.principal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+            </div>
+          </Card>
+          
+          <Card className="p-4 bg-gray-50">
+            <div className="text-center mb-2">
+              <h4 className="font-medium text-gray-700">Interest</h4>
+              <p className="text-xl font-bold">K{summary.interest.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+            </div>
+          </Card>
+          
+          <Card className="p-4 bg-gray-50">
+            <div className="text-center mb-2">
+              <h4 className="font-medium text-gray-700">Risk Insurance</h4>
+              <p className="text-xl font-bold">K{summary.loan_risk_insurance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+            </div>
+          </Card>
+          
+          <Card className="p-4 bg-gray-50">
+            <div className="text-center mb-2">
+              <h4 className="font-medium text-gray-700">Documentation Fee</h4>
+              <p className="text-xl font-bold">K{summary.documentation_fee.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+            </div>
+          </Card>
+          
+          <Card className="p-4 bg-gray-50">
+            <div className="text-center mb-2">
+              <h4 className="font-medium text-gray-700">Default Fees</h4>
+              <p className="text-xl font-bold">K{summary.default_fees_accumulated.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+            </div>
+          </Card>
+          
+          <Card className="p-4 bg-gray-50">
+            <div className="text-center mb-2">
+              <h4 className="font-medium text-gray-700">Total GST</h4>
+              <p className="text-xl font-bold">K{summary.total_gst.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+            </div>
+          </Card>
         </div>
       </Card>
 
@@ -142,18 +177,21 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-16">#</TableHead>
                 <TableHead>Date</TableHead>
+                <TableHead>Pay Period</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead className="text-right">Debit (K)</TableHead>
                 <TableHead className="text-right">Credit (K)</TableHead>
                 <TableHead className="text-right">Balance (K)</TableHead>
-                <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {ledgerWithBalance.map((entry, index) => (
                 <TableRow key={index}>
+                  <TableCell>{entry.payment_number || '-'}</TableCell>
                   <TableCell>{entry.entry_date ? format(new Date(entry.entry_date), "dd/MM/yyyy") : "N/A"}</TableCell>
+                  <TableCell>{entry.pay_period || '-'}</TableCell>
                   <TableCell>{entry.description}</TableCell>
                   <TableCell className="text-right">
                     {entry.debit !== null ? `K${entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "-"}
@@ -164,7 +202,6 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                   <TableCell className="text-right">
                     K{entry.running_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </TableCell>
-                  <TableCell>{entry.status}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
