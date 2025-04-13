@@ -151,49 +151,57 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
         </div>
 
         <hr className="my-4 border-t border-gray-300" />
-        <h3 className="text-lg font-semibold mb-4">Loan Charges</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="p-4 bg-gray-50">
-            <div className="text-center mb-2">
-              <h4 className="font-medium text-gray-700">Principal Amount</h4>
-              <p className="text-xl font-bold">K{summary.principal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-            </div>
-          </Card>
-          
-          <Card className="p-4 bg-gray-50">
-            <div className="text-center mb-2">
-              <h4 className="font-medium text-gray-700">Interest</h4>
-              <p className="text-xl font-bold">K{summary.interest.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-            </div>
-          </Card>
-          
-          <Card className="p-4 bg-gray-50">
-            <div className="text-center mb-2">
-              <h4 className="font-medium text-gray-700">Risk Insurance</h4>
-              <p className="text-xl font-bold">K{summary.loan_risk_insurance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-            </div>
-          </Card>
-          
-          <Card className="p-4 bg-gray-50">
-            <div className="text-center mb-2">
-              <h4 className="font-medium text-gray-700">Documentation Fee</h4>
-              <p className="text-xl font-bold">K{summary.documentation_fee.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-            </div>
-          </Card>
-          
-          <Card className="p-4 bg-gray-50">
-            <div className="text-center mb-2">
-              <h4 className="font-medium text-gray-700">Default Fees</h4>
-              <p className="text-xl font-bold">K{summary.default_fees_accumulated.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-            </div>
-          </Card>
-          
-          <Card className="p-4 bg-gray-50">
-            <div className="text-center mb-2">
-              <h4 className="font-medium text-gray-700">Total GST</h4>
-              <p className="text-xl font-bold">K{summary.total_gst.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-            </div>
-          </Card>
+        <h3 className="text-lg font-semibold mb-3">Loan Charges</h3>
+        
+        {/* Updated Loan Charges section - more professional list display */}
+        <div className="overflow-hidden shadow-sm border rounded-md">
+          <Table className="text-xs">
+            <TableHeader className="bg-gray-50">
+              <TableRow>
+                <TableHead className="font-medium">Description</TableHead>
+                <TableHead className="text-right font-medium">Amount (K)</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell>Principal Amount</TableCell>
+                <TableCell className="text-right">{summary.principal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Interest</TableCell>
+                <TableCell className="text-right">{summary.interest.toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Risk Insurance</TableCell>
+                <TableCell className="text-right">{summary.loan_risk_insurance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Documentation Fee</TableCell>
+                <TableCell className="text-right">{summary.documentation_fee.toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Default Fees</TableCell>
+                <TableCell className="text-right">{summary.default_fees_accumulated.toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Total GST</TableCell>
+                <TableCell className="text-right">{summary.total_gst.toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
+              </TableRow>
+              <TableRow className="bg-gray-50 font-medium">
+                <TableCell>Total</TableCell>
+                <TableCell className="text-right">
+                  {(
+                    summary.principal +
+                    summary.interest +
+                    summary.loan_risk_insurance +
+                    summary.documentation_fee +
+                    summary.default_fees_accumulated +
+                    summary.total_gst
+                  ).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
         </div>
       </Card>
 
@@ -219,13 +227,13 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                   <TableCell>{entry.pay_period || '-'}</TableCell>
                   <TableCell>{entry.description}</TableCell>
                   <TableCell className="text-right">
-                    {entry.debit !== null ? `K${entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "-"}
+                    {entry.debit !== null ? `${entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "-"}
                   </TableCell>
                   <TableCell className="text-right">
-                    {entry.credit !== null ? `K${entry.credit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "-"}
+                    {entry.credit !== null ? `${entry.credit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "-"}
                   </TableCell>
                   <TableCell className="text-right">
-                    K{entry.running_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    {entry.running_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </TableCell>
                 </TableRow>
               ))}
@@ -298,6 +306,70 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                         <strong>Status:</strong> {summary.loan_status}<br />
                       </div>
                     </div>
+                    
+                    {/* PDF Loan Charges section - using a styled table for printout */}
+                    <div className="mt-4 mb-4">
+                      <h3 className="text-md font-semibold mb-2">Loan Charges</h3>
+                      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px" }}>
+                        <thead>
+                          <tr style={{ backgroundColor: "#f3f4f6" }}>
+                            <th style={{ padding: "8px", border: "1px solid #e5e7eb", textAlign: "left" }}>Description</th>
+                            <th style={{ padding: "8px", border: "1px solid #e5e7eb", textAlign: "right" }}>Amount (K)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td style={{ padding: "6px", border: "1px solid #e5e7eb" }}>Principal Amount</td>
+                            <td style={{ padding: "6px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                              {summary.principal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "6px", border: "1px solid #e5e7eb" }}>Interest</td>
+                            <td style={{ padding: "6px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                              {summary.interest.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "6px", border: "1px solid #e5e7eb" }}>Risk Insurance</td>
+                            <td style={{ padding: "6px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                              {summary.loan_risk_insurance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "6px", border: "1px solid #e5e7eb" }}>Documentation Fee</td>
+                            <td style={{ padding: "6px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                              {summary.documentation_fee.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "6px", border: "1px solid #e5e7eb" }}>Default Fees</td>
+                            <td style={{ padding: "6px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                              {summary.default_fees_accumulated.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "6px", border: "1px solid #e5e7eb" }}>Total GST</td>
+                            <td style={{ padding: "6px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                              {summary.total_gst.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            </td>
+                          </tr>
+                          <tr style={{ backgroundColor: "#f3f4f6", fontWeight: "bold" }}>
+                            <td style={{ padding: "6px", border: "1px solid #e5e7eb" }}>Total</td>
+                            <td style={{ padding: "6px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                              {(
+                                summary.principal +
+                                summary.interest +
+                                summary.loan_risk_insurance +
+                                summary.documentation_fee +
+                                summary.default_fees_accumulated +
+                                summary.total_gst
+                              ).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 )}
 
@@ -320,9 +392,9 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                         <TableCell>{entry.entry_date ? format(new Date(entry.entry_date), "dd/MM/yyyy") : "N/A"}</TableCell>
                         <TableCell>{entry.pay_period || "-"}</TableCell>
                         <TableCell>{entry.description}</TableCell>
-                        <TableCell className="text-right">K{(entry.debit ?? 0).toLocaleString()}</TableCell>
-                        <TableCell className="text-right">K{(entry.credit ?? 0).toLocaleString()}</TableCell>
-                        <TableCell className="text-right">K{entry.running_balance.toLocaleString()}</TableCell>
+                        <TableCell className="text-right">{(entry.debit ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
+                        <TableCell className="text-right">{(entry.credit ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
+                        <TableCell className="text-right">{entry.running_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
