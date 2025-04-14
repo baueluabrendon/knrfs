@@ -39,7 +39,6 @@ const LoansInArrears = () => {
   const [uniquePayPeriods, setUniquePayPeriods] = useState<string[]>([]);
   const [uniqueYears, setUniqueYears] = useState<string[]>([]);
   const [uniqueMonths, setUniqueMonths] = useState<string[]>([]);
-  const [uniqueBuckets, setUniqueBuckets] = useState<string[]>([]);
 
   useEffect(() => {
     fetchLoansInArrears();
@@ -52,7 +51,6 @@ const LoansInArrears = () => {
       setLoansInArrears(data);
 
       setUniquePayPeriods([...new Set(data.map(l => l.payPeriod))].filter(Boolean));
-      setUniqueBuckets([...new Set(data.map(l => l.overdueBucket))].filter(Boolean));
 
       const years = Array.from(new Set(
         data.map((loan) => {
@@ -170,10 +168,13 @@ const LoansInArrears = () => {
           </Select>
 
           <Select value={selectedBucket} onValueChange={setSelectedBucket}>
-            <SelectTrigger className="w-[150px]"><SelectValue placeholder="Overdue Bucket" /></SelectTrigger>
+            <SelectTrigger className="w-[160px]"><SelectValue placeholder="Overdue Bucket" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="All">All Buckets</SelectItem>
-              {uniqueBuckets.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+              <SelectItem value="0–30 days">0–30 days</SelectItem>
+              <SelectItem value="30–60 days">30–60 days</SelectItem>
+              <SelectItem value="60–90 days">60–90 days</SelectItem>
+              <SelectItem value="90+ days">90+ days</SelectItem>
             </SelectContent>
           </Select>
 
