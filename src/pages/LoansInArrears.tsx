@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Table,
@@ -10,7 +9,6 @@ import {
 } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { recoveriesApi } from "@/lib/api/recoveries";
-import { Loader2, Printer } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -175,14 +173,6 @@ const LoansInArrears = () => {
             className="flex items-center gap-2"
           >
             Download CSV
-          </Button>
-
-          <Button
-            onClick={() => window.print()}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <Printer className="h-4 w-4" /> Print
           </Button>
         </div>
       </div>
