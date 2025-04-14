@@ -18,23 +18,45 @@ const ClientLoans = () => {
   const { user } = useAuth();
 
   const { data: loans, isLoading } = useQuery({
-    queryKey: ['client-loans'],
+    queryKey: ['client-loans', user?.user_id],
     queryFn: async () => {
+      // First get the borrower_id from user_profiles
+      const { data: userProfile } = await supabase
+        .from('user_profiles')
+        .select('borrower_id')
+        .eq('user_id', user?.user_id)
+        .single();
+
+      if (!userProfile?.borrower_id) {
+        throw new Error('Borrower ID not found');
+      }
+
+      // Then get all loans for this borrower
       const { data, error } = await supabase
         .from('loans')
-        .select('*')
-        .eq('borrower_id', user?.user_id);
+        .select(`
+          loan_id,
+          principal,
+          loan_term,
+          fortnightly_installment,
+          disbursement_date,
+          maturity_date,
+          start_repayment_date,
+          loan_status,
+          outstanding_balance
+        `)
+        .eq('borrower_id', userProfile.borrower_id);
       
       if (error) throw error;
       return data;
     },
+    enabled: !!user?.user_id
   });
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
     try {
-      const date = new Date(dateString);
-      return format(date, 'dd/MM/yyyy');
+      return format(new Date(dateString), 'dd/MM/yyyy');
     } catch (error) {
       console.error('Error formatting date:', error);
       return 'Invalid date';
