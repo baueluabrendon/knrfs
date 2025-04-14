@@ -435,6 +435,13 @@ export type Database = {
             referencedRelation: "borrowers"
             referencedColumns: ["borrower_id"]
           },
+          {
+            foreignKeyName: "fk_borrower"
+            columns: ["borrower_id"]
+            isOneToOne: false
+            referencedRelation: "loans_in_arrears_view"
+            referencedColumns: ["borrower_id"]
+          },
         ]
       }
       repayment_document_group: {
@@ -557,6 +564,13 @@ export type Database = {
             referencedRelation: "loans"
             referencedColumns: ["loan_id"]
           },
+          {
+            foreignKeyName: "repayment_schedule_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans_in_arrears_view"
+            referencedColumns: ["loan_id"]
+          },
         ]
       }
       repayments: {
@@ -626,6 +640,13 @@ export type Database = {
             referencedColumns: ["loan_id"]
           },
           {
+            foreignKeyName: "repayments_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans_in_arrears_view"
+            referencedColumns: ["loan_id"]
+          },
+          {
             foreignKeyName: "repayments_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -673,10 +694,59 @@ export type Database = {
             referencedRelation: "borrowers"
             referencedColumns: ["borrower_id"]
           },
+          {
+            foreignKeyName: "fk_borrower"
+            columns: ["borrower_id"]
+            isOneToOne: false
+            referencedRelation: "loans_in_arrears_view"
+            referencedColumns: ["borrower_id"]
+          },
         ]
       }
     }
     Views: {
+      loans_in_arrears_view: {
+        Row: {
+          arrears: number | null
+          borrower_id: string | null
+          borrower_name: string | null
+          company_branch: string | null
+          days_late: number | null
+          default_amount: number | null
+          default_fees_accumulated: number | null
+          default_reason: string | null
+          default_status:
+            | Database["public"]["Enums"]["default_status_enum"]
+            | null
+          department_company: string | null
+          email: string | null
+          fortnightly_installment: number | null
+          interest: number | null
+          last_payment_date: string | null
+          loan_created_at: string | null
+          loan_id: string | null
+          loan_repayment_status:
+            | Database["public"]["Enums"]["repayment_status_enum"]
+            | null
+          loan_status: Database["public"]["Enums"]["loan_status_enum"] | null
+          missed_payments_count: number | null
+          mobile_number: string | null
+          next_due_date: string | null
+          next_installment_due: number | null
+          next_schedule_balance: number | null
+          next_schedule_status:
+            | Database["public"]["Enums"]["repayment_schedule_status_enum"]
+            | null
+          outstanding_balance: number | null
+          partial_payments_count: number | null
+          pay_period: string | null
+          principal: number | null
+          product: string | null
+          repayment_completion_percentage: number | null
+          total_repayment: number | null
+        }
+        Relationships: []
+      }
       repayment_ledger_view: {
         Row: {
           account_name: string | null
