@@ -21,7 +21,6 @@ interface LoanInArrears {
   organization: string;
   loanAmount: number;
   daysOverdue: number;
-  overdueBucket: string;
   amountOverdue: number;
   lastPaymentDate: string;
   payPeriod: string;
@@ -36,13 +35,9 @@ const LoansInArrears = () => {
   const [selectedMonth, setSelectedMonth] = useState("All");
   const [selectedBucket, setSelectedBucket] = useState("All");
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
-
   const [uniquePayPeriods, setUniquePayPeriods] = useState<string[]>([]);
   const [uniqueYears, setUniqueYears] = useState<string[]>([]);
   const [uniqueMonths, setUniqueMonths] = useState<string[]>([]);
-  const [uniqueBuckets, setUniqueBuckets] = useState<string[]>([]);
 
   useEffect(() => {
     fetchLoansInArrears();
@@ -55,7 +50,6 @@ const LoansInArrears = () => {
       setLoansInArrears(data);
 
       setUniquePayPeriods([...new Set(data.map(l => l.payPeriod))].filter(Boolean));
-      setUniqueBuckets([...new Set(data.map(l => l.overdueBucket))].filter(Boolean));
 
       const years = Array.from(new Set(
         data.map((loan) => {
@@ -90,7 +84,14 @@ const LoansInArrears = () => {
     const matchYear = selectedYear === "All" || year === selectedYear;
     const matchMonth = selectedMonth === "All" || month === selectedMonth;
     const matchPay = selectedPayPeriod === "All" || loan.payPeriod === selectedPayPeriod;
-    const matchBucket = selectedBucket === "All" || loan.overdueBucket === selectedBucket;
+
+    let matchBucket = true;
+    if (selectedBucket !== "All") {
+      if (selectedBucket === "0–30 days") matchBucket = loan.daysOverdue <= 30;
+      else if (selectedBucket === "30–60 days") matchBucket = loan.daysOverdue > 30 && loan.daysOverdue <= 60;
+      else if (selectedBucket === "60–90 days") matchBucket = loan.daysOverdue > 60 && loan.daysOverdue <= 90;
+      else if (selectedBucket === "90+ days") matchBucket = loan.daysOverdue > 90;
+    }
 
     if (selectedPayPeriod !== "All") {
       return matchYear && matchPay && matchBucket;
@@ -103,15 +104,12 @@ const LoansInArrears = () => {
     return acc;
   }, [] as LoanInArrears[]);
 
-  const totalPages = Math.ceil(uniqueLoans.length / rowsPerPage);
-  const paginatedLoans = uniqueLoans.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
-
   const exportToCSV = () => {
     if (!uniqueLoans.length) return;
 
     const headers = [
       "Loan ID", "File Number", "Borrower Name", "Email", "Mobile Number", "Organization",
-      "Loan Amount", "Days Overdue", "Overdue Bucket", "Amount Overdue", "Last Payment Date", "Pay Period"
+      "Loan Amount", "Days Overdue", "Amount Overdue", "Last Payment Date", "Pay Period"
     ];
 
     const rows = uniqueLoans.map((loan) => [
@@ -123,7 +121,6 @@ const LoansInArrears = () => {
       loan.organization,
       `K${loan.loanAmount.toFixed(2)}`,
       loan.daysOverdue,
-      loan.overdueBucket,
       `K${loan.amountOverdue.toFixed(2)}`,
       loan.lastPaymentDate,
       loan.payPeriod,
@@ -198,67 +195,47 @@ const LoansInArrears = () => {
             <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
           </div>
         ) : (
-          <>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Loan ID</TableHead>
-                  <TableHead>File No.</TableHead>
-                  <TableHead>Borrower</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Mobile</TableHead>
-                  <TableHead>Organization</TableHead>
-                  <TableHead>Loan Amount</TableHead>
-                  <TableHead>Days Overdue</TableHead>
-                  <TableHead>Bucket</TableHead>
-                  <TableHead>Arrears</TableHead>
-                  <TableHead>Last Payment</TableHead>
-                  <TableHead>Pay Period</TableHead>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Loan ID</TableHead>
+                <TableHead>File No.</TableHead>
+                <TableHead>Borrower</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Mobile</TableHead>
+                <TableHead>Organization</TableHead>
+                <TableHead>Loan Amount</TableHead>
+                <TableHead>Days Overdue</TableHead>
+                <TableHead>Arrears</TableHead>
+                <TableHead>Last Payment</TableHead>
+                <TableHead>Pay Period</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {uniqueLoans.map((loan) => (
+                <TableRow key={loan.loanId}>
+                  <TableCell>{loan.loanId}</TableCell>
+                  <TableCell>{loan.fileNumber}</TableCell>
+                  <TableCell>{loan.borrowerName}</TableCell>
+                  <TableCell>{loan.email}</TableCell>
+                  <TableCell>{loan.mobileNumber}</TableCell>
+                  <TableCell>{loan.organization}</TableCell>
+                  <TableCell>K{loan.loanAmount.toFixed(2)}</TableCell>
+                  <TableCell>{loan.daysOverdue}</TableCell>
+                  <TableCell>K{loan.amountOverdue.toFixed(2)}</TableCell>
+                  <TableCell>{loan.lastPaymentDate}</TableCell>
+                  <TableCell>{loan.payPeriod}</TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedLoans.length > 0 ? (
-                  paginatedLoans.map((loan) => (
-                    <TableRow key={loan.loanId}>
-                      <TableCell>{loan.loanId}</TableCell>
-                      <TableCell>{loan.fileNumber}</TableCell>
-                      <TableCell>{loan.borrowerName}</TableCell>
-                      <TableCell>{loan.email}</TableCell>
-                      <TableCell>{loan.mobileNumber}</TableCell>
-                      <TableCell>{loan.organization}</TableCell>
-                      <TableCell>K{loan.loanAmount.toFixed(2)}</TableCell>
-                      <TableCell>{loan.daysOverdue}</TableCell>
-                      <TableCell>{loan.overdueBucket}</TableCell>
-                      <TableCell>K{loan.amountOverdue.toFixed(2)}</TableCell>
-                      <TableCell>{loan.lastPaymentDate}</TableCell>
-                      <TableCell>{loan.payPeriod}</TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={12} className="text-center py-6">
-                      No loans in arrears match your filters.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-
-            {uniqueLoans.length > 0 && (
-              <div className="flex justify-end gap-2 mt-4">
-                {[...Array(totalPages)].map((_, i) => (
-                  <Button
-                    key={i}
-                    variant={i + 1 === currentPage ? "default" : "outline"}
-                    onClick={() => setCurrentPage(i + 1)}
-                    className="h-8 w-8 p-0"
-                  >
-                    {i + 1}
-                  </Button>
-                ))}
-              </div>
-            )}
-          </>
+              ))}
+              {!uniqueLoans.length && (
+                <TableRow>
+                  <TableCell colSpan={11} className="text-center py-6">
+                    No loans in arrears match your filters.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         )}
       </Card>
     </div>

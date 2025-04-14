@@ -711,6 +711,7 @@ export type Database = {
           borrower_id: string | null
           borrower_name: string | null
           days_late: number | null
+          days_matured_unsettled: number | null
           default_amount: number | null
           default_fees_accumulated: number | null
           default_reason: string | null
@@ -720,6 +721,7 @@ export type Database = {
           email: string | null
           file_number: string | null
           fortnightly_installment: number | null
+          gross_loan: number | null
           interest: number | null
           last_payment_date: string | null
           loan_created_at: string | null
