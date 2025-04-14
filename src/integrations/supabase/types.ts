@@ -710,7 +710,6 @@ export type Database = {
           arrears: number | null
           borrower_id: string | null
           borrower_name: string | null
-          company_branch: string | null
           days_late: number | null
           default_amount: number | null
           default_fees_accumulated: number | null
@@ -718,7 +717,6 @@ export type Database = {
           default_status:
             | Database["public"]["Enums"]["default_status_enum"]
             | null
-          department_company: string | null
           email: string | null
           file_number: string | null
           fortnightly_installment: number | null
@@ -730,6 +728,7 @@ export type Database = {
             | Database["public"]["Enums"]["repayment_status_enum"]
             | null
           loan_status: Database["public"]["Enums"]["loan_status_enum"] | null
+          maturity_date: string | null
           missed_payments_count: number | null
           mobile_number: string | null
           next_due_date: string | null
@@ -738,6 +737,7 @@ export type Database = {
           next_schedule_status:
             | Database["public"]["Enums"]["repayment_schedule_status_enum"]
             | null
+          organization: string | null
           outstanding_balance: number | null
           overdue_bucket: string | null
           partial_payments_count: number | null

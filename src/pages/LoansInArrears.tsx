@@ -36,9 +36,13 @@ const LoansInArrears = () => {
   const [selectedMonth, setSelectedMonth] = useState("All");
   const [selectedBucket, setSelectedBucket] = useState("All");
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
+
   const [uniquePayPeriods, setUniquePayPeriods] = useState<string[]>([]);
   const [uniqueYears, setUniqueYears] = useState<string[]>([]);
   const [uniqueMonths, setUniqueMonths] = useState<string[]>([]);
+  const [uniqueBuckets, setUniqueBuckets] = useState<string[]>([]);
 
   useEffect(() => {
     fetchLoansInArrears();
@@ -51,6 +55,7 @@ const LoansInArrears = () => {
       setLoansInArrears(data);
 
       setUniquePayPeriods([...new Set(data.map(l => l.payPeriod))].filter(Boolean));
+      setUniqueBuckets([...new Set(data.map(l => l.overdueBucket))].filter(Boolean));
 
       const years = Array.from(new Set(
         data.map((loan) => {
@@ -97,6 +102,9 @@ const LoansInArrears = () => {
     if (!acc.find((l) => l.loanId === loan.loanId)) acc.push(loan);
     return acc;
   }, [] as LoanInArrears[]);
+
+  const totalPages = Math.ceil(uniqueLoans.length / rowsPerPage);
+  const paginatedLoans = uniqueLoans.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
 
   const exportToCSV = () => {
     if (!uniqueLoans.length) return;
@@ -168,7 +176,7 @@ const LoansInArrears = () => {
           </Select>
 
           <Select value={selectedBucket} onValueChange={setSelectedBucket}>
-            <SelectTrigger className="w-[160px]"><SelectValue placeholder="Overdue Bucket" /></SelectTrigger>
+            <SelectTrigger className="w-[150px]"><SelectValue placeholder="Overdue Bucket" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="All">All Buckets</SelectItem>
               <SelectItem value="0–30 days">0–30 days</SelectItem>
@@ -190,49 +198,67 @@ const LoansInArrears = () => {
             <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Loan ID</TableHead>
-                <TableHead>File No.</TableHead>
-                <TableHead>Borrower</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Mobile</TableHead>
-                <TableHead>Organization</TableHead>
-                <TableHead>Loan Amount</TableHead>
-                <TableHead>Days Overdue</TableHead>
-                <TableHead>Overdue Bucket</TableHead>
-                <TableHead>Arrears</TableHead>
-                <TableHead>Last Payment</TableHead>
-                <TableHead>Pay Period</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {uniqueLoans.map((loan) => (
-                <TableRow key={loan.loanId}>
-                  <TableCell>{loan.loanId}</TableCell>
-                  <TableCell>{loan.fileNumber}</TableCell>
-                  <TableCell>{loan.borrowerName}</TableCell>
-                  <TableCell>{loan.email}</TableCell>
-                  <TableCell>{loan.mobileNumber}</TableCell>
-                  <TableCell>{loan.organization}</TableCell>
-                  <TableCell>K{loan.loanAmount.toFixed(2)}</TableCell>
-                  <TableCell>{loan.daysOverdue}</TableCell>
-                  <TableCell>{loan.overdueBucket}</TableCell>
-                  <TableCell>K{loan.amountOverdue.toFixed(2)}</TableCell>
-                  <TableCell>{loan.lastPaymentDate}</TableCell>
-                  <TableCell>{loan.payPeriod}</TableCell>
-                </TableRow>
-              ))}
-              {!uniqueLoans.length && (
+          <>
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={12} className="text-center py-6">
-                    No loans in arrears match your filters.
-                  </TableCell>
+                  <TableHead>Loan ID</TableHead>
+                  <TableHead>File No.</TableHead>
+                  <TableHead>Borrower</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Mobile</TableHead>
+                  <TableHead>Organization</TableHead>
+                  <TableHead>Loan Amount</TableHead>
+                  <TableHead>Days Overdue</TableHead>
+                  <TableHead>Bucket</TableHead>
+                  <TableHead>Arrears</TableHead>
+                  <TableHead>Last Payment</TableHead>
+                  <TableHead>Pay Period</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {paginatedLoans.length > 0 ? (
+                  paginatedLoans.map((loan) => (
+                    <TableRow key={loan.loanId}>
+                      <TableCell>{loan.loanId}</TableCell>
+                      <TableCell>{loan.fileNumber}</TableCell>
+                      <TableCell>{loan.borrowerName}</TableCell>
+                      <TableCell>{loan.email}</TableCell>
+                      <TableCell>{loan.mobileNumber}</TableCell>
+                      <TableCell>{loan.organization}</TableCell>
+                      <TableCell>K{loan.loanAmount.toFixed(2)}</TableCell>
+                      <TableCell>{loan.daysOverdue}</TableCell>
+                      <TableCell>{loan.overdueBucket}</TableCell>
+                      <TableCell>K{loan.amountOverdue.toFixed(2)}</TableCell>
+                      <TableCell>{loan.lastPaymentDate}</TableCell>
+                      <TableCell>{loan.payPeriod}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={12} className="text-center py-6">
+                      No loans in arrears match your filters.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+
+            {uniqueLoans.length > 0 && (
+              <div className="flex justify-end gap-2 mt-4">
+                {[...Array(totalPages)].map((_, i) => (
+                  <Button
+                    key={i}
+                    variant={i + 1 === currentPage ? "default" : "outline"}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className="h-8 w-8 p-0"
+                  >
+                    {i + 1}
+                  </Button>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </Card>
     </div>
