@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
+
+import { useState, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -11,69 +12,84 @@ import {
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { Repayment } from "@/types/repayment";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Info } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Info, Loader2 } from "lucide-react";
 import RepaymentsSearchBar from "@/components/repayments/RepaymentsSearchBar";
 import { useQuery } from "@tanstack/react-query";
 
 const ClientRepayments = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
-  
-  const { data: repayments, isLoading } = useQuery({
-    queryKey: ['client-repayments', user?.user_id],
+
+  const { data: repayments, isLoading, error } = useQuery({
+    queryKey: ["client-repayments", user?.user_id],
     queryFn: async () => {
-      // First get the borrower_id from user_profiles
-      const { data: userProfile } = await supabase
-        .from('user_profiles')
-        .select('borrower_id')
-        .eq('user_id', user?.user_id)
+      // Get user's borrower_id
+      const { data: userProfile, error: profileError } = await supabase
+        .from("user_profiles")
+        .select("borrower_id")
+        .eq("user_id", user?.user_id)
         .single();
 
-      if (!userProfile?.borrower_id) {
-        throw new Error('Borrower ID not found');
+      if (profileError) {
+        throw new Error("Could not fetch user profile");
       }
 
-      // Get loans for this borrower
-      const { data: loans } = await supabase
-        .from('loans')
-        .select('loan_id')
-        .eq('borrower_id', userProfile.borrower_id);
+      if (!userProfile?.borrower_id) {
+        throw new Error("Borrower ID not found");
+      }
+
+      // Get all loans for this borrower
+      const { data: loans, error: loansError } = await supabase
+        .from("loans")
+        .select("loan_id")
+        .eq("borrower_id", userProfile.borrower_id);
+
+      if (loansError) {
+        throw new Error("Could not fetch loans");
+      }
 
       if (!loans?.length) {
         return [];
       }
 
-      const loanIds = loans.map(loan => loan.loan_id);
+      const loanIds = loans.map((loan) => loan.loan_id);
 
-      // Get repayments for these loans
-      const { data, error } = await supabase
-        .from('repayments')
-        .select('*')
-        .in('loan_id', loanIds)
-        .order('payment_date', { ascending: false });
-      
-      if (error) throw error;
-      
-      if (!data) return [];
-      
-      // Map database fields to our Repayment type
-      return data.map(item => ({
+      // Get repayments for all user's loans
+      const { data: repayments, error: repaymentsError } = await supabase
+        .from("repayments")
+        .select(`
+          *,
+          loan:loans(fortnightly_installment)
+        `)
+        .in("loan_id", loanIds)
+        .order("payment_date", { ascending: false });
+
+      if (repaymentsError) {
+        throw new Error("Could not fetch repayments");
+      }
+
+      return (repayments || []).map((item) => ({
         repayment_id: item.repayment_id,
         payment_date: item.payment_date,
         amount: Number(item.amount),
         loan_id: item.loan_id,
-        borrowerName: 'Client',
-        status: item.status as any,
+        borrowerName: "Client",
+        status: item.status || "pending",
         receipt_url: item.receipt_url,
         notes: item.notes,
         source: item.source,
         verification_status: item.verification_status,
         verified_at: item.verified_at,
-        verified_by: item.verified_by
+        verified_by: item.verified_by,
       }));
     },
-    enabled: !!user?.user_id
+    enabled: !!user?.user_id,
   });
 
   // Filter repayments based on search query
@@ -81,7 +97,7 @@ const ClientRepayments = () => {
     if (!repayments || !searchQuery.trim()) return repayments || [];
     
     const query = searchQuery.toLowerCase().trim();
-    return repayments.filter(repayment => {
+    return repayments.filter((repayment) => {
       const date = new Date(repayment.payment_date).toLocaleDateString().toLowerCase();
       const amount = repayment.amount.toString();
       const repaymentId = repayment.repayment_id.toLowerCase();
@@ -98,6 +114,18 @@ const ClientRepayments = () => {
     });
   }, [repayments, searchQuery]);
 
+  if (error) {
+    return (
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardContent className="p-6 text-center text-red-500">
+            Error loading repayments. Please try again later.
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <h1 className="text-2xl font-bold">My Repayments</h1>
@@ -108,8 +136,8 @@ const ClientRepayments = () => {
             <RepaymentsSearchBar 
               searchQuery={searchQuery} 
               onSearchChange={setSearchQuery}
-              totalCount={repayments.length}
-              filteredCount={filteredRepayments.length}
+              totalCount={repayments?.length ?? 0}
+              filteredCount={filteredRepayments?.length ?? 0}
             />
             
             <Table>
@@ -128,31 +156,43 @@ const ClientRepayments = () => {
                 {isLoading ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8">
-                      Loading repayments...
+                      <Loader2 className="h-8 w-8 animate-spin mx-auto" />
                     </TableCell>
                   </TableRow>
-                ) : filteredRepayments.length > 0 ? (
+                ) : filteredRepayments?.length > 0 ? (
                   filteredRepayments.map((repayment) => (
                     <TableRow key={repayment.repayment_id}>
                       <TableCell>{repayment.repayment_id}</TableCell>
-                      <TableCell>{new Date(repayment.payment_date).toLocaleDateString()}</TableCell>
-                      <TableCell>${repayment.amount.toFixed(2)}</TableCell>
                       <TableCell>
-                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold
-                          ${repayment.status === 'completed' ? 'bg-green-100 text-green-800' : 
-                            repayment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                            repayment.status === 'approved' ? 'bg-emerald-100 text-emerald-800' :
-                            repayment.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                            'bg-red-100 text-red-800'}`}>
+                        {new Date(repayment.payment_date).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>K{repayment.amount.toFixed(2)}</TableCell>
+                      <TableCell>
+                        <span
+                          className={`inline-block px-2 py-1 rounded-full text-xs font-semibold
+                            ${
+                              repayment.status === "completed"
+                                ? "bg-green-100 text-green-800"
+                                : repayment.status === "pending"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : repayment.status === "approved"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : repayment.status === "rejected"
+                                ? "bg-red-100 text-red-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                        >
                           {repayment.status.charAt(0).toUpperCase() + repayment.status.slice(1)}
                         </span>
                       </TableCell>
-                      <TableCell>{new Date(repayment.payment_date).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        {new Date(repayment.payment_date).toLocaleDateString()}
+                      </TableCell>
                       <TableCell>
                         {repayment.receipt_url && (
-                          <a 
-                            href={repayment.receipt_url} 
-                            target="_blank" 
+                          <a
+                            href={repayment.receipt_url}
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-500 hover:underline"
                           >
