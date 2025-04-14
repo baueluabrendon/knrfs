@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { format, parseISO } from "date-fns";
+import { Loader2 } from "lucide-react";
 
 interface LoanInArrears {
   loanId: string;
