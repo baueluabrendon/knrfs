@@ -20,8 +20,8 @@ export const recoveriesApi = {
         fileNumber: item.file_number || '',
         email: item.email || '',
         mobileNumber: item.mobile_number || '',
-        organization: item.organization || '', // Map organization correctly
-        loanAmount: item.principal + item.interest, // or use gross_loan if available
+        organization: item.organization || '',
+        loanAmount: item.principal + item.interest,
         amountOverdue: item.arrears,
         daysOverdue: item.days_late,
         overdueBucket: item.overdue_bucket || 'Unknown',
@@ -36,12 +36,26 @@ export const recoveriesApi = {
 
   async getMissedPayments() {
     try {
-      const response = await fetch(`${API_BASE_URL}/recoveries/missed-payments`);
-      const data: ApiResponse<any> = await response.json();
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to fetch missed payments');
-      }
-      return data.data;
+      const { data, error } = await supabase
+        .from("loans_in_arrears_view")
+        .select("*");
+
+      if (error) throw error;
+
+      return data
+        .filter((item) => item.missed_schedule_id !== null)
+        .map((item) => ({
+          loanId: item.loan_id,
+          borrowerName: item.borrower_name,
+          fileNumber: item.file_number || "",
+          organization: item.organization || "",
+          payPeriod: item.pay_period,
+          payrollType: item.missed_payroll_type,
+          dueDate: item.next_due_date,
+          amountDue: item.missed_due_amount || item.fortnightly_installment,
+          defaultAmount: item.missed_default_amount || 0,
+          outstandingBalance: item.outstanding_balance || 0,
+        }));
     } catch (error) {
       console.error('Get missed payments error:', error);
       throw error;

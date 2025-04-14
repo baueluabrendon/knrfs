@@ -207,6 +207,13 @@ export type Database = {
             foreignKeyName: "defaults_schedule_id_fkey"
             columns: ["schedule_id"]
             isOneToOne: false
+            referencedRelation: "loans_in_arrears_view"
+            referencedColumns: ["missed_schedule_id"]
+          },
+          {
+            foreignKeyName: "defaults_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
             referencedRelation: "repayment_schedule"
             referencedColumns: ["schedule_id"]
           },
@@ -712,16 +719,10 @@ export type Database = {
           borrower_name: string | null
           days_late: number | null
           days_matured_unsettled: number | null
-          default_amount: number | null
           default_fees_accumulated: number | null
-          default_reason: string | null
-          default_status:
-            | Database["public"]["Enums"]["default_status_enum"]
-            | null
           email: string | null
           file_number: string | null
           fortnightly_installment: number | null
-          gross_loan: number | null
           interest: number | null
           last_payment_date: string | null
           loan_created_at: string | null
@@ -731,7 +732,11 @@ export type Database = {
             | null
           loan_status: Database["public"]["Enums"]["loan_status_enum"] | null
           maturity_date: string | null
+          missed_default_amount: number | null
+          missed_due_amount: number | null
           missed_payments_count: number | null
+          missed_payroll_type: string | null
+          missed_schedule_id: string | null
           mobile_number: string | null
           next_due_date: string | null
           next_installment_due: number | null
