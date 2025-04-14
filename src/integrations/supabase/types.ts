@@ -720,6 +720,7 @@ export type Database = {
             | null
           department_company: string | null
           email: string | null
+          file_number: string | null
           fortnightly_installment: number | null
           interest: number | null
           last_payment_date: string | null
@@ -738,6 +739,7 @@ export type Database = {
             | Database["public"]["Enums"]["repayment_schedule_status_enum"]
             | null
           outstanding_balance: number | null
+          overdue_bucket: string | null
           partial_payments_count: number | null
           pay_period: string | null
           principal: number | null

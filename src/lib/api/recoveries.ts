@@ -17,9 +17,14 @@ export const recoveriesApi = {
       return data.map((item) => ({
         loanId: item.loan_id,
         borrowerName: item.borrower_name,
+        fileNumber: item.file_number || '',
+        email: item.email || '',
+        mobileNumber: item.mobile_number || '',
+        organization: item.department_company || '',
         loanAmount: item.principal + item.interest, // or use gross_loan if available
         amountOverdue: item.arrears,
         daysOverdue: item.days_late,
+        overdueBucket: item.overdue_bucket || 'Unknown',
         lastPaymentDate: item.last_payment_date,
         payPeriod: item.pay_period || 'N/A',
       }));
