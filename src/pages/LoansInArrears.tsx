@@ -11,8 +11,15 @@ import {
 import { Card } from "@/components/ui/card";
 import { recoveriesApi } from "@/lib/api/recoveries";
 import { Loader2, Printer } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { format, parseISO } from "date-fns";
 
 interface LoanInArrears {
   loanId: string;
@@ -28,27 +35,34 @@ const LoansInArrears = () => {
   const [loansInArrears, setLoansInArrears] = useState<LoanInArrears[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPayPeriod, setSelectedPayPeriod] = useState("All");
+  const [selectedYear, setSelectedYear] = useState("All");
+  const [selectedMonth, setSelectedMonth] = useState("All");
+
   const [uniquePayPeriods, setUniquePayPeriods] = useState<string[]>([]);
+  const [uniqueYears, setUniqueYears] = useState<string[]>([]);
+  const [uniqueMonths, setUniqueMonths] = useState<string[]>([]);
 
   useEffect(() => {
     fetchLoansInArrears();
   }, []);
-
-  useEffect(() => {
-    if (loansInArrears.length > 0) {
-      // Extract unique pay periods from the data
-      const payPeriods = Array.from(
-        new Set(loansInArrears.map((loan) => loan.payPeriod))
-      ).filter(Boolean);
-      setUniquePayPeriods(payPeriods);
-    }
-  }, [loansInArrears]);
 
   const fetchLoansInArrears = async () => {
     try {
       setIsLoading(true);
       const data = await recoveriesApi.getLoansInArrears();
       setLoansInArrears(data);
+
+      const payPeriods = Array.from(new Set(data.map((loan) => loan.payPeriod))).filter(Boolean);
+      const years = Array.from(
+        new Set(data.map((loan) => format(parseISO(loan.lastPaymentDate), "yyyy")))
+      );
+      const months = Array.from(
+        new Set(data.map((loan) => format(parseISO(loan.lastPaymentDate), "MMMM")))
+      );
+
+      setUniquePayPeriods(payPeriods);
+      setUniqueYears(years);
+      setUniqueMonths(months);
     } catch (error) {
       console.error("Error fetching loans in arrears:", error);
     } finally {
@@ -56,10 +70,56 @@ const LoansInArrears = () => {
     }
   };
 
-  const filteredLoans =
-    selectedPayPeriod === "All"
-      ? loansInArrears
-      : loansInArrears.filter((loan) => loan.payPeriod === selectedPayPeriod);
+  const filteredLoans = loansInArrears.filter((loan) => {
+    const date = parseISO(loan.lastPaymentDate);
+    const loanYear = format(date, "yyyy");
+    const loanMonth = format(date, "MMMM");
+
+    return (
+      (selectedPayPeriod === "All" || loan.payPeriod === selectedPayPeriod) &&
+      (selectedYear === "All" || loanYear === selectedYear) &&
+      (selectedMonth === "All" || loanMonth === selectedMonth)
+    );
+  });
+
+  const exportToCSV = () => {
+    if (!filteredLoans.length) return;
+
+    const headers = [
+      "Loan ID",
+      "Borrower Name",
+      "Loan Amount",
+      "Days Overdue",
+      "Amount Overdue",
+      "Last Payment Date",
+      "Pay Period",
+    ];
+
+    const rows = filteredLoans.map((loan) => [
+      loan.loanId,
+      loan.borrowerName,
+      `K${loan.loanAmount.toFixed(2)}`,
+      loan.daysOverdue,
+      `K${loan.amountOverdue.toFixed(2)}`,
+      loan.lastPaymentDate,
+      loan.payPeriod,
+    ]);
+
+    const csvContent =
+      [headers, ...rows]
+        .map((e) => e.join(","))
+        .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "loans_in_arrears.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="space-y-6">
@@ -67,11 +127,36 @@ const LoansInArrears = () => {
         <h1 className="text-2xl font-bold">Loans in Arrears</h1>
 
         <div className="flex items-center gap-4">
-          <Select
-            value={selectedPayPeriod}
-            onValueChange={setSelectedPayPeriod}
-          >
-            <SelectTrigger className="w-[180px]">
+          <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="Select Year" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="All">All Years</SelectItem>
+              {uniqueYears.map((year) => (
+                <SelectItem key={year} value={year}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Select Month" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="All">All Months</SelectItem>
+              {uniqueMonths.map((month) => (
+                <SelectItem key={month} value={month}>
+                  {month}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={selectedPayPeriod} onValueChange={setSelectedPayPeriod}>
+            <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Select Pay Period" />
             </SelectTrigger>
             <SelectContent>
@@ -83,6 +168,14 @@ const LoansInArrears = () => {
               ))}
             </SelectContent>
           </Select>
+
+          <Button
+            onClick={exportToCSV}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            Download CSV
+          </Button>
 
           <Button
             onClick={() => window.print()}
