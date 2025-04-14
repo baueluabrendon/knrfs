@@ -1,23 +1,15 @@
+
 import { useState, useEffect } from "react";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { recoveriesApi } from "@/lib/api/recoveries";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, isValid } from "date-fns";
 import { Loader2 } from "lucide-react";
 
 interface LoanInArrears {
@@ -52,12 +44,22 @@ const LoansInArrears = () => {
       setLoansInArrears(data);
 
       const payPeriods = Array.from(new Set(data.map((loan) => loan.payPeriod))).filter(Boolean);
-      const years = Array.from(
-        new Set(data.map((loan) => format(parseISO(loan.lastPaymentDate), "yyyy")))
-      );
-      const months = Array.from(
-        new Set(data.map((loan) => format(parseISO(loan.lastPaymentDate), "MMMM")))
-      );
+      const years = Array.from(new Set(
+        data
+          .map((loan) => {
+            const date = parseISO(loan.lastPaymentDate);
+            return isValid(date) ? format(date, "yyyy") : null;
+          })
+          .filter(Boolean)
+      ));
+      const months = Array.from(new Set(
+        data
+          .map((loan) => {
+            const date = parseISO(loan.lastPaymentDate);
+            return isValid(date) ? format(date, "MMMM") : null;
+          })
+          .filter(Boolean)
+      ));
 
       setUniquePayPeriods(payPeriods);
       setUniqueYears(years);
@@ -71,18 +73,30 @@ const LoansInArrears = () => {
 
   const filteredLoans = loansInArrears.filter((loan) => {
     const date = parseISO(loan.lastPaymentDate);
-    const loanYear = format(date, "yyyy");
-    const loanMonth = format(date, "MMMM");
+    if (!isValid(date)) return false;
 
-    return (
-      (selectedPayPeriod === "All" || loan.payPeriod === selectedPayPeriod) &&
-      (selectedYear === "All" || loanYear === selectedYear) &&
-      (selectedMonth === "All" || loanMonth === selectedMonth)
-    );
+    const year = format(date, "yyyy");
+    const month = format(date, "MMMM");
+
+    const matchYear = selectedYear === "All" || year === selectedYear;
+    const matchMonth = selectedMonth === "All" || month === selectedMonth;
+    const matchPay = selectedPayPeriod === "All" || loan.payPeriod === selectedPayPeriod;
+
+    if (selectedPayPeriod !== "All") {
+      return matchYear && matchPay;
+    }
+    return matchYear && matchMonth;
   });
 
+  const uniqueLoans = filteredLoans.reduce((acc, loan) => {
+    if (!acc.find((l) => l.loanId === loan.loanId)) {
+      acc.push(loan);
+    }
+    return acc;
+  }, [] as LoanInArrears[]);
+
   const exportToCSV = () => {
-    if (!filteredLoans.length) return;
+    if (!uniqueLoans.length) return;
 
     const headers = [
       "Loan ID",
@@ -94,7 +108,7 @@ const LoansInArrears = () => {
       "Pay Period",
     ];
 
-    const rows = filteredLoans.map((loan) => [
+    const rows = uniqueLoans.map((loan) => [
       loan.loanId,
       loan.borrowerName,
       `K${loan.loanAmount.toFixed(2)}`,
@@ -104,17 +118,12 @@ const LoansInArrears = () => {
       loan.payPeriod,
     ]);
 
-    const csvContent =
-      [headers, ...rows]
-        .map((e) => e.join(","))
-        .join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const csvContent = [headers, ...rows].map((row) => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
-
     const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", "loans_in_arrears.csv");
+    link.href = url;
+    link.download = "loans_in_arrears.csv";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -123,32 +132,37 @@ const LoansInArrears = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Loans in Arrears</h1>
-
-        <div className="flex items-center gap-4">
+        <h1 className="text-2xl font-bold">
+          Loans in Arrears ({uniqueLoans.length} found)
+        </h1>
+        <div className="flex gap-4">
           <Select value={selectedYear} onValueChange={setSelectedYear}>
             <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Select Year" />
+              <SelectValue placeholder="Year" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="All">All Years</SelectItem>
-              {uniqueYears.map((year) => (
-                <SelectItem key={year} value={year}>
-                  {year}
+              {uniqueYears.map((y) => (
+                <SelectItem key={y} value={y}>
+                  {y}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
 
-          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+          <Select
+            value={selectedMonth}
+            onValueChange={setSelectedMonth}
+            disabled={selectedPayPeriod !== "All"}
+          >
             <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Select Month" />
+              <SelectValue placeholder="Month" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="All">All Months</SelectItem>
-              {uniqueMonths.map((month) => (
-                <SelectItem key={month} value={month}>
-                  {month}
+              {uniqueMonths.map((m) => (
+                <SelectItem key={m} value={m}>
+                  {m}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -156,23 +170,19 @@ const LoansInArrears = () => {
 
           <Select value={selectedPayPeriod} onValueChange={setSelectedPayPeriod}>
             <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Select Pay Period" />
+              <SelectValue placeholder="Pay Period" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="All">All Pay Periods</SelectItem>
-              {uniquePayPeriods.map((period) => (
-                <SelectItem key={period} value={period}>
-                  {period}
+              {uniquePayPeriods.map((p) => (
+                <SelectItem key={p} value={p}>
+                  {p}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
 
-          <Button
-            onClick={exportToCSV}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
+          <Button onClick={exportToCSV} variant="outline">
             Download CSV
           </Button>
         </div>
@@ -180,7 +190,7 @@ const LoansInArrears = () => {
 
       <Card className="p-6">
         {isLoading ? (
-          <div className="flex justify-center py-8">
+          <div className="flex justify-center py-6">
             <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
           </div>
         ) : (
@@ -197,22 +207,21 @@ const LoansInArrears = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredLoans.length > 0 ? (
-                filteredLoans.map((loan) => (
-                  <TableRow key={loan.loanId}>
-                    <TableCell>{loan.loanId}</TableCell>
-                    <TableCell>{loan.borrowerName}</TableCell>
-                    <TableCell>K{loan.loanAmount.toFixed(2)}</TableCell>
-                    <TableCell>{loan.daysOverdue}</TableCell>
-                    <TableCell>K{loan.amountOverdue.toFixed(2)}</TableCell>
-                    <TableCell>{loan.lastPaymentDate}</TableCell>
-                    <TableCell>{loan.payPeriod}</TableCell>
-                  </TableRow>
-                ))
-              ) : (
+              {uniqueLoans.map((loan) => (
+                <TableRow key={loan.loanId}>
+                  <TableCell>{loan.loanId}</TableCell>
+                  <TableCell>{loan.borrowerName}</TableCell>
+                  <TableCell>K{loan.loanAmount.toFixed(2)}</TableCell>
+                  <TableCell>{loan.daysOverdue}</TableCell>
+                  <TableCell>K{loan.amountOverdue.toFixed(2)}</TableCell>
+                  <TableCell>{loan.lastPaymentDate}</TableCell>
+                  <TableCell>{loan.payPeriod}</TableCell>
+                </TableRow>
+              ))}
+              {!uniqueLoans.length && (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-6">
-                    No loans in arrears found.
+                    No loans in arrears match your filters.
                   </TableCell>
                 </TableRow>
               )}
