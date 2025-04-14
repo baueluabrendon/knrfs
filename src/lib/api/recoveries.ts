@@ -20,7 +20,7 @@ export const recoveriesApi = {
         fileNumber: item.file_number || '',
         email: item.email || '',
         mobileNumber: item.mobile_number || '',
-        organization: item.department_company || '',
+        organization: item.organization || '', // Map organization correctly
         loanAmount: item.principal + item.interest, // or use gross_loan if available
         amountOverdue: item.arrears,
         daysOverdue: item.days_late,
