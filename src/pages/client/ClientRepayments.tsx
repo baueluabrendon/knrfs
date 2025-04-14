@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,64 +14,71 @@ import { Repayment } from "@/types/repayment";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 import RepaymentsSearchBar from "@/components/repayments/RepaymentsSearchBar";
+import { useQuery } from "@tanstack/react-query";
 
 const ClientRepayments = () => {
   const { user } = useAuth();
-  const [repayments, setRepayments] = useState<Repayment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   
-  useEffect(() => {
-    const fetchRepayments = async () => {
-      if (!user) return;
-      
-      try {
-        setIsLoading(true);
-        // In a real application, you would filter by user ID or associated loans
-        const { data, error } = await supabase
-          .from('repayments')
-          .select('*');
-        
-        if (error) {
-          console.error('Error fetching repayments:', error);
-          throw error;
-        }
-        
-        if (!data || data.length === 0) {
-          setRepayments([]);
-          return;
-        }
-        
-        // Map database fields to our Repayment type
-        const mappedRepayments: Repayment[] = data.map(item => ({
-          repayment_id: item.repayment_id || `temp-${Date.now()}`,
-          payment_date: item.payment_date || item.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-          amount: Number(item.amount),
-          loan_id: item.loan_id || 'Unknown',
-          borrowerName: 'Client', // Default for client view
-          status: item.status as any || "pending",
-          receipt_url: item.receipt_url || undefined,
-          notes: item.notes || undefined,
-          source: item.source,
-          verification_status: item.verification_status,
-          verified_at: item.verified_at,
-          verified_by: item.verified_by
-        }));
-        
-        setRepayments(mappedRepayments);
-      } catch (error) {
-        console.error('Error in fetchRepayments:', error);
-      } finally {
-        setIsLoading(false);
+  const { data: repayments, isLoading } = useQuery({
+    queryKey: ['client-repayments', user?.user_id],
+    queryFn: async () => {
+      // First get the borrower_id from user_profiles
+      const { data: userProfile } = await supabase
+        .from('user_profiles')
+        .select('borrower_id')
+        .eq('user_id', user?.user_id)
+        .single();
+
+      if (!userProfile?.borrower_id) {
+        throw new Error('Borrower ID not found');
       }
-    };
-    
-    fetchRepayments();
-  }, [user]);
+
+      // Get loans for this borrower
+      const { data: loans } = await supabase
+        .from('loans')
+        .select('loan_id')
+        .eq('borrower_id', userProfile.borrower_id);
+
+      if (!loans?.length) {
+        return [];
+      }
+
+      const loanIds = loans.map(loan => loan.loan_id);
+
+      // Get repayments for these loans
+      const { data, error } = await supabase
+        .from('repayments')
+        .select('*')
+        .in('loan_id', loanIds)
+        .order('payment_date', { ascending: false });
+      
+      if (error) throw error;
+      
+      if (!data) return [];
+      
+      // Map database fields to our Repayment type
+      return data.map(item => ({
+        repayment_id: item.repayment_id,
+        payment_date: item.payment_date,
+        amount: Number(item.amount),
+        loan_id: item.loan_id,
+        borrowerName: 'Client',
+        status: item.status as any,
+        receipt_url: item.receipt_url,
+        notes: item.notes,
+        source: item.source,
+        verification_status: item.verification_status,
+        verified_at: item.verified_at,
+        verified_by: item.verified_by
+      }));
+    },
+    enabled: !!user?.user_id
+  });
 
   // Filter repayments based on search query
   const filteredRepayments = useMemo(() => {
-    if (!searchQuery.trim()) return repayments;
+    if (!repayments || !searchQuery.trim()) return repayments || [];
     
     const query = searchQuery.toLowerCase().trim();
     return repayments.filter(repayment => {
