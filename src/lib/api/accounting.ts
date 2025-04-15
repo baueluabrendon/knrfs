@@ -12,7 +12,7 @@ export const accountingApi = {
         .order('account_id');
       
       if (error) throw new Error(error.message);
-      return data;
+      return data as ChartOfAccount[];
     } catch (error) {
       console.error('Get chart of accounts error:', error);
       throw error;
@@ -27,7 +27,7 @@ export const accountingApi = {
         .order('start_date');
       
       if (error) throw new Error(error.message);
-      return data;
+      return data as FiscalPeriod[];
     } catch (error) {
       console.error('Get fiscal periods error:', error);
       throw error;
@@ -119,4 +119,3 @@ export const accountingApi = {
     }
   }
 };
-
