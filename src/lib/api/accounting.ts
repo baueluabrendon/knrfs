@@ -1,5 +1,4 @@
 
-import { ApiResponse } from './types';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   ChartOfAccount, 
@@ -52,7 +51,8 @@ export const accountingApi = {
         .rpc('generate_balance_sheet', { p_period_id: periodId });
       
       if (error) throw new Error(error.message);
-      return data as BalanceSheetData;
+      // Use a more explicit type assertion with intermediate step
+      return data as unknown as BalanceSheetData;
     } catch (error) {
       console.error('Get balance sheet error:', error);
       throw error;
@@ -67,7 +67,8 @@ export const accountingApi = {
         .rpc('generate_profit_loss', { p_period_id: periodId });
       
       if (error) throw new Error(error.message);
-      return data as ProfitLossData;
+      // Use a more explicit type assertion with intermediate step
+      return data as unknown as ProfitLossData;
     } catch (error) {
       console.error('Get profit and loss error:', error);
       throw error;
@@ -82,7 +83,8 @@ export const accountingApi = {
         .rpc('generate_cashflow', { p_period_id: periodId });
       
       if (error) throw new Error(error.message);
-      return data as CashflowData;
+      // Use a more explicit type assertion with intermediate step
+      return data as unknown as CashflowData;
     } catch (error) {
       console.error('Get cashflow error:', error);
       throw error;

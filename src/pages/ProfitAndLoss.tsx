@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import {
@@ -16,17 +17,12 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
-import { supabase } from '@/integrations/supabase/client';
+import { ProfitLossData } from "@/lib/api/types";
 
 type RevenueExpenseItem = {
   category: string;
   name: string;
   amount: number;
-};
-
-type ProfitLossData = {
-  revenue: RevenueExpenseItem[];
-  expenses: RevenueExpenseItem[];
 };
 
 const ProfitAndLoss = () => {
@@ -43,9 +39,9 @@ const ProfitAndLoss = () => {
   });
 
   // Fetch profit and loss data based on selected period
-  const { data: profitLossData, isLoading: isLoadingProfitLoss } = useQuery<ProfitLossData, Error>({
+  const { data: profitLossData, isLoading: isLoadingProfitLoss } = useQuery({
     queryKey: ['profit-loss', periodId],
-    queryFn: () => accountingApi.getProfitAndLoss(periodId),
+    queryFn: accountingApi.getProfitAndLoss,
     enabled: periodId !== null
   });
 

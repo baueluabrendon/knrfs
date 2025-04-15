@@ -12,10 +12,11 @@ import { aiApi } from "@/lib/api/ai";
 import { Separator } from "@/components/ui/separator"; 
 import { AlertTriangle, Loader2, CircleAlert } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { FiscalPeriod } from "@/lib/api/types";
 
 const AIReporting = () => {
   const [activeTab, setActiveTab] = useState("forecasting");
-  const [selectedPeriodId, setSelectedPeriodId] = useState<number>(1); // Default to first period
+  const [selectedPeriodId, setSelectedPeriodId] = useState<number | null>(null);
 
   // Fetch loans
   const { 
@@ -37,20 +38,22 @@ const AIReporting = () => {
     queryFn: repaymentsApi.getRepayments
   });
 
-  // Fetch fiscal periods first to get the default period
+  // Fetch fiscal periods
   const { 
     data: fiscalPeriods,
     isLoading: isLoadingPeriods,
     error: periodsError
-  } = useQuery({
+  } = useQuery<FiscalPeriod[]>({
     queryKey: ["fiscal-periods"],
-    queryFn: accountingApi.getFiscalPeriods,
-    onSuccess: (data) => {
-      if (data?.length > 0 && !selectedPeriodId) {
-        setSelectedPeriodId(data[0].period_id);
-      }
-    }
+    queryFn: accountingApi.getFiscalPeriods
   });
+
+  // Set default period when data is loaded
+  React.useEffect(() => {
+    if (fiscalPeriods?.length > 0 && !selectedPeriodId) {
+      setSelectedPeriodId(fiscalPeriods[0].period_id);
+    }
+  }, [fiscalPeriods, selectedPeriodId]);
 
   // Fetch accounting data
   const { 
@@ -147,7 +150,7 @@ const AIReporting = () => {
               profitLossData={profitLossData}
               balanceSheetData={balanceSheetData}
               cashflowData={cashflowData}
-              fiscalPeriods={fiscalPeriods}
+              fiscalPeriods={fiscalPeriods || []}
               onPeriodChange={(periodId) => setSelectedPeriodId(periodId)}
               selectedPeriodId={selectedPeriodId}
             />
