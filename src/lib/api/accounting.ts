@@ -1,11 +1,10 @@
 
 import { ApiResponse } from './types';
 import { supabase } from '@/integrations/supabase/client';
-
-const API_BASE_URL = 'http://localhost:5000';
+import { ChartOfAccount, FiscalPeriod, Transaction, TransactionLine, FinancialReport } from './types';
 
 export const accountingApi = {
-  async getChartOfAccounts() {
+  async getChartOfAccounts(): Promise<ChartOfAccount[]> {
     try {
       const { data, error } = await supabase
         .from('chart_of_accounts')
@@ -20,7 +19,7 @@ export const accountingApi = {
     }
   },
 
-  async getFiscalPeriods() {
+  async getFiscalPeriods(): Promise<FiscalPeriod[]> {
     try {
       const { data, error } = await supabase
         .from('fiscal_periods')
@@ -35,7 +34,7 @@ export const accountingApi = {
     }
   },
 
-  async getBalanceSheet(periodId) {
+  async getBalanceSheet(periodId: number) {
     try {
       const { data, error } = await supabase
         .rpc('generate_balance_sheet', { p_period_id: periodId });
@@ -48,7 +47,7 @@ export const accountingApi = {
     }
   },
 
-  async getProfitAndLoss(periodId) {
+  async getProfitAndLoss(periodId: number) {
     try {
       const { data, error } = await supabase
         .rpc('generate_profit_loss', { p_period_id: periodId });
@@ -61,7 +60,7 @@ export const accountingApi = {
     }
   },
 
-  async getCashflow(periodId) {
+  async getCashflow(periodId: number) {
     try {
       const { data, error } = await supabase
         .rpc('generate_cashflow', { p_period_id: periodId });
@@ -74,13 +73,13 @@ export const accountingApi = {
     }
   },
 
-  async saveTransaction(transaction, transactionLines) {
+  async saveTransaction(transaction: Transaction, transactionLines: TransactionLine[]) {
     try {
       // First insert the transaction
       const { data: transactionData, error: transactionError } = await supabase
         .from('accounting_transactions')
         .insert(transaction)
-        .select('transaction_id')
+        .select()
         .single();
       
       if (transactionError) throw new Error(transactionError.message);
@@ -104,12 +103,12 @@ export const accountingApi = {
     }
   },
   
-  async saveFinancialReport(report) {
+  async saveFinancialReport(report: FinancialReport) {
     try {
       const { data, error } = await supabase
         .from('financial_reports')
         .insert(report)
-        .select('*')
+        .select()
         .single();
       
       if (error) throw new Error(error.message);
@@ -120,3 +119,4 @@ export const accountingApi = {
     }
   }
 };
+
