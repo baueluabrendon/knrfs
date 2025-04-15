@@ -1,108 +1,107 @@
 
-import { useState, useEffect } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
-import { recoveriesApi } from "@/lib/api/recoveries";
 import { Loader2 } from "lucide-react";
-
-interface PartialPayment {
-  id: string;
-  borrowerName: string;
-  paymentDate: string;
-  amountDue: number;
-  amountPaid: number;
-  shortfall: number;
-  loanId: string;
-}
+import { MissedPaymentsFilters } from "@/components/missed-payments/MissedPaymentsFilters";
+import { PartialPaymentsTable } from "@/components/partial-payments/PartialPaymentsTable";
+import { usePartialPayments } from "@/hooks/usePartialPayments";
+import { parseISO, isValid, format } from "date-fns";
 
 const PartialPayments = () => {
-  const [partialPayments, setPartialPayments] = useState<PartialPayment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [selectedYear, setSelectedYear] = useState("All");
+  const [selectedMonth, setSelectedMonth] = useState("All");
+  const [selectedPayPeriod, setSelectedPayPeriod] = useState("All");
+  const [selectedPayrollType, setSelectedPayrollType] = useState("All");
 
-  useEffect(() => {
-    fetchPartialPayments();
-  }, []);
+  const { data: queryData, isLoading } = usePartialPayments();
+  const { data = [], uniqueYears = [], uniqueMonths = [], uniquePayPeriods = [], uniquePayrollTypes = [] } = queryData || {};
 
-  const fetchPartialPayments = async () => {
-    try {
-      setIsLoading(true);
-      
-      // In a real implementation, we would use the API
-      // const data = await recoveriesApi.getPartialPayments();
-      // setPartialPayments(data);
-      
-      // For now, use sample data
-      setPartialPayments([
-        {
-          id: "PP001",
-          borrowerName: "John Doe",
-          paymentDate: "2024-01-15",
-          amountDue: 1000,
-          amountPaid: 700,
-          shortfall: 300,
-          loanId: "L001",
-        },
-        {
-          id: "PP002",
-          borrowerName: "Jane Smith",
-          paymentDate: "2024-01-01",
-          amountDue: 1500,
-          amountPaid: 1000,
-          shortfall: 500,
-          loanId: "L002",
-        },
-      ]);
-    } catch (error) {
-      console.error("Error fetching partial payments:", error);
-    } finally {
-      setIsLoading(false);
+  const filtered = useMemo(() => {
+    const filteredSet = new Map();
+
+    for (const r of data) {
+      const date = parseISO(r.paymentDate);
+      if (!isValid(date)) continue;
+
+      const year = format(date, "yyyy");
+      const month = format(date, "MMMM");
+
+      const match =
+        (selectedYear === "All" || year === selectedYear) &&
+        (selectedMonth === "All" || selectedMonth === "None" || month === selectedMonth) &&
+        (selectedPayPeriod === "All" || r.payPeriod === selectedPayPeriod) &&
+        (selectedPayrollType === "All" || r.payrollType === selectedPayrollType);
+
+      if (match) {
+        const key = `${r.loanId}-${r.payPeriod}`;
+        if (!filteredSet.has(key)) {
+          filteredSet.set(key, r);
+        }
+      }
     }
+
+    return Array.from(filteredSet.values()).sort(
+      (a, b) => parseISO(b.paymentDate).getTime() - parseISO(a.paymentDate).getTime()
+    );
+  }, [data, selectedYear, selectedMonth, selectedPayPeriod, selectedPayrollType]);
+
+  const exportCSV = () => {
+    if (!filtered.length) return;
+    const headers = [
+      "Payment ID", "Borrower Name", "Payment Date",
+      "Amount Due", "Amount Paid", "Shortfall", "Loan ID"
+    ];
+
+    const rows = filtered.map((r) => [
+      r.id, r.borrowerName, r.paymentDate,
+      `K${r.amountDue.toFixed(2)}`,
+      `K${r.amountPaid.toFixed(2)}`,
+      `K${r.shortfall.toFixed(2)}`,
+      r.loanId
+    ]);
+
+    const blob = new Blob([[headers, ...rows].map((r) => r.join(",")).join("\n")], {
+      type: "text/csv"
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "partial_payments.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Partial Payments</h1>
+        <h1 className="text-2xl font-bold">
+          Partial Payments ({filtered.length})
+        </h1>
+        <MissedPaymentsFilters
+          selectedYear={selectedYear}
+          selectedMonth={selectedMonth}
+          selectedPayPeriod={selectedPayPeriod}
+          selectedPayrollType={selectedPayrollType}
+          uniqueYears={uniqueYears}
+          uniqueMonths={uniqueMonths}
+          uniquePayPeriods={uniquePayPeriods}
+          uniquePayrollTypes={uniquePayrollTypes}
+          onYearChange={setSelectedYear}
+          onMonthChange={setSelectedMonth}
+          onPayPeriodChange={setSelectedPayPeriod}
+          onPayrollTypeChange={setSelectedPayrollType}
+          onExport={exportCSV}
+        />
       </div>
+
       <Card className="p-6">
         {isLoading ? (
-          <div className="flex justify-center py-8">
+          <div className="flex justify-center py-10">
             <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Payment ID</TableHead>
-                <TableHead>Borrower Name</TableHead>
-                <TableHead>Payment Date</TableHead>
-                <TableHead>Amount Due</TableHead>
-                <TableHead>Amount Paid</TableHead>
-                <TableHead>Shortfall</TableHead>
-                <TableHead>Loan ID</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {partialPayments.map((payment) => (
-                <TableRow key={payment.id}>
-                  <TableCell>{payment.id}</TableCell>
-                  <TableCell>{payment.borrowerName}</TableCell>
-                  <TableCell>{payment.paymentDate}</TableCell>
-                  <TableCell>K{payment.amountDue.toFixed(2)}</TableCell>
-                  <TableCell>K{payment.amountPaid.toFixed(2)}</TableCell>
-                  <TableCell>K{payment.shortfall.toFixed(2)}</TableCell>
-                  <TableCell>{payment.loanId}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <PartialPaymentsTable payments={filtered} />
         )}
       </Card>
     </div>

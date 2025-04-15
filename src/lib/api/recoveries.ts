@@ -64,12 +64,36 @@ export const recoveriesApi = {
 
   async getPartialPayments() {
     try {
-      const response = await fetch(`${API_BASE_URL}/recoveries/partial-payments`);
-      const data: ApiResponse<any> = await response.json();
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to fetch partial payments');
-      }
-      return data.data;
+      const { data, error } = await supabase
+        .from("repayment_schedule")
+        .select(`
+          *,
+          loans:loan_id (
+            borrower_id,
+            borrowers:borrower_id (
+              given_name,
+              surname
+            )
+          )
+        `)
+        .eq("statusrs", "partial");
+
+      if (error) throw error;
+
+      return data.map((item) => {
+        const borrower = item.loans?.borrowers;
+        return {
+          id: item.schedule_id,
+          borrowerName: borrower ? `${borrower.given_name} ${borrower.surname}` : "Unknown",
+          paymentDate: item.settled_date || item.due_date,
+          amountDue: item.repaymentrs || 0,
+          amountPaid: item.repayment_received || 0,
+          shortfall: (item.repaymentrs || 0) - (item.repayment_received || 0),
+          loanId: item.loan_id,
+          payPeriod: item.pay_period || "N/A",
+          payrollType: item.payroll_type || "N/A"
+        };
+      });
     } catch (error) {
       console.error('Get partial payments error:', error);
       throw error;
