@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { 
@@ -23,6 +22,17 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
+type AssetLiabilityItem = {
+  name: string;
+  amount: number;
+};
+
+type BalanceSheetData = {
+  assets: AssetLiabilityItem[];
+  liabilities: AssetLiabilityItem[];
+  equity: AssetLiabilityItem[];
+};
+
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -40,7 +50,7 @@ const BalanceSheet = () => {
   });
 
   // Fetch balance sheet data based on selected period
-  const { data: balanceSheetData, isLoading: isLoadingBalanceSheet } = useQuery({
+  const { data: balanceSheetData, isLoading: isLoadingBalanceSheet } = useQuery<BalanceSheetData, Error>({
     queryKey: ['balance-sheet', periodId],
     queryFn: () => accountingApi.getBalanceSheet(periodId),
     enabled: periodId !== null
@@ -68,7 +78,7 @@ const BalanceSheet = () => {
     if (!acc[category]) acc[category] = [];
     acc[category].push(item);
     return acc;
-  }, {} as Record<string, typeof assets>);
+  }, {} as Record<string, AssetLiabilityItem[]>);
 
   // Group liabilities by category
   const liabilityCategories = liabilities.reduce((acc, item) => {
@@ -76,7 +86,7 @@ const BalanceSheet = () => {
     if (!acc[category]) acc[category] = [];
     acc[category].push(item);
     return acc;
-  }, {} as Record<string, typeof liabilities>);
+  }, {} as Record<string, AssetLiabilityItem[]>);
 
   // Handle print
   const handlePrint = () => {

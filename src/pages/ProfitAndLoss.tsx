@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import {
@@ -19,6 +18,17 @@ import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 
+type RevenueExpenseItem = {
+  category: string;
+  name: string;
+  amount: number;
+};
+
+type ProfitLossData = {
+  revenue: RevenueExpenseItem[];
+  expenses: RevenueExpenseItem[];
+};
+
 const ProfitAndLoss = () => {
   const [periodId, setPeriodId] = useState<number | null>(null);
   const [view, setView] = useState("summary");
@@ -33,7 +43,7 @@ const ProfitAndLoss = () => {
   });
 
   // Fetch profit and loss data based on selected period
-  const { data: profitLossData, isLoading: isLoadingProfitLoss } = useQuery({
+  const { data: profitLossData, isLoading: isLoadingProfitLoss } = useQuery<ProfitLossData, Error>({
     queryKey: ['profit-loss', periodId],
     queryFn: () => accountingApi.getProfitAndLoss(periodId),
     enabled: periodId !== null

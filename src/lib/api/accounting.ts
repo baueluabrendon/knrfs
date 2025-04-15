@@ -1,5 +1,6 @@
 
 import { ApiResponse } from './types';
+import { supabase } from '@/integrations/supabase/client';
 
 const API_BASE_URL = 'http://localhost:5000';
 
