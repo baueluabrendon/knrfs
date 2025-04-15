@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Download, Printer, MessageSquare, Loader2, XCircle } from "lucide-react";
-import { aiApi } from "@/lib/api/ai";
+import { aiApi, AccountingParams } from "@/lib/api/ai";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -70,10 +70,10 @@ const ProfitAndLoss = () => {
         data: view === 'summary' ? summaryData : detailedData
       };
 
-      const params = {
-        reportType: 'pnl',
+      const params: AccountingParams = {
+        reportType: 'pnl' as 'summary' | 'pnl' | 'reconciliation',
         timeframe: period === 'year-to-date' ? 'yearly' : 
-                   period === 'quarter' ? 'quarterly' : 'monthly'
+                   period === 'quarter' ? 'monthly' : 'monthly'
       };
       
       const result = await aiApi.generateAccountingReport(params, reportData);
