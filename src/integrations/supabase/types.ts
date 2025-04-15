@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      accounting_transactions: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          reference_number: string | null
+          transaction_date: string
+          transaction_id: string
+          transaction_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          reference_number?: string | null
+          transaction_date: string
+          transaction_id?: string
+          transaction_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          reference_number?: string | null
+          transaction_date?: string
+          transaction_id?: string
+          transaction_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       applications: {
         Row: {
           application_document_url: string | null
@@ -147,6 +180,39 @@ export type Database = {
         }
         Relationships: []
       }
+      chart_of_accounts: {
+        Row: {
+          account_category: string
+          account_id: string
+          account_name: string
+          account_type: string
+          created_at: string | null
+          description: string | null
+          is_active: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          account_category: string
+          account_id: string
+          account_name: string
+          account_type: string
+          created_at?: string | null
+          description?: string | null
+          is_active?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          account_category?: string
+          account_id?: string
+          account_name?: string
+          account_type?: string
+          created_at?: string | null
+          description?: string | null
+          is_active?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       defaults: {
         Row: {
           arrear_id: string
@@ -226,6 +292,74 @@ export type Database = {
             referencedColumns: ["application_id"]
           },
         ]
+      }
+      financial_reports: {
+        Row: {
+          generated_at: string | null
+          generated_by: string | null
+          notes: string | null
+          period_id: number | null
+          report_data: Json | null
+          report_id: string
+          report_type: string
+        }
+        Insert: {
+          generated_at?: string | null
+          generated_by?: string | null
+          notes?: string | null
+          period_id?: number | null
+          report_data?: Json | null
+          report_id?: string
+          report_type: string
+        }
+        Update: {
+          generated_at?: string | null
+          generated_by?: string | null
+          notes?: string | null
+          period_id?: number | null
+          report_data?: Json | null
+          report_id?: string
+          report_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_reports_period_id_fkey"
+            columns: ["period_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_periods"
+            referencedColumns: ["period_id"]
+          },
+        ]
+      }
+      fiscal_periods: {
+        Row: {
+          created_at: string | null
+          end_date: string
+          is_closed: boolean | null
+          period_id: number
+          period_name: string
+          start_date: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          end_date: string
+          is_closed?: boolean | null
+          period_id?: number
+          period_name: string
+          start_date: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string
+          is_closed?: boolean | null
+          period_id?: number
+          period_name?: string
+          start_date?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       loans: {
         Row: {
@@ -597,6 +731,54 @@ export type Database = {
           },
         ]
       }
+      transaction_lines: {
+        Row: {
+          account_id: string
+          created_at: string | null
+          credit_amount: number | null
+          debit_amount: number | null
+          description: string | null
+          line_id: string
+          transaction_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          account_id: string
+          created_at?: string | null
+          credit_amount?: number | null
+          debit_amount?: number | null
+          description?: string | null
+          line_id?: string
+          transaction_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          account_id?: string
+          created_at?: string | null
+          credit_amount?: number | null
+          debit_amount?: number | null
+          description?: string | null
+          line_id?: string
+          transaction_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_lines_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["account_id"]
+          },
+          {
+            foreignKeyName: "transaction_lines_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_transactions"
+            referencedColumns: ["transaction_id"]
+          },
+        ]
+      }
       user_profiles: {
         Row: {
           borrower_id: string | null
@@ -747,6 +929,18 @@ export type Database = {
       generate_arrear_id: {
         Args: { p_schedule_id: string }
         Returns: string
+      }
+      generate_balance_sheet: {
+        Args: { p_period_id: number }
+        Returns: Json
+      }
+      generate_cashflow: {
+        Args: { p_period_id: number }
+        Returns: Json
+      }
+      generate_profit_loss: {
+        Args: { p_period_id: number }
+        Returns: Json
       }
       generate_repayment_id: {
         Args: { p_loan_id: string }
