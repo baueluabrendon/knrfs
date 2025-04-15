@@ -1,4 +1,3 @@
-
 import { RouteObject } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import { menuItems } from "@/config/menuItems";
@@ -23,8 +22,8 @@ import LoansInArrears from "@/pages/LoansInArrears";
 import MissedPayments from "@/pages/MissedPayments";
 import PartialPayments from "@/pages/PartialPayments";
 import ClientRepaymentVerification from "@/pages/ClientRepaymentVerification";
+import AILoanAssistant from "@/components/ai-assistant/AILoanAssistant";
 
-// Define admin routes with proper nesting
 export const adminRoutes: RouteObject[] = [
   {
     path: "/admin",
@@ -109,6 +108,10 @@ export const adminRoutes: RouteObject[] = [
       {
         path: "repayments/bulk",
         element: <BulkRepayments />
+      },
+      {
+        path: "ai-assistant",
+        element: <AILoanAssistant />
       }
     ]
   }
