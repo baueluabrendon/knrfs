@@ -9,30 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      accounts: {
-        Row: {
-          account_id: string
-          account_name: string
-          account_type: Database["public"]["Enums"]["accounts_enum"]
-          created_at: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          account_id: string
-          account_name: string
-          account_type: Database["public"]["Enums"]["accounts_enum"]
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          account_id?: string
-          account_name?: string
-          account_type?: Database["public"]["Enums"]["accounts_enum"]
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       applications: {
         Row: {
           application_document_url: string | null
@@ -248,47 +224,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "applications"
             referencedColumns: ["application_id"]
-          },
-        ]
-      }
-      journal_entry: {
-        Row: {
-          account_id: string
-          created_at: string | null
-          credit: number | null
-          debit: number | null
-          description: string | null
-          entry_id: number
-          ref_number: string
-          transaction_date: string
-        }
-        Insert: {
-          account_id: string
-          created_at?: string | null
-          credit?: number | null
-          debit?: number | null
-          description?: string | null
-          entry_id?: number
-          ref_number: string
-          transaction_date: string
-        }
-        Update: {
-          account_id?: string
-          created_at?: string | null
-          credit?: number | null
-          debit?: number | null
-          description?: string | null
-          entry_id?: number
-          ref_number?: string
-          transaction_date?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "journal_entry_account_id_fkey"
-            columns: ["account_id"]
-            isOneToOne: false
-            referencedRelation: "accounts"
-            referencedColumns: ["account_id"]
           },
         ]
       }
