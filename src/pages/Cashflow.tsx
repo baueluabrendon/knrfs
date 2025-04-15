@@ -21,17 +21,7 @@ import { accountingApi } from "@/lib/api/accounting";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format } from "date-fns";
-
-type CashflowItem = {
-  name: string;
-  amount: number;
-};
-
-type CashflowData = {
-  operating: CashflowItem[];
-  investing: CashflowItem[];
-  financing: CashflowItem[];
-};
+import { CashflowData, CashflowItem } from "@/lib/api/types";
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-US', {
@@ -53,7 +43,7 @@ const Cashflow = () => {
   // Fetch cashflow data based on selected period
   const { data: cashflowData, isLoading: isLoadingCashflow } = useQuery<CashflowData, Error>({
     queryKey: ['cashflow', periodId],
-    queryFn: () => accountingApi.getCashflow(periodId),
+    queryFn: accountingApi.getCashflow,
     enabled: periodId !== null
   });
 

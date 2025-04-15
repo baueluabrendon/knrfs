@@ -1,7 +1,17 @@
 
 import { ApiResponse } from './types';
 import { supabase } from '@/integrations/supabase/client';
-import { ChartOfAccount, FiscalPeriod, Transaction, TransactionLine, FinancialReport } from './types';
+import { 
+  ChartOfAccount, 
+  FiscalPeriod, 
+  Transaction, 
+  TransactionLine, 
+  FinancialReport, 
+  BalanceSheetData,
+  ProfitLossData,
+  CashflowData
+} from './types';
+import { QueryFunctionContext } from '@tanstack/react-query';
 
 export const accountingApi = {
   async getChartOfAccounts(): Promise<ChartOfAccount[]> {
@@ -34,39 +44,45 @@ export const accountingApi = {
     }
   },
 
-  async getBalanceSheet(periodId: number) {
+  async getBalanceSheet({ queryKey }: QueryFunctionContext): Promise<BalanceSheetData> {
+    const [, periodId] = queryKey as [string, number];
+    
     try {
       const { data, error } = await supabase
         .rpc('generate_balance_sheet', { p_period_id: periodId });
       
       if (error) throw new Error(error.message);
-      return data;
+      return data as BalanceSheetData;
     } catch (error) {
       console.error('Get balance sheet error:', error);
       throw error;
     }
   },
 
-  async getProfitAndLoss(periodId: number) {
+  async getProfitAndLoss({ queryKey }: QueryFunctionContext): Promise<ProfitLossData> {
+    const [, periodId] = queryKey as [string, number];
+    
     try {
       const { data, error } = await supabase
         .rpc('generate_profit_loss', { p_period_id: periodId });
       
       if (error) throw new Error(error.message);
-      return data;
+      return data as ProfitLossData;
     } catch (error) {
       console.error('Get profit and loss error:', error);
       throw error;
     }
   },
 
-  async getCashflow(periodId: number) {
+  async getCashflow({ queryKey }: QueryFunctionContext): Promise<CashflowData> {
+    const [, periodId] = queryKey as [string, number];
+    
     try {
       const { data, error } = await supabase
         .rpc('generate_cashflow', { p_period_id: periodId });
       
       if (error) throw new Error(error.message);
-      return data;
+      return data as CashflowData;
     } catch (error) {
       console.error('Get cashflow error:', error);
       throw error;

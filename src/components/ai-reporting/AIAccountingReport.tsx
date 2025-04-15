@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -7,49 +7,67 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Download, HelpCircle } from 'lucide-react';
 import { aiApi, AccountingParams } from '@/lib/api/ai';
 import { format } from 'date-fns';
+import { FiscalPeriod, BalanceSheetData, ProfitLossData, CashflowData } from '@/lib/api/types';
 
 interface AIAccountingReportProps {
-  profitLossData?: any;
-  balanceSheetData?: any;
-  cashflowData?: any;
+  profitLossData?: ProfitLossData;
+  balanceSheetData?: BalanceSheetData;
+  cashflowData?: CashflowData;
+  fiscalPeriods?: FiscalPeriod[];
+  selectedPeriodId?: number;
+  onPeriodChange?: (periodId: number) => void;
 }
 
 const AIAccountingReport: React.FC<AIAccountingReportProps> = ({ 
   profitLossData, 
   balanceSheetData, 
-  cashflowData 
+  cashflowData,
+  fiscalPeriods,
+  selectedPeriodId,
+  onPeriodChange
 }) => {
   const [reportType, setReportType] = useState<'summary' | 'pnl' | 'reconciliation'>('summary');
   const [timeframe, setTimeframe] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
   const [isGenerating, setIsGenerating] = useState(false);
   const [accountingResult, setAccountingResult] = useState<string | null>(null);
+  
+  // Set default period if needed
+  useEffect(() => {
+    if (fiscalPeriods?.length && !selectedPeriodId && onPeriodChange) {
+      onPeriodChange(fiscalPeriods[0].period_id);
+    }
+  }, [fiscalPeriods, selectedPeriodId, onPeriodChange]);
 
   const generateReport = async () => {
+    if (!selectedPeriodId) return;
+    
     setIsGenerating(true);
     try {
       // Prepare accounting data based on the report type
       let accountingData = {};
       
+      const selectedPeriod = fiscalPeriods?.find(p => p.period_id === selectedPeriodId);
+      
       switch (reportType) {
         case 'pnl':
           accountingData = {
-            profitLoss: profitLossData || [],
+            profitLoss: profitLossData || {},
             timeframe,
             today: format(new Date(), 'yyyy-MM-dd')
           };
           break;
         case 'reconciliation':
           accountingData = {
-            cashflow: cashflowData || [],
+            cashflow: cashflowData || {},
             timeframe,
             today: format(new Date(), 'yyyy-MM-dd')
           };
           break;
         default: // summary
           accountingData = {
-            profitLoss: profitLossData || [],
-            balanceSheet: balanceSheetData || [],
-            cashflow: cashflowData || [],
+            profitLoss: profitLossData || {},
+            balanceSheet: balanceSheetData || {},
+            cashflow: cashflowData || {},
             timeframe,
             today: format(new Date(), 'yyyy-MM-dd')
           };
@@ -58,8 +76,8 @@ const AIAccountingReport: React.FC<AIAccountingReportProps> = ({
       const params: AccountingParams = {
         reportType,
         timeframe,
-        startDate: format(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
-        endDate: format(new Date(), 'yyyy-MM-dd')
+        startDate: selectedPeriod?.start_date || format(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+        endDate: selectedPeriod?.end_date || format(new Date(), 'yyyy-MM-dd')
       };
 
       const result = await aiApi.generateAccountingReport(params, accountingData);
@@ -76,14 +94,33 @@ const AIAccountingReport: React.FC<AIAccountingReportProps> = ({
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle>AI Accounting Report</CardTitle>
         <div className="flex space-x-2">
+          {fiscalPeriods && fiscalPeriods.length > 0 && onPeriodChange && (
+            <Select 
+              value={selectedPeriodId?.toString()} 
+              onValueChange={(value) => onPeriodChange(parseInt(value))}
+            >
+              <SelectTrigger className="w-[220px]">
+                <SelectValue placeholder="Select period" />
+              </SelectTrigger>
+              <SelectContent>
+                {fiscalPeriods.map((period) => (
+                  <SelectItem key={period.period_id} value={period.period_id.toString()}>
+                    {period.period_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        
           <Button 
             variant="outline" 
             onClick={generateReport}
-            disabled={isGenerating}
+            disabled={isGenerating || !selectedPeriodId}
           >
             {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Generate Report
           </Button>
+          
           {accountingResult && (
             <Button variant="outline" onClick={() => {
               const blob = new Blob([accountingResult], { type: 'text/plain' });

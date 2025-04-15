@@ -15,6 +15,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const AIReporting = () => {
   const [activeTab, setActiveTab] = useState("forecasting");
+  const [selectedPeriodId, setSelectedPeriodId] = useState<number>(1); // Default to first period
 
   // Fetch loans
   const { 
@@ -36,14 +37,30 @@ const AIReporting = () => {
     queryFn: repaymentsApi.getRepayments
   });
 
+  // Fetch fiscal periods first to get the default period
+  const { 
+    data: fiscalPeriods,
+    isLoading: isLoadingPeriods,
+    error: periodsError
+  } = useQuery({
+    queryKey: ["fiscal-periods"],
+    queryFn: accountingApi.getFiscalPeriods,
+    onSuccess: (data) => {
+      if (data?.length > 0 && !selectedPeriodId) {
+        setSelectedPeriodId(data[0].period_id);
+      }
+    }
+  });
+
   // Fetch accounting data
   const { 
     data: profitLossData, 
     isLoading: isLoadingPnL,
     error: pnlError
   } = useQuery({
-    queryKey: ["accounting", "profit-loss"],
-    queryFn: accountingApi.getProfitAndLoss
+    queryKey: ["profit-loss", selectedPeriodId],
+    queryFn: accountingApi.getProfitAndLoss,
+    enabled: !!selectedPeriodId
   });
 
   const { 
@@ -51,8 +68,9 @@ const AIReporting = () => {
     isLoading: isLoadingBS,
     error: bsError
   } = useQuery({
-    queryKey: ["accounting", "balance-sheet"],
-    queryFn: accountingApi.getBalanceSheet
+    queryKey: ["balance-sheet", selectedPeriodId],
+    queryFn: accountingApi.getBalanceSheet,
+    enabled: !!selectedPeriodId
   });
 
   const { 
@@ -60,8 +78,9 @@ const AIReporting = () => {
     isLoading: isLoadingCF,
     error: cfError
   } = useQuery({
-    queryKey: ["accounting", "cashflow"],
-    queryFn: accountingApi.getCashflow
+    queryKey: ["cashflow", selectedPeriodId],
+    queryFn: accountingApi.getCashflow,
+    enabled: !!selectedPeriodId
   });
 
   // Determine if any data is loading
@@ -69,7 +88,7 @@ const AIReporting = () => {
                     isLoadingPnL || isLoadingBS || isLoadingCF;
   
   // Determine if any errors occurred
-  const hasErrors = loansError || repaymentsError || pnlError || bsError || cfError;
+  const hasErrors = loansError || repaymentsError || pnlError || bsError || cfError || periodsError;
 
   return (
     <div className="space-y-6">
@@ -128,6 +147,9 @@ const AIReporting = () => {
               profitLossData={profitLossData}
               balanceSheetData={balanceSheetData}
               cashflowData={cashflowData}
+              fiscalPeriods={fiscalPeriods}
+              onPeriodChange={(periodId) => setSelectedPeriodId(periodId)}
+              selectedPeriodId={selectedPeriodId}
             />
           )}
         </TabsContent>

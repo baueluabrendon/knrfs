@@ -21,17 +21,7 @@ import { accountingApi } from "@/lib/api/accounting";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format } from "date-fns";
-
-type AssetLiabilityItem = {
-  name: string;
-  amount: number;
-};
-
-type BalanceSheetData = {
-  assets: AssetLiabilityItem[];
-  liabilities: AssetLiabilityItem[];
-  equity: AssetLiabilityItem[];
-};
+import { BalanceSheetData, AssetLiabilityItem } from "@/lib/api/types";
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-US', {
@@ -52,7 +42,7 @@ const BalanceSheet = () => {
   // Fetch balance sheet data based on selected period
   const { data: balanceSheetData, isLoading: isLoadingBalanceSheet } = useQuery<BalanceSheetData, Error>({
     queryKey: ['balance-sheet', periodId],
-    queryFn: () => accountingApi.getBalanceSheet(periodId),
+    queryFn: accountingApi.getBalanceSheet,
     enabled: periodId !== null
   });
 

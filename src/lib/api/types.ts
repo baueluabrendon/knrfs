@@ -34,6 +34,51 @@ export interface TransactionLine {
   credit_amount: number;
 }
 
+export interface AssetLiabilityItem {
+  name: string;
+  amount: number;
+}
+
+export interface RevenueExpenseItem {
+  category: string;
+  name: string;
+  amount: number;
+}
+
+export interface CashflowItem {
+  name: string;
+  amount: number;
+}
+
+export interface BalanceSheetData {
+  assets: AssetLiabilityItem[];
+  liabilities: AssetLiabilityItem[];
+  equity: AssetLiabilityItem[];
+  period?: {
+    start_date: string;
+    end_date: string;
+  };
+}
+
+export interface ProfitLossData {
+  revenue: RevenueExpenseItem[];
+  expenses: RevenueExpenseItem[];
+  period?: {
+    start_date: string;
+    end_date: string;
+  };
+}
+
+export interface CashflowData {
+  operating: CashflowItem[];
+  investing: CashflowItem[];
+  financing: CashflowItem[];
+  period?: {
+    start_date: string;
+    end_date: string;
+  };
+}
+
 export interface FinancialReport {
   report_id?: string;
   report_type: 'balance_sheet' | 'profit_loss' | 'cashflow';
