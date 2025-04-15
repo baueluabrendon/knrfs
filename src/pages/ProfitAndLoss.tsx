@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import {
@@ -9,11 +10,18 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Download, Printer } from "lucide-react";
+import { Download, Printer, MessageSquare, Loader2, XCircle } from "lucide-react";
+import { aiApi } from "@/lib/api/ai";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 const ProfitAndLoss = () => {
   const [period, setPeriod] = useState("current-month");
   const [view, setView] = useState("summary");
+  const [showAiInsights, setShowAiInsights] = useState(false);
+  const [isLoadingInsights, setIsLoadingInsights] = useState(false);
+  const [aiInsights, setAiInsights] = useState<string | null>(null);
 
   // Sample data - would come from API in real app
   const summaryData = [
@@ -50,6 +58,33 @@ const ProfitAndLoss = () => {
   const handleDownload = () => {
     // In a real app, this would generate a CSV or PDF
     console.log("Downloading report...");
+    toast.success("Report download started");
+  };
+
+  const handleGenerateInsights = async () => {
+    setIsLoadingInsights(true);
+    try {
+      const reportData = {
+        view,
+        period,
+        data: view === 'summary' ? summaryData : detailedData
+      };
+
+      const params = {
+        reportType: 'pnl',
+        timeframe: period === 'year-to-date' ? 'yearly' : 
+                   period === 'quarter' ? 'quarterly' : 'monthly'
+      };
+      
+      const result = await aiApi.generateAccountingReport(params, reportData);
+      setAiInsights(result.message);
+      setShowAiInsights(true);
+    } catch (error) {
+      console.error("Failed to generate insights:", error);
+      toast.error("Failed to generate AI insights");
+    } finally {
+      setIsLoadingInsights(false);
+    }
   };
 
   return (
@@ -91,6 +126,22 @@ const ProfitAndLoss = () => {
             <SelectItem value="detailed">Detailed View</SelectItem>
           </SelectContent>
         </Select>
+
+        <Button 
+          variant={showAiInsights ? "secondary" : "default"}
+          className="w-full md:w-auto"
+          onClick={showAiInsights ? () => setShowAiInsights(false) : handleGenerateInsights}
+          disabled={isLoadingInsights}
+        >
+          {isLoadingInsights ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : showAiInsights ? (
+            <XCircle className="mr-2 h-4 w-4" />
+          ) : (
+            <MessageSquare className="mr-2 h-4 w-4" />
+          )}
+          {showAiInsights ? "Hide AI Insights" : "Generate AI Insights"}
+        </Button>
       </div>
 
       <Card className="p-6">
@@ -138,6 +189,38 @@ const ProfitAndLoss = () => {
             )}
           </TableBody>
         </Table>
+
+        {showAiInsights && aiInsights && (
+          <div className="mt-8 border-t pt-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold flex items-center">
+                <MessageSquare className="mr-2 h-5 w-5 text-primary" />
+                AI Insights
+              </h3>
+              <Badge variant="outline" className="text-xs">AI Generated</Badge>
+            </div>
+            <div className="prose max-w-none">
+              {aiInsights.split(/\n\n/).map((paragraph, i) => {
+                if (paragraph.startsWith('#')) {
+                  const level = paragraph.match(/^#+/)[0].length;
+                  const text = paragraph.replace(/^#+\s*/, '');
+                  const HeadingTag = `h${level + 3}` as keyof JSX.IntrinsicElements;
+                  return <HeadingTag key={i} className="font-bold mt-4 mb-2">{text}</HeadingTag>;
+                } else if (paragraph.startsWith('-')) {
+                  return (
+                    <ul key={i} className="list-disc pl-5 my-2">
+                      {paragraph.split('\n').map((item, j) => (
+                        <li key={j}>{item.replace(/^- /, '')}</li>
+                      ))}
+                    </ul>
+                  );
+                } else {
+                  return <p key={i} className="mb-4">{paragraph}</p>;
+                }
+              })}
+            </div>
+          </div>
+        )}
       </Card>
     </div>
   );

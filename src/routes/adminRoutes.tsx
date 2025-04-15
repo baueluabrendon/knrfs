@@ -1,3 +1,4 @@
+
 import { RouteObject } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import { menuItems } from "@/config/menuItems";
@@ -23,6 +24,7 @@ import MissedPayments from "@/pages/MissedPayments";
 import PartialPayments from "@/pages/PartialPayments";
 import ClientRepaymentVerification from "@/pages/ClientRepaymentVerification";
 import AILoanAssistant from "@/components/ai-assistant/AILoanAssistant";
+import AIReporting from "@/pages/AIReporting";
 
 export const adminRoutes: RouteObject[] = [
   {
@@ -112,6 +114,10 @@ export const adminRoutes: RouteObject[] = [
       {
         path: "ai-assistant",
         element: <AILoanAssistant />
+      },
+      {
+        path: "ai-reporting",
+        element: <AIReporting />
       }
     ]
   }

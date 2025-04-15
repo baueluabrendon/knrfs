@@ -1,3 +1,4 @@
+
 export * from './auth';
 export * from './users';
 export * from './borrowers';
@@ -7,3 +8,4 @@ export * from './recoveries';
 export * from './analytics';
 export * from './accounting';
 export * from './types';
+export * from './ai';
