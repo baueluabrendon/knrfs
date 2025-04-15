@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { UserProfile } from "@/types/auth";
@@ -211,16 +210,20 @@ export async function createUserWithAdmin(email: string, password: string, userD
   role: string 
 }): Promise<{ user: any; error: any }> {
   try {
-    // This function should ideally be moved to a server-side edge function
-    // as admin operations are not available in the client-side SDK
-    console.warn("Warning: createUserWithAdmin should be used server-side only with service_role key");
-    
-    // Here we'll return a mock error to indicate this function needs to be moved
-    return { 
-      user: null, 
-      error: new Error("Admin operations are not available in the client-side SDK. Move this function to a server-side edge function.") 
-    };
+    const { data, error } = await supabase.functions.invoke('create-user', {
+      body: {
+        email,
+        password,
+        firstName: userData.first_name,
+        lastName: userData.last_name,
+        role: userData.role
+      }
+    })
+
+    if (error) throw error
+    return { user: data.user, error: null }
   } catch (error) {
-    return { user: null, error };
+    console.error('Error creating user:', error)
+    return { user: null, error }
   }
 }
