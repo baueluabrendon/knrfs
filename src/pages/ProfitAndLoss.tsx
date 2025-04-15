@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import {
   Select,
@@ -15,6 +15,7 @@ import { aiApi, AccountingParams } from "@/lib/api/ai";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { format } from 'date-fns';
 
 const ProfitAndLoss = () => {
   const [period, setPeriod] = useState("current-month");
@@ -64,24 +65,42 @@ const ProfitAndLoss = () => {
   const handleGenerateInsights = async () => {
     setIsLoadingInsights(true);
     try {
+      // Prepare a comprehensive context for the AI
       const reportData = {
         view,
         period,
-        data: view === 'summary' ? summaryData : detailedData
+        data: view === 'summary' ? summaryData : detailedData,
+        metadata: {
+          generatedAt: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
+          businessContext: 'Loan Management Financial Analysis'
+        }
       };
 
+      // Explicitly type the params to match AccountingParams
       const params: AccountingParams = {
-        reportType: 'pnl' as 'summary' | 'pnl' | 'reconciliation',
-        timeframe: period === 'year-to-date' ? 'yearly' : 
-                   period === 'quarter' ? 'monthly' : 'monthly'
+        reportType: 'pnl',
+        timeframe: period === 'year-to-date' ? 'yearly' : 'monthly',
+        startDate: format(new Date(), 'yyyy-MM-01'),
+        endDate: format(new Date(), 'yyyy-MM-dd')
       };
       
+      // Generate the AI report with comprehensive context
       const result = await aiApi.generateAccountingReport(params, reportData);
+      
+      // Set the insights and show them
       setAiInsights(result.message);
       setShowAiInsights(true);
+
+      // Optional: Add a toast notification
+      toast.success('AI Insights Generated Successfully', {
+        description: 'Detailed financial analysis is now available.'
+      });
+
     } catch (error) {
       console.error("Failed to generate insights:", error);
-      toast.error("Failed to generate AI insights");
+      toast.error("Failed to generate AI insights", {
+        description: error instanceof Error ? error.message : 'An unknown error occurred'
+      });
     } finally {
       setIsLoadingInsights(false);
     }
