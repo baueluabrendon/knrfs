@@ -7,6 +7,7 @@ import ClientProfile from "@/pages/client/ClientProfile";
 import ClientSupport from "@/pages/client/ClientSupport";
 import ApplicationStatus from "@/pages/client/ApplicationStatus";
 import ClientLayout from "@/components/client/ClientLayout";
+import LoanApplicationSteps from "@/components/loan/LoanApplicationSteps";
 
 // Define the client routes
 export const clientRoutes: RouteObject[] = [
@@ -21,6 +22,10 @@ export const clientRoutes: RouteObject[] = [
       {
         path: "loans",
         element: <ClientLoans />
+      },
+      {
+        path: "apply",
+        element: <LoanApplicationSteps />
       },
       {
         path: "repayments",

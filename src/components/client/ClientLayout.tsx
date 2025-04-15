@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,7 +16,6 @@ import {
   HelpCircle,
 } from "lucide-react";
 
-// Remove the children prop requirement since we'll be using Outlet
 const ClientLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { signOut } = useAuth();
@@ -43,7 +41,7 @@ const ClientLayout = () => {
     {
       icon: FileSignature,
       label: "Apply for a New Loan",
-      path: "/apply",
+      path: "/client/apply",
     },
     {
       icon: Clock,
@@ -74,7 +72,6 @@ const ClientLayout = () => {
 
   return (
     <div className="flex h-screen">
-      {/* Sidebar */}
       <aside
         className={`bg-[#32CD32] text-white ${
           isSidebarOpen ? "w-64" : "w-16"
@@ -129,7 +126,6 @@ const ClientLayout = () => {
         </div>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 overflow-auto">
         <div className="bg-[#FFD700] p-4">
           <h1 className="text-xl font-bold">Welcome to K&R Financial Services</h1>
