@@ -829,6 +829,33 @@ export type Database = {
       }
     }
     Views: {
+      dashboard_metrics_view: {
+        Row: {
+          active_borrowers_count: number | null
+          active_loans_count: number | null
+          at_risk_loans_count: number | null
+          avg_loan_duration_days: number | null
+          pending_applications_count: number | null
+          total_outstanding_balance: number | null
+          total_principal_amount: number | null
+          total_repayments_amount: number | null
+        }
+        Relationships: []
+      }
+      loan_disbursement_view: {
+        Row: {
+          loan_count: number | null
+          period_end: string | null
+          period_num: number | null
+          period_start: string | null
+          time_frame: string | null
+          total_gross: number | null
+          total_interest: number | null
+          total_principal: number | null
+          year: number | null
+        }
+        Relationships: []
+      }
       loans_in_arrears_view: {
         Row: {
           arrears: number | null
@@ -870,6 +897,33 @@ export type Database = {
           product: string | null
           repayment_completion_percentage: number | null
           total_repayment: number | null
+        }
+        Relationships: []
+      }
+      repayment_collection_view: {
+        Row: {
+          period_end: string | null
+          period_num: number | null
+          period_start: string | null
+          repayment_count: number | null
+          time_frame: string | null
+          total_amount: number | null
+          year: number | null
+        }
+        Relationships: []
+      }
+      repayment_comparison_view: {
+        Row: {
+          actual_amount: number | null
+          actual_count: number | null
+          difference: number | null
+          period_end: string | null
+          period_num: number | null
+          period_start: string | null
+          scheduled_amount: number | null
+          scheduled_count: number | null
+          time_frame: string | null
+          year: number | null
         }
         Relationships: []
       }

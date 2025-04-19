@@ -23,20 +23,24 @@ export interface TimeSeriesData {
   actual_amount?: number;
   total_principal?: number;
   total_gross?: number;
+  loan_count?: number;
 }
 
 export const dashboardApi = {
   async getMetrics(): Promise<DashboardMetrics> {
+    // Using "as unknown as" to bypass TypeScript's strict type checking
+    // since Supabase's TypeScript definitions may not include our custom views
     const { data, error } = await supabase
       .from('dashboard_metrics_view')
       .select('*')
       .single();
     
     if (error) throw error;
-    return data;
+    return data as DashboardMetrics;
   },
 
   async getLoanDisbursements(timeFrame: string): Promise<TimeSeriesData[]> {
+    // Using "as unknown as" to bypass TypeScript's strict type checking
     const { data, error } = await supabase
       .from('loan_disbursement_view')
       .select('*')
@@ -44,10 +48,11 @@ export const dashboardApi = {
       .order('period_start', { ascending: true });
     
     if (error) throw error;
-    return data;
+    return data as unknown as TimeSeriesData[];
   },
 
   async getRepaymentComparison(timeFrame: string): Promise<TimeSeriesData[]> {
+    // Using "as unknown as" to bypass TypeScript's strict type checking
     const { data, error } = await supabase
       .from('repayment_comparison_view')
       .select('*')
@@ -55,6 +60,6 @@ export const dashboardApi = {
       .order('period_start', { ascending: true });
     
     if (error) throw error;
-    return data;
+    return data as unknown as TimeSeriesData[];
   }
 };
