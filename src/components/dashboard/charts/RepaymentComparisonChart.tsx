@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { format } from "date-fns";
 import { TimeSeriesData } from "@/lib/api/dashboard";
 
@@ -32,7 +32,7 @@ const RepaymentComparisonChart = ({ data, timeFrame }: RepaymentComparisonChartP
       </CardHeader>
       <CardContent className="h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+          <LineChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="period_start" tickFormatter={formatXAxis} />
             <YAxis />
@@ -46,9 +46,9 @@ const RepaymentComparisonChart = ({ data, timeFrame }: RepaymentComparisonChartP
               ]}
             />
             <Legend />
-            <Bar dataKey="scheduled_amount" name="Scheduled" fill="#93c5fd" />
-            <Bar dataKey="actual_amount" name="Actual" fill="#4ade80" />
-          </BarChart>
+            <Line type="monotone" dataKey="scheduled_amount" name="Scheduled" stroke="#3b82f6" strokeWidth={2} />
+            <Line type="monotone" dataKey="actual_amount" name="Actual" stroke="#22c55e" strokeWidth={2} />
+          </LineChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>
