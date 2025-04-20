@@ -15,57 +15,53 @@ import { TimeSeriesData } from "@/lib/api/dashboard";
 
 interface LoanDisbursementChartProps {
   data: TimeSeriesData[];
-  timeFrame: string;
 }
 
-const LoanDisbursementChart = ({ data, timeFrame }: LoanDisbursementChartProps) => {
+const LoanDisbursementChart = ({ data }: LoanDisbursementChartProps) => {
   const formatXAxis = (value: string) => {
-    const date = new Date(value);
-    switch (timeFrame) {
-      case "weekly":
-      case "fortnightly":
-        return format(date, "MMM d");
-      case "monthly":
-        return format(date, "MMM yyyy");
-      case "yearly":
-        return format(date, "yyyy");
-      default:
-        return value;
-    }
+    return format(new Date(value), "MMM yyyy");
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(value);
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Disbursements vs Repayments Over Time</CardTitle>
+        <CardTitle>Loan Disbursements vs Repayments</CardTitle>
       </CardHeader>
       <CardContent className="h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="period_start" tickFormatter={formatXAxis} />
-            <YAxis />
+            <XAxis 
+              dataKey="period_start" 
+              tickFormatter={formatXAxis}
+              minTickGap={30}
+            />
+            <YAxis 
+              tickFormatter={formatCurrency}
+            />
             <Tooltip
-              labelFormatter={(label) => formatXAxis(label as string)}
-              formatter={(value) => [
-                new Intl.NumberFormat("en-US", {
-                  style: "currency",
-                  currency: "USD",
-                }).format(value as number),
-              ]}
+              labelFormatter={formatXAxis}
+              formatter={(value) => [formatCurrency(value as number)]}
             />
             <Legend />
             <Line
               type="monotone"
               dataKey="total_principal"
               name="Loans Disbursed"
-              stroke="#60a5fa"
+              stroke="#3b82f6"
               strokeWidth={2}
               dot={{ r: 3 }}
             />
             <Line
               type="monotone"
-              dataKey="actual_amount"
+              dataKey="total_amount"
               name="Repayments Collected"
               stroke="#22c55e"
               strokeWidth={2}
