@@ -15,7 +15,7 @@ import { TimeSeriesData } from "@/lib/api/dashboard";
 
 interface LoanDisbursementChartProps {
   data: TimeSeriesData[];
-  isWeekly?: boolean;
+  isWeekly: boolean;
 }
 
 const LoanDisbursementChart = ({ data, isWeekly }: LoanDisbursementChartProps) => {

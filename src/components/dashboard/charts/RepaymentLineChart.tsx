@@ -15,7 +15,7 @@ import { TimeSeriesData } from "@/lib/api/dashboard";
 
 interface RepaymentLineChartProps {
   data: TimeSeriesData[];
-  isWeekly?: boolean;
+  isWeekly: boolean;
 }
 
 const RepaymentLineChart = ({ data, isWeekly }: RepaymentLineChartProps) => {
@@ -51,14 +51,6 @@ const RepaymentLineChart = ({ data, isWeekly }: RepaymentLineChartProps) => {
               formatter={(value) => [formatCurrency(value as number)]}
             />
             <Legend />
-            <Line
-              type="monotone"
-              dataKey="total_principal"
-              name="Loans Disbursed"
-              stroke="#3b82f6"
-              strokeWidth={2}
-              dot={{ r: 3 }}
-            />
             <Line
               type="monotone"
               dataKey="actual_amount"

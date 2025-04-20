@@ -7,8 +7,10 @@ export interface TimeSeriesData {
   period_num: number;
   period_start: string;
   period_end: string;
-  total_amount?: number;
   total_principal?: number;
+  total_amount?: number;
+  scheduled_amount?: number;
+  actual_amount?: number;
 }
 
 export interface DashboardMetrics {
@@ -30,14 +32,16 @@ export const dashboardApi = {
       .single();
     
     if (error) throw error;
-    return data as DashboardMetrics;
+    return data;
   },
 
-  async getLoanDisbursements(year: number): Promise<TimeSeriesData[]> {
+  async getLoanDisbursements(year: number, month?: number): Promise<TimeSeriesData[]> {
+    const timeFrame = month ? 'weekly' : 'monthly';
+    
     const { data: disbursements, error: disbursementsError } = await supabase
       .from('loan_disbursement_view')
       .select('*')
-      .eq('time_frame', 'monthly')
+      .eq('time_frame', timeFrame)
       .eq('year', year)
       .order('period_start', { ascending: true });
     
@@ -46,19 +50,22 @@ export const dashboardApi = {
     const { data: repayments, error: repaymentsError } = await supabase
       .from('repayment_collection_view')
       .select('*')
-      .eq('time_frame', 'monthly')
+      .eq('time_frame', timeFrame)
       .eq('year', year)
       .order('period_start', { ascending: true });
 
     if (repaymentsError) throw repaymentsError;
 
-    // Create array of all months
-    const allMonths = Array.from({ length: 12 }, (_, i) => {
-      const date = new Date(year, i, 1);
+    // Create array of all periods
+    const periodsCount = timeFrame === 'weekly' ? 4 : 12;
+    const allPeriods = Array.from({ length: periodsCount }, (_, i) => {
+      const date = new Date(year, month || 0, month ? i * 7 + 1 : i + 1);
       return {
         period_start: date.toISOString(),
-        period_end: new Date(year, i + 1, 0).toISOString(),
-        time_frame: 'monthly',
+        period_end: timeFrame === 'weekly' 
+          ? new Date(year, month || 0, (i + 1) * 7).toISOString()
+          : new Date(year, (i + 1), 0).toISOString(),
+        time_frame: timeFrame,
         year,
         period_num: i + 1,
         total_principal: 0,
@@ -66,19 +73,60 @@ export const dashboardApi = {
       };
     });
 
-    // Merge actual data with the full month array
-    return allMonths.map(month => {
+    return allPeriods.map(period => {
       const disbursement = disbursements?.find(d => 
-        new Date(d.period_start).getMonth() === new Date(month.period_start).getMonth()
+        new Date(d.period_start).getTime() === new Date(period.period_start).getTime()
       );
       const repayment = repayments?.find(r => 
-        new Date(r.period_start).getMonth() === new Date(month.period_start).getMonth()
+        new Date(r.period_start).getTime() === new Date(period.period_start).getTime()
       );
 
       return {
-        ...month,
+        ...period,
         total_principal: disbursement?.total_principal || 0,
         total_amount: repayment?.total_amount || 0
+      };
+    });
+  },
+
+  async getRepaymentComparison(year: number, month?: number): Promise<TimeSeriesData[]> {
+    const timeFrame = month ? 'weekly' : 'monthly';
+    
+    const { data, error } = await supabase
+      .from('repayment_comparison_view')
+      .select('*')
+      .eq('time_frame', timeFrame)
+      .eq('year', year)
+      .order('period_start', { ascending: true });
+    
+    if (error) throw error;
+
+    // Create array of all periods
+    const periodsCount = timeFrame === 'weekly' ? 4 : 12;
+    const allPeriods = Array.from({ length: periodsCount }, (_, i) => {
+      const date = new Date(year, month || 0, month ? i * 7 + 1 : i + 1);
+      return {
+        period_start: date.toISOString(),
+        period_end: timeFrame === 'weekly' 
+          ? new Date(year, month || 0, (i + 1) * 7).toISOString()
+          : new Date(year, (i + 1), 0).toISOString(),
+        time_frame: timeFrame,
+        year,
+        period_num: i + 1,
+        scheduled_amount: 0,
+        actual_amount: 0
+      };
+    });
+
+    return allPeriods.map(period => {
+      const comparison = data?.find(d => 
+        new Date(d.period_start).getTime() === new Date(period.period_start).getTime()
+      );
+
+      return {
+        ...period,
+        scheduled_amount: comparison?.scheduled_amount || 0,
+        actual_amount: comparison?.actual_amount || 0
       };
     });
   }
