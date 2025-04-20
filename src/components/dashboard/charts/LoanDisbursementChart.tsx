@@ -61,7 +61,7 @@ const LoanDisbursementChart = ({ data, isWeekly }: LoanDisbursementChartProps) =
             />
             <Line
               type="monotone"
-              dataKey="total_amount"
+              dataKey="actual_amount"
               name="Repayments Collected"
               stroke="#22c55e"
               strokeWidth={2}

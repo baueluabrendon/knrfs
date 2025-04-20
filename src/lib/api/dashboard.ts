@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface TimeSeriesData {
@@ -35,9 +34,7 @@ export const dashboardApi = {
     return data;
   },
 
-  async getLoanDisbursements(year: number, month?: number): Promise<TimeSeriesData[]> {
-    const timeFrame = month ? 'weekly' : 'monthly';
-    
+  async getLoanVsRepayments({ year, month, timeFrame }: { year: number; month?: number; timeFrame: string }): Promise<TimeSeriesData[]> {
     const { data: disbursements, error: disbursementsError } = await supabase
       .from('loan_disbursement_view')
       .select('*')
@@ -69,7 +66,7 @@ export const dashboardApi = {
         year,
         period_num: i + 1,
         total_principal: 0,
-        total_amount: 0
+        actual_amount: 0
       };
     });
 
@@ -84,14 +81,12 @@ export const dashboardApi = {
       return {
         ...period,
         total_principal: disbursement?.total_principal || 0,
-        total_amount: repayment?.total_amount || 0
+        actual_amount: repayment?.total_amount || 0
       };
     });
   },
 
-  async getRepaymentComparison(year: number, month?: number): Promise<TimeSeriesData[]> {
-    const timeFrame = month ? 'weekly' : 'monthly';
-    
+  async getRepaymentComparison({ year, month, timeFrame }: { year: number; month?: number; timeFrame: string }): Promise<TimeSeriesData[]> {
     const { data, error } = await supabase
       .from('repayment_comparison_view')
       .select('*')
