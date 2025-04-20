@@ -13,12 +13,12 @@ import {
 import { format } from "date-fns";
 import { TimeSeriesData } from "@/lib/api/dashboard";
 
-interface LoanDisbursementChartProps {
+interface RepaymentLineChartProps {
   data: TimeSeriesData[];
   isWeekly?: boolean;
 }
 
-const LoanDisbursementChart = ({ data, isWeekly }: LoanDisbursementChartProps) => {
+const RepaymentLineChart = ({ data, isWeekly }: RepaymentLineChartProps) => {
   const formatXAxis = (value: string) => {
     const date = new Date(value);
     return isWeekly ? format(date, "d MMM") : format(date, "MMM yyyy");
@@ -34,7 +34,7 @@ const LoanDisbursementChart = ({ data, isWeekly }: LoanDisbursementChartProps) =
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Loan Disbursements vs Repayments</CardTitle>
+        <CardTitle>Repayments Overview</CardTitle>
       </CardHeader>
       <CardContent className="h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
@@ -61,9 +61,17 @@ const LoanDisbursementChart = ({ data, isWeekly }: LoanDisbursementChartProps) =
             />
             <Line
               type="monotone"
-              dataKey="total_amount"
+              dataKey="actual_amount"
               name="Repayments Collected"
               stroke="#22c55e"
+              strokeWidth={2}
+              dot={{ r: 3 }}
+            />
+            <Line
+              type="monotone"
+              dataKey="scheduled_amount"
+              name="Repayments Scheduled"
+              stroke="#f97316"
               strokeWidth={2}
               dot={{ r: 3 }}
             />
@@ -74,4 +82,4 @@ const LoanDisbursementChart = ({ data, isWeekly }: LoanDisbursementChartProps) =
   );
 };
 
-export default LoanDisbursementChart;
+export default RepaymentLineChart;

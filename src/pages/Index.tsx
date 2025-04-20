@@ -4,10 +4,16 @@ import { useQuery } from "@tanstack/react-query";
 import { dashboardApi } from "@/lib/api/dashboard";
 import DashboardMetrics from "@/components/dashboard/DashboardMetrics";
 import LoanDisbursementChart from "@/components/dashboard/charts/LoanDisbursementChart";
+import RepaymentLineChart from "@/components/dashboard/charts/RepaymentLineChart";
+import YearMonthSelect from "@/components/dashboard/YearMonthSelect";
 import { Loader2 } from "lucide-react";
 
 const Index = () => {
-  const currentYear = new Date().getFullYear();
+  const [filter, setFilter] = useState<{ year: number; month?: number }>({ 
+    year: new Date().getFullYear() 
+  });
+  
+  const timeFrame = filter.month ? "weekly" : "monthly";
 
   const { data: metrics, isLoading: isLoadingMetrics } = useQuery({
     queryKey: ["dashboard-metrics"],
@@ -15,8 +21,13 @@ const Index = () => {
   });
 
   const { data: loanData } = useQuery({
-    queryKey: ["loan-disbursements", currentYear],
-    queryFn: () => dashboardApi.getLoanDisbursements(currentYear)
+    queryKey: ["loan-disbursements", filter.year, filter.month],
+    queryFn: () => dashboardApi.getLoanDisbursements(filter.year, filter.month)
+  });
+
+  const { data: repaymentData } = useQuery({
+    queryKey: ["repayment-comparison", filter.year, filter.month],
+    queryFn: () => dashboardApi.getRepaymentComparison(filter.year, filter.month)
   });
 
   if (isLoadingMetrics) {
@@ -36,11 +47,22 @@ const Index = () => {
 
       {metrics && <DashboardMetrics metrics={metrics} />}
 
-      {loanData && (
-        <div className="grid gap-6">
-          <LoanDisbursementChart data={loanData} />
-        </div>
-      )}
+      <YearMonthSelect {...filter} onChange={setFilter} />
+
+      <div className="grid gap-6">
+        {loanData && (
+          <LoanDisbursementChart 
+            data={loanData} 
+            isWeekly={!!filter.month} 
+          />
+        )}
+        {repaymentData && (
+          <RepaymentLineChart 
+            data={repaymentData} 
+            isWeekly={!!filter.month} 
+          />
+        )}
+      </div>
     </div>
   );
 };
