@@ -13,7 +13,63 @@ import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
 
-// This component is used inside the provider
+// This component shows the application details preview
+const ApplicationReview = () => {
+  const { formData } = useLoanApplication();
+  
+  if (!formData) return null;
+  
+  return (
+    <div className="space-y-6 mt-6">
+      <h2 className="text-xl font-semibold text-gray-800">Application Preview</h2>
+      <p className="text-sm text-gray-600">
+        Review your application information extracted from the uploaded document.
+        You can edit these details in the next step if needed.
+      </p>
+      
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="space-y-4">
+          <h3 className="font-medium text-lg">Personal Information</h3>
+          <div className="space-y-2">
+            <p><span className="font-medium">Name:</span> {formData.personalDetails.firstName} {formData.personalDetails.lastName}</p>
+            <p><span className="font-medium">Email:</span> {formData.personalDetails.email}</p>
+            <p><span className="font-medium">Phone:</span> {formData.personalDetails.phone}</p>
+            <p><span className="font-medium">ID Number:</span> {formData.personalDetails.idNumber}</p>
+          </div>
+        </div>
+        
+        <div className="space-y-4">
+          <h3 className="font-medium text-lg">Employment Information</h3>
+          <div className="space-y-2">
+            <p><span className="font-medium">Employer:</span> {formData.employmentDetails.employerName}</p>
+            <p><span className="font-medium">Position:</span> {formData.employmentDetails.position}</p>
+            <p><span className="font-medium">Salary:</span> {formData.employmentDetails.salary}</p>
+          </div>
+        </div>
+        
+        <div className="space-y-4">
+          <h3 className="font-medium text-lg">Residential Information</h3>
+          <div className="space-y-2">
+            <p><span className="font-medium">Address:</span> {formData.residentialDetails.address}</p>
+            <p><span className="font-medium">City:</span> {formData.residentialDetails.city}</p>
+            <p><span className="font-medium">Province:</span> {formData.residentialDetails.province}</p>
+          </div>
+        </div>
+        
+        <div className="space-y-4">
+          <h3 className="font-medium text-lg">Loan Details</h3>
+          <div className="space-y-2">
+            <p><span className="font-medium">Amount:</span> {formData.financialDetails.loanAmount}</p>
+            <p><span className="font-medium">Term:</span> {formData.financialDetails.loanTerm}</p>
+            <p><span className="font-medium">Purpose:</span> {formData.financialDetails.loanPurpose}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Step 2 now contains the editable form
 const ApplicationForm = () => {
   const { handleSubmit, formData, updateFormData } = useLoanApplication();
   const form = useForm();
@@ -64,7 +120,7 @@ const ApplicationForm = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-800">Application Details</h2>
+      <h2 className="text-xl font-semibold text-gray-800">Edit Application Details</h2>
       <Form {...form}>
         <form onSubmit={handleSubmit} className="space-y-6">
           <PersonalInfo />
@@ -86,12 +142,17 @@ const LoanApplicationContent = () => {
     <div className="container mx-auto p-4 max-w-4xl">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome to K&R Financial Services</h1>
-        <StepIndicator currentStep={currentStep} totalSteps={3} />
+        <StepIndicator currentStep={currentStep} totalSteps={2} />
       </div>
 
       <Card className="p-6">
-        {(currentStep === 1 || currentStep === 2) && <DocumentUpload />}
-        {currentStep === 3 && <ApplicationForm />}
+        {currentStep === 1 && (
+          <>
+            <DocumentUpload />
+            <ApplicationReview />
+          </>
+        )}
+        {currentStep === 2 && <ApplicationForm />}
         <NavigationButtons />
       </Card>
     </div>
