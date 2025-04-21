@@ -30,59 +30,63 @@ export const processApplicationFormOCR = async (file: File): Promise<any> => {
     console.log('Text extraction complete, parsing extracted data');
     console.log('Extracted text sample:', extractedText.substring(0, 200) + '...');
     
+    // Clean up common OCR errors - strip extra spaces and normalize newlines
+    const cleanedText = extractedText.replace(/\s{2,}/g, ' ').replace(/\n/g, ' ');
+    console.log('Cleaned text sample:', cleanedText.substring(0, 200) + '...');
+    
     // Parse the extracted text to get structured data that matches our form structure
     const extractedData = {
       personalDetails: {
-        firstName: extractValue(extractedText, 'first name|given name', 20),
-        lastName: extractValue(extractedText, 'last name|surname', 20),
-        dateOfBirth: extractValue(extractedText, 'date of birth', 10),
-        email: extractValue(extractedText, 'email', 30),
-        phone: extractValue(extractedText, 'phone|mobile number', 15),
-        gender: extractValue(extractedText, 'gender', 10),
-        nationality: extractValue(extractedText, 'nationality', 20),
-        maritalStatus: extractValue(extractedText, 'marital status', 15),
+        firstName: extractValue(cleanedText, 'first name|given name', 20),
+        lastName: extractValue(cleanedText, 'last name|surname', 20),
+        dateOfBirth: extractValue(cleanedText, 'date of birth', 10),
+        email: extractValue(cleanedText, 'email', 30),
+        phone: extractValue(cleanedText, 'phone|mobile number', 15),
+        gender: extractValue(cleanedText, 'gender', 10),
+        nationality: extractValue(cleanedText, 'nationality', 20),
+        maritalStatus: extractValue(cleanedText, 'marital status', 15),
       },
       employmentDetails: {
-        employerName: extractValue(extractedText, 'employer|department|company', 30),
-        position: extractValue(extractedText, 'position', 30),
-        employmentDate: extractValue(extractedText, 'employment date|date employed', 10),
-        fileNumber: extractValue(extractedText, 'file number', 20),
-        paymaster: extractValue(extractedText, 'paymaster', 30),
-        workPhoneNumber: extractValue(extractedText, 'work phone', 15),
-        postalAddress: extractValue(extractedText, 'postal address', 50),
-        fax: extractValue(extractedText, 'fax', 15),
+        employerName: extractValue(cleanedText, 'employer|department|company', 30),
+        position: extractValue(cleanedText, 'position', 30),
+        employmentDate: extractValue(cleanedText, 'employment date|date employed', 10),
+        fileNumber: extractValue(cleanedText, 'file number', 20),
+        paymaster: extractValue(cleanedText, 'paymaster', 30),
+        workPhoneNumber: extractValue(cleanedText, 'work phone', 15),
+        postalAddress: extractValue(cleanedText, 'postal address', 50),
+        fax: extractValue(cleanedText, 'fax', 15),
       },
       residentialDetails: {
-        address: extractValue(extractedText, 'address', 50),
-        city: extractValue(extractedText, 'city', 20),
-        province: extractValue(extractedText, 'province', 20),
-        district: extractValue(extractedText, 'district', 20),
-        village: extractValue(extractedText, 'village', 20),
-        suburb: extractValue(extractedText, 'suburb', 20),
-        lot: extractValue(extractedText, 'lot', 10),
-        section: extractValue(extractedText, 'section', 10),
-        streetName: extractValue(extractedText, 'street name', 30),
-        spouseLastName: extractValue(extractedText, 'spouse last name', 20),
-        spouseFirstName: extractValue(extractedText, 'spouse first name', 20),
-        spouseEmployerName: extractValue(extractedText, 'spouse employer', 30),
-        spouseContactDetails: extractValue(extractedText, 'spouse contact', 30),
+        address: extractValue(cleanedText, 'address', 50),
+        city: extractValue(cleanedText, 'city', 20),
+        province: extractValue(cleanedText, 'province', 20),
+        district: extractValue(cleanedText, 'district', 20),
+        village: extractValue(cleanedText, 'village', 20),
+        suburb: extractValue(cleanedText, 'suburb', 20),
+        lot: extractValue(cleanedText, 'lot', 10),
+        section: extractValue(cleanedText, 'section', 10),
+        streetName: extractValue(cleanedText, 'street name', 30),
+        spouseLastName: extractValue(cleanedText, 'spouse last name', 20),
+        spouseFirstName: extractValue(cleanedText, 'spouse first name', 20),
+        spouseEmployerName: extractValue(cleanedText, 'spouse employer', 30),
+        spouseContactDetails: extractValue(cleanedText, 'spouse contact', 30),
       },
       financialDetails: {
-        bank: extractValue(extractedText, 'bank', 20),
-        bankBranch: extractValue(extractedText, 'bank branch', 20),
-        bsbCode: extractValue(extractedText, 'bsb code', 10),
-        accountName: extractValue(extractedText, 'account name', 30),
-        accountNumber: extractValue(extractedText, 'account number', 20),
-        accountType: extractValue(extractedText, 'account type', 15),
-        income: extractValue(extractedText, 'income|gross salary', 15),
-        netIncome: extractValue(extractedText, 'net income', 15),
+        bank: extractValue(cleanedText, 'bank', 20),
+        bankBranch: extractValue(cleanedText, 'bank branch', 20),
+        bsbCode: extractValue(cleanedText, 'bsb code', 10),
+        accountName: extractValue(cleanedText, 'account name', 30),
+        accountNumber: extractValue(cleanedText, 'account number', 20),
+        accountType: extractValue(cleanedText, 'account type', 15),
+        income: extractValue(cleanedText, 'income|gross salary', 15),
+        netIncome: extractValue(cleanedText, 'net income', 15),
       },
       loanDetails: {
-        loanAmount: extractValue(extractedText, 'loan amount', 15),
-        loanTerm: extractValue(extractedText, 'loan term', 10),
-        loanPurpose: extractValue(extractedText, 'purpose of loan', 50),
-        fortnightlyInstallment: extractValue(extractedText, 'bi-weekly installment|fortnightly installment', 15),
-        totalRepayable: extractValue(extractedText, 'total repayable', 15),
+        loanAmount: extractValue(cleanedText, 'loan amount', 15),
+        loanTerm: extractValue(cleanedText, 'loan term', 10),
+        loanPurpose: extractValue(cleanedText, 'purpose of loan', 50),
+        fortnightlyInstallment: extractValue(cleanedText, 'bi-weekly installment|fortnightly installment', 15),
+        totalRepayable: extractValue(cleanedText, 'total repayable', 15),
       }
     };
     
@@ -130,19 +134,32 @@ async function extractTextFromPdf(file: File): Promise<string> {
 async function extractTextFromImage(file: File): Promise<string> {
   try {
     console.log('Initializing Tesseract worker');
-    // Using the correct Tesseract.js API (compatible with v4+)
-    const worker = await createWorker({
-      logger: m => console.log(`Tesseract: ${m.status} - ${Math.floor(m.progress * 100)}%`),
-    });
+    
+    // Fix: Properly initialize worker without passing incorrect logger option
+    const worker = await createWorker();
     
     console.log('Worker created, beginning OCR process');
     
     // Convert file to image URL
     const imageUrl = URL.createObjectURL(file);
     
+    // Load English language
+    await worker.loadLanguage('eng');
+    await worker.initialize('eng');
+    
     // Recognize text with proper API
     console.log('Starting Tesseract OCR processing...');
     const result = await worker.recognize(imageUrl);
+    
+    // Check confidence level and warn if low
+    const confidence = result.data.confidence;
+    console.log(`OCR completed with confidence level: ${confidence}%`);
+    
+    if (confidence < 70) {
+      console.warn("Low OCR confidence:", confidence);
+      toast.warning("OCR result may be inaccurate. Please verify extracted data carefully.");
+    }
+    
     console.log('Tesseract OCR processing complete');
     
     // Clean up
