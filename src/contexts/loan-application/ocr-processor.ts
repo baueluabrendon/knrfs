@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { toast } from "sonner";
 import { createWorker } from 'tesseract.js';
@@ -127,32 +128,31 @@ async function extractTextFromPdf(file: File): Promise<string> {
 
 // Extract text from image using Tesseract.js
 async function extractTextFromImage(file: File): Promise<string> {
-  // Fix for Tesseract.js Worker API
-  const worker = await createWorker();
-  
   try {
-    // Using the correct Tesseract.js v3 API
-    await worker.load();
-    await worker.loadLanguage('eng');
-    await worker.initialize('eng');
+    console.log('Initializing Tesseract worker');
+    // Using the correct Tesseract.js API (compatible with v4+)
+    const worker = await createWorker({
+      logger: m => console.log(`Tesseract: ${m.status} - ${Math.floor(m.progress * 100)}%`),
+    });
+    
+    console.log('Worker created, beginning OCR process');
     
     // Convert file to image URL
     const imageUrl = URL.createObjectURL(file);
     
-    // Recognize text
+    // Recognize text with proper API
     console.log('Starting Tesseract OCR processing...');
     const result = await worker.recognize(imageUrl);
     console.log('Tesseract OCR processing complete');
     
     // Clean up
     URL.revokeObjectURL(imageUrl);
+    await worker.terminate();
     
     return result.data.text;
   } catch (error) {
     console.error('Error processing image with Tesseract:', error);
     throw error;
-  } finally {
-    await worker.terminate();
   }
 }
 
