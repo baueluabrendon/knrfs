@@ -4,8 +4,13 @@ import { toast } from "sonner";
 import { createWorker } from 'tesseract.js';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
 
-// Set up PDF.js worker - using a fixed CDN URL that matches our version
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.js';
+// Set proper worker path for PDF.js
+const pdfjsWorkerUrl = new URL(
+  'pdfjs-dist/legacy/build/pdf.worker.min.js',
+  import.meta.url
+).toString();
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
 
 /**
  * Processes an application form using client-side OCR (Tesseract.js for images, PDF.js for PDFs)
