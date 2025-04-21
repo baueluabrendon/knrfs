@@ -6,7 +6,7 @@ export function useApplicationSteps() {
   const [currentStep, setCurrentStep] = useState(1);
 
   const handleNext = () => {
-    setCurrentStep(prev => Math.min(prev + 1, 2));
+    setCurrentStep(prev => Math.min(prev + 1, 3));
   };
 
   const handlePrevious = () => {

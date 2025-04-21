@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { XCircle } from "lucide-react";
 import { useLoanApplication } from "@/contexts/loan-application";
@@ -26,10 +25,10 @@ export const NavigationButtons = () => {
           Exit
         </Button>
         <Button
-          onClick={currentStep === 2 ? handleSubmit : handleNext}
+          onClick={currentStep === 3 ? handleSubmit : handleNext}
           className="bg-primary hover:bg-primary/90"
         >
-          {currentStep === 2 ? "Submit Application" : "Next"}
+          {currentStep === 3 ? "Submit Application" : "Next"}
         </Button>
       </div>
     </div>

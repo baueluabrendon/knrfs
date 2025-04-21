@@ -1,4 +1,3 @@
-
 import { useLoanApplication } from "@/contexts/loan-application";
 import { DocumentList } from "./document-upload/DocumentList";
 import { EmployerTypeSelector } from "./document-upload/EmployerTypeSelector";
@@ -80,7 +79,7 @@ export const DocumentUpload = () => {
   if (currentStep === 1) {
     return (
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-gray-800">Application Form Upload</h2>
+        <h2 className="text-xl font-semibold text-gray-800">Initial Documents</h2>
         <p className="text-sm text-gray-600">
           Please upload your application form to proceed with your loan application.
         </p>
