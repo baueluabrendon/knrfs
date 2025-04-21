@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { createWorker } from 'tesseract.js';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
 
-// Set up PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.js`;
+// Set up PDF.js worker - using a fixed CDN URL instead of relying on version property
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
 /**
  * Processes an application form using client-side OCR (Tesseract.js for images, PDF.js for PDFs)
@@ -128,9 +127,12 @@ async function extractTextFromPdf(file: File): Promise<string> {
 
 // Extract text from image using Tesseract.js
 async function extractTextFromImage(file: File): Promise<string> {
+  // Fix for Tesseract.js Worker API
   const worker = await createWorker();
   
   try {
+    // Using the correct Tesseract.js v3 API
+    await worker.load();
     await worker.loadLanguage('eng');
     await worker.initialize('eng');
     
@@ -139,13 +141,13 @@ async function extractTextFromImage(file: File): Promise<string> {
     
     // Recognize text
     console.log('Starting Tesseract OCR processing...');
-    const { data } = await worker.recognize(imageUrl);
+    const result = await worker.recognize(imageUrl);
     console.log('Tesseract OCR processing complete');
     
     // Clean up
     URL.revokeObjectURL(imageUrl);
     
-    return data.text;
+    return result.data.text;
   } catch (error) {
     console.error('Error processing image with Tesseract:', error);
     throw error;

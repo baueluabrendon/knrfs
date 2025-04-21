@@ -1,11 +1,10 @@
-
+import { useState } from "react";
 import { useLoanApplication } from "@/contexts/loan-application";
 import { DocumentList } from "./document-upload/DocumentList";
 import { EmployerTypeSelector } from "./document-upload/EmployerTypeSelector";
 import { DocumentUploadType } from "@/types/loan";
 import { Button } from "@/components/ui/button";
 import { Loader2, FileText, AlertCircle } from "lucide-react";
-import { useState } from "react";
 import { toast } from "sonner";
 import { isPdf, isSupportedImage } from "@/utils/storageUtils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -16,6 +15,7 @@ import { FinancialInfo } from "./FinancialInfo";
 import { LoanDetails } from "./LoanDetails";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
+import React from "react";
 
 export const DocumentUpload = () => {
   const {
@@ -34,15 +34,12 @@ export const DocumentUpload = () => {
   const [processingError, setProcessingError] = useState<string | null>(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
   
-  // Setup form for preview
   const form = useForm();
   
-  // Pre-fill form with OCR data when available
   React.useEffect(() => {
     if (formData && showReviewForm) {
       console.log("Pre-filling form with extracted data:", formData);
       
-      // Pre-fill the form fields using useForm's setValue method
       if (formData.personalDetails) {
         Object.entries(formData.personalDetails).forEach(([key, value]) => {
           if (value) {
