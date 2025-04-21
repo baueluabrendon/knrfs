@@ -1,3 +1,4 @@
+
 import { useLoanApplication } from "@/contexts/loan-application";
 import { DocumentList } from "./document-upload/DocumentList";
 import { EmployerTypeSelector } from "./document-upload/EmployerTypeSelector";
@@ -8,6 +9,13 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { isPdf, isSupportedImage } from "@/utils/storageUtils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { PersonalInfo } from "./PersonalInfo";
+import { EmploymentInfo } from "./EmploymentInfo";
+import { ResidentialInfo } from "./ResidentialInfo";
+import { FinancialInfo } from "./FinancialInfo";
+import { LoanDetails } from "./LoanDetails";
+import { Form } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
 
 export const DocumentUpload = () => {
   const {
@@ -19,10 +27,59 @@ export const DocumentUpload = () => {
     processApplicationForm,
     isProcessingOCR,
     uploadingDocument,
+    formData,
   } = useLoanApplication();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [processingError, setProcessingError] = useState<string | null>(null);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  
+  // Setup form for preview
+  const form = useForm();
+  
+  // Pre-fill form with OCR data when available
+  React.useEffect(() => {
+    if (formData && showReviewForm) {
+      console.log("Pre-filling form with extracted data:", formData);
+      
+      // Pre-fill the form fields using useForm's setValue method
+      if (formData.personalDetails) {
+        Object.entries(formData.personalDetails).forEach(([key, value]) => {
+          if (value) {
+            form.setValue(`personalDetails.${key}`, value);
+            console.log(`Setting personalDetails.${key} to`, value);
+          }
+        });
+      }
+      
+      if (formData.employmentDetails) {
+        Object.entries(formData.employmentDetails).forEach(([key, value]) => {
+          if (value) {
+            form.setValue(`employmentDetails.${key}`, value);
+            console.log(`Setting employmentDetails.${key} to`, value);
+          }
+        });
+      }
+      
+      if (formData.residentialDetails) {
+        Object.entries(formData.residentialDetails).forEach(([key, value]) => {
+          if (value) {
+            form.setValue(`residentialDetails.${key}`, value);
+            console.log(`Setting residentialDetails.${key} to`, value);
+          }
+        });
+      }
+      
+      if (formData.financialDetails) {
+        Object.entries(formData.financialDetails).forEach(([key, value]) => {
+          if (value) {
+            form.setValue(`financialDetails.${key}`, value);
+            console.log(`Setting financialDetails.${key} to`, value);
+          }
+        });
+      }
+    }
+  }, [formData, form, showReviewForm]);
 
   const isDocumentEnabled = (doc: DocumentUploadType) => {
     if (currentStep === 1) {
@@ -60,12 +117,13 @@ export const DocumentUpload = () => {
         return;
       }
       
-      toast.info("Processing document with Tesseract.js OCR... This may take a minute", {
+      toast.info("Processing document with OCR... This may take a minute", {
         duration: 5000,
       });
       
       await processApplicationForm();
       toast.success("Application form processed successfully. Data extracted and saved.");
+      setShowReviewForm(true);
     } catch (error: any) {
       console.error("Error processing document:", error);
       const errorMessage = error.message || "Failed to process document. Please try again.";
@@ -90,6 +148,7 @@ export const DocumentUpload = () => {
           isDocumentEnabled={isDocumentEnabled}
           handleFileUpload={(documentKey, file) => {
             setProcessingError(null);
+            setShowReviewForm(false);
             if (validateFileType(file)) {
               handleFileUpload(documentKey, file);
             }
@@ -106,7 +165,7 @@ export const DocumentUpload = () => {
           </Alert>
         )}
         
-        {documents.applicationForm.file && (
+        {documents.applicationForm.file && !showReviewForm && (
           <div className="mt-6">
             <Button 
               onClick={handleProcessDocument} 
@@ -116,7 +175,7 @@ export const DocumentUpload = () => {
               {(isSubmitting || isProcessingOCR) ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing Document with Tesseract.js OCR...
+                  Processing Document with OCR...
                 </>
               ) : (
                 <>
@@ -126,9 +185,28 @@ export const DocumentUpload = () => {
               )}
             </Button>
             <p className="text-sm text-gray-500 mt-2">
-              Your document will be processed using Tesseract.js OCR to automatically extract application information.
-              This process may take 1-2 minutes depending on the document complexity and your device.
+              Your document will be processed using OCR to automatically extract application information.
+              This process may take 1-2 minutes depending on the document complexity.
             </p>
+          </div>
+        )}
+        
+        {showReviewForm && (
+          <div className="mt-8 border-t pt-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Review Extracted Information</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Please review the information extracted from your application. You can make corrections in the next step.
+            </p>
+            
+            <Form {...form}>
+              <form className="space-y-6">
+                <PersonalInfo />
+                <EmploymentInfo />
+                <ResidentialInfo />
+                <FinancialInfo />
+                <LoanDetails />
+              </form>
+            </Form>
           </div>
         )}
       </div>
