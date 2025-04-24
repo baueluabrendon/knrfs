@@ -13,6 +13,7 @@ const Dashboard = () => {
   const [loanFilter, setLoanFilter] = useState<{ year: number; month?: number }>({ year: currentYear });
   const [repayFilter, setRepayFilter] = useState<{ year: number; month?: number }>({ year: currentYear });
 
+  // Determine the time frame based on whether a month is selected
   const loanTimeFrame = loanFilter.month ? "weekly" : "monthly";
   const repayTimeFrame = repayFilter.month ? "weekly" : "monthly";
 
@@ -38,9 +39,14 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    console.log("Loan data:", loanData);
-    console.log("Repayment comparison data:", repayComp);
-  }, [loanData, repayComp]);
+    console.log("Loan filter:", loanFilter);
+    console.log("Loan time frame:", loanTimeFrame);
+    console.log("Loan chart data:", loanData);
+    
+    console.log("Repayment filter:", repayFilter);
+    console.log("Repayment time frame:", repayTimeFrame);
+    console.log("Repayment chart data:", repayComp);
+  }, [loanData, repayComp, loanFilter, repayFilter, loanTimeFrame, repayTimeFrame]);
 
   if (loadingMetrics) {
     return (

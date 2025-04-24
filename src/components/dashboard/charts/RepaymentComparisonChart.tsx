@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, startOfWeek, endOfWeek } from "date-fns";
 import { TimeSeriesData } from "@/lib/api/dashboard";
 
 interface RepaymentComparisonChartProps {
@@ -14,8 +14,13 @@ const RepaymentComparisonChart = ({ data, timeFrame }: RepaymentComparisonChartP
     if (!value) return '';
     try {
       const date = parseISO(value);
+      
       switch (timeFrame) {
         case 'weekly':
+          // For weekly view, show the week range (e.g., "Jan 1-7")
+          const weekStart = startOfWeek(date, { weekStartsOn: 1 });
+          const weekEnd = endOfWeek(date, { weekStartsOn: 1 });
+          return `${format(weekStart, "MMM d")}-${format(weekEnd, "d")}`;
         case 'fortnightly':
           return format(date, 'MMM d');
         case 'monthly':
@@ -28,6 +33,34 @@ const RepaymentComparisonChart = ({ data, timeFrame }: RepaymentComparisonChartP
     } catch (e) {
       console.error("Date parsing error:", e, "for value:", value);
       return value;
+    }
+  };
+
+  const formatTooltipLabel = (label: string) => {
+    if (!label) return '';
+    try {
+      const date = parseISO(label);
+      
+      if (timeFrame === 'weekly') {
+        // For weekly view in tooltip, show the full date range
+        const weekStart = startOfWeek(date, { weekStartsOn: 1 });
+        const weekEnd = endOfWeek(date, { weekStartsOn: 1 });
+        return `Week of ${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d")}`;
+      }
+      
+      switch (timeFrame) {
+        case 'fortnightly':
+          return format(date, 'MMMM d, yyyy');
+        case 'monthly':
+          return format(date, 'MMMM yyyy');
+        case 'yearly':
+          return format(date, 'yyyy');
+        default:
+          return format(date, 'MMMM d, yyyy');
+      }
+    } catch (e) {
+      console.error("Tooltip label parsing error:", e);
+      return label;
     }
   };
 
@@ -59,7 +92,7 @@ const RepaymentComparisonChart = ({ data, timeFrame }: RepaymentComparisonChartP
               }).format(value)}
             />
             <Tooltip
-              labelFormatter={(label) => formatXAxis(label as string)}
+              labelFormatter={formatTooltipLabel}
               formatter={(value) => [
                 new Intl.NumberFormat('en-US', {
                   style: 'currency',

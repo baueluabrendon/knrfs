@@ -10,7 +10,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, startOfWeek, endOfWeek } from "date-fns";
 import { TimeSeriesData } from "@/lib/api/dashboard";
 
 interface LoanDisbursementChartProps {
@@ -23,10 +23,37 @@ const LoanDisbursementChart = ({ data, isWeekly }: LoanDisbursementChartProps) =
     if (!value) return '';
     try {
       const date = parseISO(value);
-      return isWeekly ? format(date, "d MMM") : format(date, "MMM yyyy");
+      
+      if (isWeekly) {
+        // For weekly view, show the week range (e.g., "Jan 1-7")
+        const weekStart = startOfWeek(date, { weekStartsOn: 1 });
+        const weekEnd = endOfWeek(date, { weekStartsOn: 1 });
+        return `${format(weekStart, "MMM d")}-${format(weekEnd, "d")}`;
+      }
+      
+      return format(date, "MMM yyyy");
     } catch (e) {
       console.error("Date parsing error:", e, "for value:", value);
       return value;
+    }
+  };
+
+  const formatTooltipLabel = (label: string) => {
+    if (!label) return '';
+    try {
+      const date = parseISO(label);
+      
+      if (isWeekly) {
+        // For weekly view in tooltip, show the full date range
+        const weekStart = startOfWeek(date, { weekStartsOn: 1 });
+        const weekEnd = endOfWeek(date, { weekStartsOn: 1 });
+        return `Week of ${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d")}`;
+      }
+      
+      return format(date, "MMMM yyyy");
+    } catch (e) {
+      console.error("Tooltip label parsing error:", e);
+      return label;
     }
   };
 
@@ -61,7 +88,7 @@ const LoanDisbursementChart = ({ data, isWeekly }: LoanDisbursementChartProps) =
             />
             <YAxis tickFormatter={formatCurrency} />
             <Tooltip
-              labelFormatter={formatXAxis}
+              labelFormatter={formatTooltipLabel}
               formatter={(value) => [formatCurrency(value as number), value === 0 ? "No Data" : undefined]}
             />
             <Legend />
