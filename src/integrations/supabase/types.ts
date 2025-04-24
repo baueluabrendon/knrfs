@@ -47,21 +47,27 @@ export type Database = {
           application_document_url: string | null
           application_id: string
           jsonb_data: Json | null
+          jsonb_loans: Json | null
           status: Database["public"]["Enums"]["application_status_enum"] | null
+          updated_at: string | null
           uploaded_at: string | null
         }
         Insert: {
           application_document_url?: string | null
           application_id?: string
           jsonb_data?: Json | null
+          jsonb_loans?: Json | null
           status?: Database["public"]["Enums"]["application_status_enum"] | null
+          updated_at?: string | null
           uploaded_at?: string | null
         }
         Update: {
           application_document_url?: string | null
           application_id?: string
           jsonb_data?: Json | null
+          jsonb_loans?: Json | null
           status?: Database["public"]["Enums"]["application_status_enum"] | null
+          updated_at?: string | null
           uploaded_at?: string | null
         }
         Relationships: []
