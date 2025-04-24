@@ -10,7 +10,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { TimeSeriesData } from "@/lib/api/dashboard";
 
 interface LoanDisbursementChartProps {
@@ -20,16 +20,30 @@ interface LoanDisbursementChartProps {
 
 const LoanDisbursementChart = ({ data, isWeekly }: LoanDisbursementChartProps) => {
   const formatXAxis = (value: string) => {
-    const date = new Date(value);
-    return isWeekly ? format(date, "d MMM") : format(date, "MMM yyyy");
+    if (!value) return '';
+    try {
+      const date = parseISO(value);
+      return isWeekly ? format(date, "d MMM") : format(date, "MMM yyyy");
+    } catch (e) {
+      console.error("Date parsing error:", e, "for value:", value);
+      return value;
+    }
   };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
+      notation: value > 1000 ? "compact" : "standard",
     }).format(value);
   };
+
+  // Clean and normalize data
+  const chartData = data.map(item => ({
+    ...item,
+    total_principal: Number(item.total_principal || 0),
+    actual_amount: Number(item.actual_amount || 0),
+  }));
 
   return (
     <Card>
@@ -38,7 +52,7 @@ const LoanDisbursementChart = ({ data, isWeekly }: LoanDisbursementChartProps) =
       </CardHeader>
       <CardContent className="h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+          <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
               dataKey="period_start" 
@@ -48,7 +62,7 @@ const LoanDisbursementChart = ({ data, isWeekly }: LoanDisbursementChartProps) =
             <YAxis tickFormatter={formatCurrency} />
             <Tooltip
               labelFormatter={formatXAxis}
-              formatter={(value) => [formatCurrency(value as number)]}
+              formatter={(value) => [formatCurrency(value as number), value === 0 ? "No Data" : undefined]}
             />
             <Legend />
             <Line
@@ -58,6 +72,8 @@ const LoanDisbursementChart = ({ data, isWeekly }: LoanDisbursementChartProps) =
               stroke="#3b82f6"
               strokeWidth={2}
               dot={{ r: 3 }}
+              activeDot={{ r: 5 }}
+              connectNulls
             />
             <Line
               type="monotone"
@@ -66,6 +82,8 @@ const LoanDisbursementChart = ({ data, isWeekly }: LoanDisbursementChartProps) =
               stroke="#22c55e"
               strokeWidth={2}
               dot={{ r: 3 }}
+              activeDot={{ r: 5 }}
+              connectNulls
             />
           </LineChart>
         </ResponsiveContainer>

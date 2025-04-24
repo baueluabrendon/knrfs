@@ -1,6 +1,5 @@
 
-// Replace entire file with the provided code
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { dashboardApi } from "@/lib/api/dashboard";
 import DashboardMetrics from "@/components/dashboard/DashboardMetrics";
@@ -10,8 +9,9 @@ import YearMonthSelect from "@/components/dashboard/YearMonthSelect";
 import { Loader2 } from "lucide-react";
 
 const Dashboard = () => {
-  const [loanFilter, setLoanFilter] = useState<{ year: number; month?: number }>({ year: new Date().getFullYear() });
-  const [repayFilter, setRepayFilter] = useState<{ year: number; month?: number }>({ year: new Date().getFullYear() });
+  const currentYear = new Date().getFullYear();
+  const [loanFilter, setLoanFilter] = useState<{ year: number; month?: number }>({ year: currentYear });
+  const [repayFilter, setRepayFilter] = useState<{ year: number; month?: number }>({ year: currentYear });
 
   const loanTimeFrame = loanFilter.month ? "weekly" : "monthly";
   const repayTimeFrame = repayFilter.month ? "weekly" : "monthly";
@@ -21,7 +21,7 @@ const Dashboard = () => {
     queryFn: dashboardApi.getMetrics
   });
 
-  const { data: loanData } = useQuery({
+  const { data: loanData, isLoading: loadingLoanData } = useQuery({
     queryKey: ["loan-vs-repay", loanFilter],
     queryFn: () => dashboardApi.getLoanVsRepayments({
       ...loanFilter,
@@ -29,13 +29,18 @@ const Dashboard = () => {
     })
   });
 
-  const { data: repayComp } = useQuery({
+  const { data: repayComp, isLoading: loadingRepayComp } = useQuery({
     queryKey: ["repay-comp", repayFilter],
     queryFn: () => dashboardApi.getRepaymentComparison({
       ...repayFilter,
       timeFrame: repayTimeFrame
     })
   });
+
+  useEffect(() => {
+    console.log("Loan data:", loanData);
+    console.log("Repayment comparison data:", repayComp);
+  }, [loanData, repayComp]);
 
   if (loadingMetrics) {
     return (
@@ -57,22 +62,44 @@ const Dashboard = () => {
       {metrics && <DashboardMetrics metrics={metrics} />}
 
       <section className="space-y-4">
-        <YearMonthSelect {...loanFilter} onChange={setLoanFilter} />
-        {loanData && (
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-medium">Loan Disbursements vs Repayments</h2>
+          <YearMonthSelect {...loanFilter} onChange={setLoanFilter} />
+        </div>
+        {loadingLoanData ? (
+          <div className="flex h-[400px] items-center justify-center border rounded-lg">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        ) : loanData && loanData.length > 0 ? (
           <LoanDisbursementChart
             data={loanData}
             isWeekly={!!loanFilter.month}
           />
+        ) : (
+          <div className="flex h-[400px] items-center justify-center border rounded-lg">
+            <p className="text-muted-foreground">No loan disbursement data available</p>
+          </div>
         )}
       </section>
 
       <section className="space-y-4">
-        <YearMonthSelect {...repayFilter} onChange={setRepayFilter} />
-        {repayComp && (
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-medium">Scheduled vs Actual Repayments</h2>
+          <YearMonthSelect {...repayFilter} onChange={setRepayFilter} />
+        </div>
+        {loadingRepayComp ? (
+          <div className="flex h-[400px] items-center justify-center border rounded-lg">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        ) : repayComp && repayComp.length > 0 ? (
           <RepaymentComparisonChart
             data={repayComp}
             timeFrame={repayTimeFrame}
           />
+        ) : (
+          <div className="flex h-[400px] items-center justify-center border rounded-lg">
+            <p className="text-muted-foreground">No repayment comparison data available</p>
+          </div>
         )}
       </section>
     </div>
