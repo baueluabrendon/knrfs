@@ -68,8 +68,8 @@ const LoanDisbursementChart = ({ data, isWeekly }: LoanDisbursementChartProps) =
   // Clean and normalize data
   const chartData = data.map(item => ({
     ...item,
-    total_principal: Number(item.total_principal || 0),
-    actual_amount: Number(item.actual_amount || 0),
+    total_disbursed: Number(item.total_disbursed || 0),
+    total_repaid: Number(item.total_repaid || 0),
   }));
 
   return (
@@ -94,7 +94,7 @@ const LoanDisbursementChart = ({ data, isWeekly }: LoanDisbursementChartProps) =
             <Legend />
             <Line
               type="monotone"
-              dataKey="total_principal"
+              dataKey="total_disbursed"
               name="Loans Disbursed"
               stroke="#3b82f6"
               strokeWidth={2}
@@ -104,7 +104,7 @@ const LoanDisbursementChart = ({ data, isWeekly }: LoanDisbursementChartProps) =
             />
             <Line
               type="monotone"
-              dataKey="actual_amount"
+              dataKey="total_repaid"
               name="Repayments Collected"
               stroke="#22c55e"
               strokeWidth={2}

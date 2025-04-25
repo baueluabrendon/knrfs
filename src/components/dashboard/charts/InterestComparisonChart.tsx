@@ -63,6 +63,13 @@ const InterestComparisonChart = ({ data, isWeekly }: InterestComparisonChartProp
     }).format(value);
   };
 
+  // Clean and normalize data
+  const chartData = data.map(item => ({
+    ...item,
+    interest_scheduled: Number(item.interest_scheduled || 0),
+    interest_received: Number(item.interest_received || 0)
+  }));
+
   return (
     <Card>
       <CardHeader>
@@ -70,7 +77,7 @@ const InterestComparisonChart = ({ data, isWeekly }: InterestComparisonChartProp
       </CardHeader>
       <CardContent className="h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+          <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
               dataKey="period_start" 

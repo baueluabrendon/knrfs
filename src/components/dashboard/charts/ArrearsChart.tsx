@@ -63,6 +63,12 @@ const ArrearsChart = ({ data, isWeekly }: ArrearsChartProps) => {
     }).format(value);
   };
 
+  // Clean and normalize data
+  const chartData = data.map(item => ({
+    ...item,
+    total_arrears: Number(item.total_arrears || 0)
+  }));
+
   return (
     <Card>
       <CardHeader>
@@ -70,7 +76,7 @@ const ArrearsChart = ({ data, isWeekly }: ArrearsChartProps) => {
       </CardHeader>
       <CardContent className="h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+          <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
               dataKey="period_start" 
