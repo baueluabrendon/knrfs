@@ -835,6 +835,16 @@ export type Database = {
       }
     }
     Views: {
+      arrears_summary_view: {
+        Row: {
+          payroll_type: string | null
+          period_end: string | null
+          period_start: string | null
+          time_frame: string | null
+          total_arrears: number | null
+        }
+        Relationships: []
+      }
       dashboard_metrics_view: {
         Row: {
           active_borrowers_count: number | null
@@ -848,17 +858,35 @@ export type Database = {
         }
         Relationships: []
       }
-      loan_disbursement_view: {
+      interest_comparison_view: {
         Row: {
-          loan_count: number | null
+          interest_received: number | null
+          interest_scheduled: number | null
+          payroll_type: string | null
           period_end: string | null
-          period_num: number | null
           period_start: string | null
           time_frame: string | null
-          total_gross: number | null
-          total_interest: number | null
+        }
+        Relationships: []
+      }
+      loan_disbursement_view: {
+        Row: {
+          payroll_type: string | null
+          period_end: string | null
+          period_start: string | null
+          time_frame: string | null
           total_principal: number | null
-          year: number | null
+        }
+        Relationships: []
+      }
+      loan_vs_repayment_comparison_view: {
+        Row: {
+          payroll_type: string | null
+          period_end: string | null
+          period_start: string | null
+          time_frame: string | null
+          total_disbursed: number | null
+          total_repaid: number | null
         }
         Relationships: []
       }
@@ -906,30 +934,14 @@ export type Database = {
         }
         Relationships: []
       }
-      repayment_collection_view: {
+      repayment_collections_view: {
         Row: {
+          actual_repayment: number | null
+          payroll_type: string | null
           period_end: string | null
-          period_num: number | null
           period_start: string | null
-          repayment_count: number | null
+          scheduled_repayment: number | null
           time_frame: string | null
-          total_amount: number | null
-          year: number | null
-        }
-        Relationships: []
-      }
-      repayment_comparison_view: {
-        Row: {
-          actual_amount: number | null
-          actual_count: number | null
-          difference: number | null
-          period_end: string | null
-          period_num: number | null
-          period_start: string | null
-          scheduled_amount: number | null
-          scheduled_count: number | null
-          time_frame: string | null
-          year: number | null
         }
         Relationships: []
       }
