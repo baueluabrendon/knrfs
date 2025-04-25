@@ -3,9 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { startOfWeek, endOfWeek, addDays, addWeeks, startOfMonth, endOfMonth, format } from 'date-fns';
 
 export interface TimeSeriesData {
-  time_frame: string;
-  year: number;
-  period_num: number;
+  time_frame?: string;
+  year?: number;
+  period_num?: number;
   period_start: string;
   period_end: string;
   total_principal?: number;
@@ -17,6 +17,7 @@ export interface TimeSeriesData {
   interest_scheduled?: number;
   total_disbursed?: number;
   total_repaid?: number;
+  payroll_type?: string;
 }
 
 export interface DashboardMetrics {
@@ -52,7 +53,7 @@ export const dashboardApi = {
       .select('*')
       .eq('time_frame', timeFrame);
 
-    if (payrollType) {
+    if (payrollType && payrollType !== "All") {
       query = query.eq('payroll_type', payrollType);
     }
 
@@ -64,7 +65,18 @@ export const dashboardApi = {
     }
 
     console.log('Raw loan vs repayment data:', data);
-    return data || [];
+    
+    // Map the returned data to match the TimeSeriesData interface
+    const mappedData: TimeSeriesData[] = data.map(item => ({
+      period_start: item.period_start,
+      period_end: item.period_end,
+      time_frame: item.time_frame,
+      payroll_type: item.payroll_type,
+      total_disbursed: item.total_disbursed,
+      total_repaid: item.total_repaid
+    }));
+
+    return mappedData;
   },
 
   async getRepaymentComparison({ year, month, timeFrame, payrollType }: { 
@@ -78,7 +90,7 @@ export const dashboardApi = {
       .select('*')
       .eq('time_frame', timeFrame);
 
-    if (payrollType) {
+    if (payrollType && payrollType !== "All") {
       query = query.eq('payroll_type', payrollType);
     }
 
@@ -90,7 +102,18 @@ export const dashboardApi = {
     }
 
     console.log('Raw repayment comparison data:', data);
-    return data || [];
+    
+    // Map the returned data to match the TimeSeriesData interface
+    const mappedData: TimeSeriesData[] = data.map(item => ({
+      period_start: item.period_start,
+      period_end: item.period_end,
+      time_frame: item.time_frame,
+      payroll_type: item.payroll_type,
+      scheduled_amount: item.scheduled_repayment,
+      actual_amount: item.actual_repayment
+    }));
+
+    return mappedData;
   },
 
   async getArrearsData({ year, month, timeFrame, payrollType }: { 
@@ -104,7 +127,7 @@ export const dashboardApi = {
       .select('*')
       .eq('time_frame', timeFrame);
 
-    if (payrollType) {
+    if (payrollType && payrollType !== "All") {
       query = query.eq('payroll_type', payrollType);
     }
 
@@ -116,7 +139,17 @@ export const dashboardApi = {
     }
 
     console.log('Raw arrears data:', data);
-    return data || [];
+    
+    // Map the returned data to match the TimeSeriesData interface
+    const mappedData: TimeSeriesData[] = data.map(item => ({
+      period_start: item.period_start,
+      period_end: item.period_end,
+      time_frame: item.time_frame,
+      payroll_type: item.payroll_type,
+      total_arrears: item.total_arrears
+    }));
+
+    return mappedData;
   },
 
   async getInterestComparison({ year, month, timeFrame, payrollType }: { 
@@ -130,7 +163,7 @@ export const dashboardApi = {
       .select('*')
       .eq('time_frame', timeFrame);
 
-    if (payrollType) {
+    if (payrollType && payrollType !== "All") {
       query = query.eq('payroll_type', payrollType);
     }
 
@@ -142,6 +175,17 @@ export const dashboardApi = {
     }
 
     console.log('Raw interest comparison data:', data);
-    return data || [];
+    
+    // Map the returned data to match the TimeSeriesData interface
+    const mappedData: TimeSeriesData[] = data.map(item => ({
+      period_start: item.period_start,
+      period_end: item.period_end,
+      time_frame: item.time_frame,
+      payroll_type: item.payroll_type,
+      interest_received: item.interest_received,
+      interest_scheduled: item.interest_scheduled
+    }));
+
+    return mappedData;
   }
 };
