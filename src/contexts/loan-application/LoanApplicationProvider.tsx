@@ -45,7 +45,7 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
     handleSubmit 
   } = useFormData(applicationUuid);
   
-  // Using OpenAI-based OCR processor exclusively
+  // Using OpenAI-based OCR processor
   const { 
     isProcessingOCR, 
     processApplicationForm: processOcr 
