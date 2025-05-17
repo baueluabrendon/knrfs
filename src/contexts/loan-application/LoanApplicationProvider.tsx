@@ -45,13 +45,13 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
     handleSubmit 
   } = useFormData(applicationUuid);
   
-  // Now using client-side OCR processor (no applicationUuid needed anymore)
+  // Now using only client-side OCR processor
   const { 
     isProcessingOCR, 
     processApplicationForm: processOcr 
   } = useOcrProcessor(documents);
 
-  // Modified processApplicationForm to update form data with extracted data
+  // Process application form using client-side OCR only
   const processApplicationForm = async (): Promise<void> => {
     try {
       const extractedData = await processOcr();

@@ -255,13 +255,6 @@ export type Database = {
             foreignKeyName: "defaults_schedule_id_fkey"
             columns: ["schedule_id"]
             isOneToOne: false
-            referencedRelation: "loans_in_arrears_view"
-            referencedColumns: ["missed_schedule_id"]
-          },
-          {
-            foreignKeyName: "defaults_schedule_id_fkey"
-            columns: ["schedule_id"]
-            isOneToOne: false
             referencedRelation: "repayment_schedule"
             referencedColumns: ["schedule_id"]
           },
@@ -517,13 +510,6 @@ export type Database = {
             referencedRelation: "borrowers"
             referencedColumns: ["borrower_id"]
           },
-          {
-            foreignKeyName: "fk_borrower"
-            columns: ["borrower_id"]
-            isOneToOne: false
-            referencedRelation: "loans_in_arrears_view"
-            referencedColumns: ["borrower_id"]
-          },
         ]
       }
       repayment_document_group: {
@@ -646,13 +632,6 @@ export type Database = {
             referencedRelation: "loans"
             referencedColumns: ["loan_id"]
           },
-          {
-            foreignKeyName: "repayment_schedule_loan_id_fkey"
-            columns: ["loan_id"]
-            isOneToOne: false
-            referencedRelation: "loans_in_arrears_view"
-            referencedColumns: ["loan_id"]
-          },
         ]
       }
       repayments: {
@@ -719,13 +698,6 @@ export type Database = {
             columns: ["loan_id"]
             isOneToOne: false
             referencedRelation: "loans"
-            referencedColumns: ["loan_id"]
-          },
-          {
-            foreignKeyName: "repayments_loan_id_fkey"
-            columns: ["loan_id"]
-            isOneToOne: false
-            referencedRelation: "loans_in_arrears_view"
             referencedColumns: ["loan_id"]
           },
           {
@@ -824,27 +796,10 @@ export type Database = {
             referencedRelation: "borrowers"
             referencedColumns: ["borrower_id"]
           },
-          {
-            foreignKeyName: "fk_borrower"
-            columns: ["borrower_id"]
-            isOneToOne: false
-            referencedRelation: "loans_in_arrears_view"
-            referencedColumns: ["borrower_id"]
-          },
         ]
       }
     }
     Views: {
-      arrears_summary_view: {
-        Row: {
-          payroll_type: string | null
-          period_end: string | null
-          period_start: string | null
-          time_frame: string | null
-          total_arrears: number | null
-        }
-        Relationships: []
-      }
       dashboard_metrics_view: {
         Row: {
           active_borrowers_count: number | null
@@ -858,28 +813,7 @@ export type Database = {
         }
         Relationships: []
       }
-      interest_comparison_view: {
-        Row: {
-          interest_received: number | null
-          interest_scheduled: number | null
-          payroll_type: string | null
-          period_end: string | null
-          period_start: string | null
-          time_frame: string | null
-        }
-        Relationships: []
-      }
-      loan_disbursement_view: {
-        Row: {
-          payroll_type: string | null
-          period_end: string | null
-          period_start: string | null
-          time_frame: string | null
-          total_principal: number | null
-        }
-        Relationships: []
-      }
-      loan_vs_repayment_comparison_view: {
+      loan_repayment_calendar_view: {
         Row: {
           payroll_type: string | null
           period_end: string | null
@@ -887,61 +821,6 @@ export type Database = {
           time_frame: string | null
           total_disbursed: number | null
           total_repaid: number | null
-        }
-        Relationships: []
-      }
-      loans_in_arrears_view: {
-        Row: {
-          arrears: number | null
-          borrower_id: string | null
-          borrower_name: string | null
-          days_late: number | null
-          days_matured_unsettled: number | null
-          default_fees_accumulated: number | null
-          email: string | null
-          file_number: string | null
-          fortnightly_installment: number | null
-          interest: number | null
-          last_payment_date: string | null
-          loan_created_at: string | null
-          loan_id: string | null
-          loan_repayment_status:
-            | Database["public"]["Enums"]["repayment_status_enum"]
-            | null
-          loan_status: Database["public"]["Enums"]["loan_status_enum"] | null
-          maturity_date: string | null
-          missed_default_amount: number | null
-          missed_due_amount: number | null
-          missed_payments_count: number | null
-          missed_payroll_type: string | null
-          missed_schedule_id: string | null
-          mobile_number: string | null
-          next_due_date: string | null
-          next_installment_due: number | null
-          next_schedule_balance: number | null
-          next_schedule_status:
-            | Database["public"]["Enums"]["repayment_schedule_status_enum"]
-            | null
-          organization: string | null
-          outstanding_balance: number | null
-          overdue_bucket: string | null
-          partial_payments_count: number | null
-          pay_period: string | null
-          principal: number | null
-          product: string | null
-          repayment_completion_percentage: number | null
-          total_repayment: number | null
-        }
-        Relationships: []
-      }
-      repayment_collections_view: {
-        Row: {
-          actual_repayment: number | null
-          payroll_type: string | null
-          period_end: string | null
-          period_start: string | null
-          scheduled_repayment: number | null
-          time_frame: string | null
         }
         Relationships: []
       }
