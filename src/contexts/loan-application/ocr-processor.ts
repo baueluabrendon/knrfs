@@ -1,10 +1,10 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { createWorker } from 'tesseract.js';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
+import { createWorker } from 'tesseract.js';
 
-// Set proper worker path for PDF.js
+// Set proper worker path for PDF.js (as fallback)
 const pdfjsWorkerUrl = new URL(
   'pdfjs-dist/legacy/build/pdf.worker.min.js',
   import.meta.url
@@ -12,24 +12,52 @@ const pdfjsWorkerUrl = new URL(
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
 
+// OpenAI API key and configuration
+const OPENAI_API_KEY = "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";
+const USE_DEV_MODE = import.meta.env.VITE_DEV_MODE === 'true';
+
 /**
- * Processes an application form using client-side OCR (Tesseract.js for images, PDF.js for PDFs)
+ * Processes an application form using OpenAI API for OCR and data extraction
+ * Falls back to client-side OCR if OpenAI API fails or dev mode is enabled
  * @param file The application form file
  * @returns The extracted data from the form
  */
 export const processApplicationFormOCR = async (file: File): Promise<any> => {
   try {
-    console.log(`Starting client-side OCR processing for file: ${file.name}`);
+    console.log(`Starting OCR processing for file: ${file.name}`);
     console.log(`File type: ${file.type}, size: ${file.size} bytes`);
     
     let extractedText = '';
     
-    if (file.type.includes('pdf')) {
-      console.log('Processing PDF document');
-      extractedText = await extractTextFromPdf(file);
+    // Try using OpenAI API for OCR unless in dev mode
+    if (!USE_DEV_MODE) {
+      try {
+        console.log("Attempting to use OpenAI for OCR processing");
+        extractedText = await extractTextWithOpenAI(file);
+        console.log("OpenAI OCR processing complete");
+      } catch (error) {
+        console.error("Error using OpenAI for OCR, falling back to local processing:", error);
+        toast.warning("Using fallback OCR method. Results may be less accurate.");
+        
+        // Fallback to local processing
+        if (file.type.includes('pdf')) {
+          console.log('Fallback: Processing PDF document locally');
+          extractedText = await extractTextFromPdf(file);
+        } else {
+          console.log('Fallback: Processing image document with Tesseract');
+          extractedText = await extractTextFromImage(file);
+        }
+      }
     } else {
-      console.log('Processing image document');
-      extractedText = await extractTextFromImage(file);
+      console.log("Dev mode enabled, using local OCR processing");
+      // Use local processing in dev mode
+      if (file.type.includes('pdf')) {
+        console.log('Processing PDF document locally');
+        extractedText = await extractTextFromPdf(file);
+      } else {
+        console.log('Processing image document with Tesseract');
+        extractedText = await extractTextFromImage(file);
+      }
     }
     
     console.log('Text extraction complete, parsing extracted data');
@@ -39,71 +67,255 @@ export const processApplicationFormOCR = async (file: File): Promise<any> => {
     const cleanedText = extractedText.replace(/\s{2,}/g, ' ').replace(/\n/g, ' ');
     console.log('Cleaned text sample:', cleanedText.substring(0, 200) + '...');
     
-    // Parse the extracted text to get structured data that matches our form structure
-    const extractedData = {
-      personalDetails: {
-        firstName: extractValue(cleanedText, 'first name|given name', 20),
-        lastName: extractValue(cleanedText, 'last name|surname', 20),
-        dateOfBirth: extractValue(cleanedText, 'date of birth', 10),
-        email: extractValue(cleanedText, 'email', 30),
-        phone: extractValue(cleanedText, 'phone|mobile number', 15),
-        gender: extractValue(cleanedText, 'gender', 10),
-        nationality: extractValue(cleanedText, 'nationality', 20),
-        maritalStatus: extractValue(cleanedText, 'marital status', 15),
-      },
-      employmentDetails: {
-        employerName: extractValue(cleanedText, 'employer|department|company', 30),
-        position: extractValue(cleanedText, 'position', 30),
-        employmentDate: extractValue(cleanedText, 'employment date|date employed', 10),
-        fileNumber: extractValue(cleanedText, 'file number', 20),
-        paymaster: extractValue(cleanedText, 'paymaster', 30),
-        workPhoneNumber: extractValue(cleanedText, 'work phone', 15),
-        postalAddress: extractValue(cleanedText, 'postal address', 50),
-        fax: extractValue(cleanedText, 'fax', 15),
-      },
-      residentialDetails: {
-        address: extractValue(cleanedText, 'address', 50),
-        city: extractValue(cleanedText, 'city', 20),
-        province: extractValue(cleanedText, 'province', 20),
-        district: extractValue(cleanedText, 'district', 20),
-        village: extractValue(cleanedText, 'village', 20),
-        suburb: extractValue(cleanedText, 'suburb', 20),
-        lot: extractValue(cleanedText, 'lot', 10),
-        section: extractValue(cleanedText, 'section', 10),
-        streetName: extractValue(cleanedText, 'street name', 30),
-        spouseLastName: extractValue(cleanedText, 'spouse last name', 20),
-        spouseFirstName: extractValue(cleanedText, 'spouse first name', 20),
-        spouseEmployerName: extractValue(cleanedText, 'spouse employer', 30),
-        spouseContactDetails: extractValue(cleanedText, 'spouse contact', 30),
-      },
-      financialDetails: {
-        bank: extractValue(cleanedText, 'bank', 20),
-        bankBranch: extractValue(cleanedText, 'bank branch', 20),
-        bsbCode: extractValue(cleanedText, 'bsb code', 10),
-        accountName: extractValue(cleanedText, 'account name', 30),
-        accountNumber: extractValue(cleanedText, 'account number', 20),
-        accountType: extractValue(cleanedText, 'account type', 15),
-        income: extractValue(cleanedText, 'income|gross salary', 15),
-        netIncome: extractValue(cleanedText, 'net income', 15),
-      },
-      loanDetails: {
-        loanAmount: extractValue(cleanedText, 'loan amount', 15),
-        loanTerm: extractValue(cleanedText, 'loan term', 10),
-        loanPurpose: extractValue(cleanedText, 'purpose of loan', 50),
-        fortnightlyInstallment: extractValue(cleanedText, 'bi-weekly installment|fortnightly installment', 15),
-        totalRepayable: extractValue(cleanedText, 'total repayable', 15),
+    // Try using OpenAI for document data extraction unless in dev mode
+    let extractedData;
+    if (!USE_DEV_MODE) {
+      try {
+        console.log("Attempting to use OpenAI for data extraction");
+        extractedData = await extractFormDataWithOpenAI(cleanedText);
+        console.log("OpenAI data extraction complete");
+      } catch (error) {
+        console.error("Error using OpenAI for data extraction, falling back to regex pattern matching:", error);
+        toast.warning("Using fallback data extraction. Please verify the extracted information carefully.");
+        extractedData = extractFormDataWithRegex(cleanedText);
       }
-    };
+    } else {
+      console.log("Dev mode enabled, using regex pattern matching for data extraction");
+      extractedData = extractFormDataWithRegex(cleanedText);
+    }
     
     console.log('Extracted structured data:', extractedData);
     return extractedData;
   } catch (error: any) {
-    console.error("Error in client-side OCR processing:", error);
+    console.error("Error in OCR processing:", error);
     throw new Error(`OCR processing failed: ${error.message}`);
   }
 };
 
-// Extract text from PDF using PDF.js
+// Extract text from document using OpenAI's Vision API
+async function extractTextWithOpenAI(file: File): Promise<string> {
+  try {
+    // Convert file to base64
+    const base64String = await fileToBase64(file);
+    
+    console.log("Sending document to OpenAI for text extraction");
+    
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You are a precise OCR system. Extract all text from the provided document image or PDF. Return only the extracted text, nothing else."
+          },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "Extract all text from this document:"
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: base64String
+                }
+              }
+            ]
+          }
+        ],
+        max_tokens: 4000
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+    }
+    
+    const data = await response.json();
+    return data.choices[0].message.content;
+  } catch (error) {
+    console.error("Error in OpenAI text extraction:", error);
+    throw error;
+  }
+}
+
+// Use OpenAI to extract structured form data from text
+async function extractFormDataWithOpenAI(text: string): Promise<any> {
+  try {
+    console.log("Sending extracted text to OpenAI for structured data extraction");
+    
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are a data extraction system for loan application forms. 
+            Extract the following information categories from the text and format them as a JSON object:
+            
+            personalDetails:
+              - firstName: first name of applicant
+              - lastName: last name of applicant
+              - dateOfBirth: date of birth
+              - email: email address
+              - phone: phone number
+              - gender: gender
+              - nationality: nationality
+              - maritalStatus: marital status
+            
+            employmentDetails:
+              - employerName: name of employer
+              - position: job position
+              - employmentDate: date of employment
+              - fileNumber: file number
+              - paymaster: paymaster
+              - workPhoneNumber: work phone number
+              - postalAddress: postal address
+              - fax: fax number
+            
+            residentialDetails:
+              - address: residential address
+              - city: city
+              - province: province
+              - district: district
+              - village: village
+              - suburb: suburb
+              - lot: lot number
+              - section: section
+              - streetName: street name
+              - spouseLastName: spouse's last name
+              - spouseFirstName: spouse's first name
+              - spouseEmployerName: spouse's employer
+              - spouseContactDetails: spouse's contact details
+            
+            financialDetails:
+              - bank: bank name
+              - bankBranch: bank branch
+              - bsbCode: BSB code
+              - accountName: account name
+              - accountNumber: account number
+              - accountType: account type
+              - income: gross income
+              - netIncome: net income
+            
+            loanDetails:
+              - loanAmount: requested loan amount
+              - loanTerm: loan term
+              - loanPurpose: purpose of loan
+              - fortnightlyInstallment: bi-weekly installment amount
+              - totalRepayable: total repayable amount
+            
+            Return ONLY the JSON object with these fields, nothing else. If a field cannot be found, leave it as an empty string.`
+          },
+          {
+            role: "user",
+            content: text
+          }
+        ],
+        response_format: { type: "json_object" }
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+    }
+    
+    const data = await response.json();
+    return JSON.parse(data.choices[0].message.content);
+  } catch (error) {
+    console.error("Error in OpenAI structured data extraction:", error);
+    throw error;
+  }
+}
+
+// Convert file to base64
+async function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+      } else {
+        reject(new Error('Failed to convert file to base64'));
+      }
+    };
+    reader.onerror = error => reject(error);
+  });
+}
+
+// Extract form data using regex patterns (fallback method)
+function extractFormDataWithRegex(text: string): any {
+  return {
+    personalDetails: {
+      firstName: extractValue(text, 'first name|given name', 20),
+      lastName: extractValue(text, 'last name|surname', 20),
+      dateOfBirth: extractValue(text, 'date of birth', 10),
+      email: extractValue(text, 'email', 30),
+      phone: extractValue(text, 'phone|mobile number', 15),
+      gender: extractValue(text, 'gender', 10),
+      nationality: extractValue(text, 'nationality', 20),
+      maritalStatus: extractValue(text, 'marital status', 15),
+    },
+    employmentDetails: {
+      employerName: extractValue(text, 'employer|department|company', 30),
+      position: extractValue(text, 'position', 30),
+      employmentDate: extractValue(text, 'employment date|date employed', 10),
+      fileNumber: extractValue(text, 'file number', 20),
+      paymaster: extractValue(text, 'paymaster', 30),
+      workPhoneNumber: extractValue(text, 'work phone', 15),
+      postalAddress: extractValue(text, 'postal address', 50),
+      fax: extractValue(text, 'fax', 15),
+    },
+    residentialDetails: {
+      address: extractValue(text, 'address', 50),
+      city: extractValue(text, 'city', 20),
+      province: extractValue(text, 'province', 20),
+      district: extractValue(text, 'district', 20),
+      village: extractValue(text, 'village', 20),
+      suburb: extractValue(text, 'suburb', 20),
+      lot: extractValue(text, 'lot', 10),
+      section: extractValue(text, 'section', 10),
+      streetName: extractValue(text, 'street name', 30),
+      spouseLastName: extractValue(text, 'spouse last name', 20),
+      spouseFirstName: extractValue(text, 'spouse first name', 20),
+      spouseEmployerName: extractValue(text, 'spouse employer', 30),
+      spouseContactDetails: extractValue(text, 'spouse contact', 30),
+    },
+    financialDetails: {
+      bank: extractValue(text, 'bank', 20),
+      bankBranch: extractValue(text, 'bank branch', 20),
+      bsbCode: extractValue(text, 'bsb code', 10),
+      accountName: extractValue(text, 'account name', 30),
+      accountNumber: extractValue(text, 'account number', 20),
+      accountType: extractValue(text, 'account type', 15),
+      income: extractValue(text, 'income|gross salary', 15),
+      netIncome: extractValue(text, 'net income', 15),
+    },
+    loanDetails: {
+      loanAmount: extractValue(text, 'loan amount', 15),
+      loanTerm: extractValue(text, 'loan term', 10),
+      loanPurpose: extractValue(text, 'purpose of loan', 50),
+      fortnightlyInstallment: extractValue(text, 'bi-weekly installment|fortnightly installment', 15),
+      totalRepayable: extractValue(text, 'total repayable', 15),
+    }
+  };
+}
+
+// Extract text from PDF using PDF.js (fallback method)
 async function extractTextFromPdf(file: File): Promise<string> {
   return new Promise(async (resolve, reject) => {
     try {
@@ -135,7 +347,7 @@ async function extractTextFromPdf(file: File): Promise<string> {
   });
 }
 
-// Extract text from image using Tesseract.js
+// Extract text from image using Tesseract.js (fallback method)
 async function extractTextFromImage(file: File): Promise<string> {
   try {
     console.log('Initializing Tesseract worker');
@@ -211,7 +423,7 @@ export function useOcrProcessor(documents: Record<string, any>) {
     setIsProcessingOCR(true);
     
     try {
-      console.log("Starting client-side OCR processing of application form...");
+      console.log("Starting OCR processing of application form...");
       const extractedData = await processApplicationFormOCR(documents.applicationForm.file);
       
       if (extractedData) {
