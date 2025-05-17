@@ -45,16 +45,16 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
     handleSubmit 
   } = useFormData(applicationUuid);
   
-  // Now using enhanced OCR processor with OpenAI
+  // Using OpenAI-based OCR processor exclusively
   const { 
     isProcessingOCR, 
     processApplicationForm: processOcr 
   } = useOcrProcessor(documents);
 
-  // Process application form using enhanced OCR processor
+  // Process application form using OpenAI OCR
   const processApplicationForm = async (): Promise<void> => {
     try {
-      toast.info("Processing document with AI-enhanced OCR... This may take a minute", {
+      toast.info("Processing document with AI OCR... This may take a minute", {
         duration: 8000,
       });
       const extractedData = await processOcr();

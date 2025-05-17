@@ -1,24 +1,12 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
-import { createWorker } from 'tesseract.js';
 
-// Set proper worker path for PDF.js (as fallback)
-const pdfjsWorkerUrl = new URL(
-  'pdfjs-dist/legacy/build/pdf.worker.min.js',
-  import.meta.url
-).toString();
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
-
-// OpenAI API key and configuration
-const OPENAI_API_KEY = "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";
-const USE_DEV_MODE = import.meta.env.VITE_DEV_MODE === 'true';
+// OpenAI API key configuration
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 
 /**
  * Processes an application form using OpenAI API for OCR and data extraction
- * Falls back to client-side OCR if OpenAI API fails or dev mode is enabled
  * @param file The application form file
  * @returns The extracted data from the form
  */
@@ -27,62 +15,19 @@ export const processApplicationFormOCR = async (file: File): Promise<any> => {
     console.log(`Starting OCR processing for file: ${file.name}`);
     console.log(`File type: ${file.type}, size: ${file.size} bytes`);
     
-    let extractedText = '';
+    // Convert file to base64
+    const base64String = await fileToBase64(file);
     
-    // Try using OpenAI API for OCR unless in dev mode
-    if (!USE_DEV_MODE) {
-      try {
-        console.log("Attempting to use OpenAI for OCR processing");
-        extractedText = await extractTextWithOpenAI(file);
-        console.log("OpenAI OCR processing complete");
-      } catch (error) {
-        console.error("Error using OpenAI for OCR, falling back to local processing:", error);
-        toast.warning("Using fallback OCR method. Results may be less accurate.");
-        
-        // Fallback to local processing
-        if (file.type.includes('pdf')) {
-          console.log('Fallback: Processing PDF document locally');
-          extractedText = await extractTextFromPdf(file);
-        } else {
-          console.log('Fallback: Processing image document with Tesseract');
-          extractedText = await extractTextFromImage(file);
-        }
-      }
-    } else {
-      console.log("Dev mode enabled, using local OCR processing");
-      // Use local processing in dev mode
-      if (file.type.includes('pdf')) {
-        console.log('Processing PDF document locally');
-        extractedText = await extractTextFromPdf(file);
-      } else {
-        console.log('Processing image document with Tesseract');
-        extractedText = await extractTextFromImage(file);
-      }
-    }
+    // Extract text using OpenAI's Vision API
+    console.log("Sending document to OpenAI for text extraction");
+    const extractedText = await extractTextWithOpenAI(base64String);
     
     console.log('Text extraction complete, parsing extracted data');
     console.log('Extracted text sample:', extractedText.substring(0, 200) + '...');
     
-    // Clean up common OCR errors - strip extra spaces and normalize newlines
-    const cleanedText = extractedText.replace(/\s{2,}/g, ' ').replace(/\n/g, ' ');
-    console.log('Cleaned text sample:', cleanedText.substring(0, 200) + '...');
-    
-    // Try using OpenAI for document data extraction unless in dev mode
-    let extractedData;
-    if (!USE_DEV_MODE) {
-      try {
-        console.log("Attempting to use OpenAI for data extraction");
-        extractedData = await extractFormDataWithOpenAI(cleanedText);
-        console.log("OpenAI data extraction complete");
-      } catch (error) {
-        console.error("Error using OpenAI for data extraction, falling back to regex pattern matching:", error);
-        toast.warning("Using fallback data extraction. Please verify the extracted information carefully.");
-        extractedData = extractFormDataWithRegex(cleanedText);
-      }
-    } else {
-      console.log("Dev mode enabled, using regex pattern matching for data extraction");
-      extractedData = extractFormDataWithRegex(cleanedText);
-    }
+    // Extract structured form data using OpenAI
+    console.log("Sending extracted text to OpenAI for structured data extraction");
+    const extractedData = await extractFormDataWithOpenAI(extractedText);
     
     console.log('Extracted structured data:', extractedData);
     return extractedData;
@@ -93,11 +38,8 @@ export const processApplicationFormOCR = async (file: File): Promise<any> => {
 };
 
 // Extract text from document using OpenAI's Vision API
-async function extractTextWithOpenAI(file: File): Promise<string> {
+async function extractTextWithOpenAI(base64String: string): Promise<string> {
   try {
-    // Convert file to base64
-    const base64String = await fileToBase64(file);
-    
     console.log("Sending document to OpenAI for text extraction");
     
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -255,157 +197,6 @@ async function fileToBase64(file: File): Promise<string> {
     };
     reader.onerror = error => reject(error);
   });
-}
-
-// Extract form data using regex patterns (fallback method)
-function extractFormDataWithRegex(text: string): any {
-  return {
-    personalDetails: {
-      firstName: extractValue(text, 'first name|given name', 20),
-      lastName: extractValue(text, 'last name|surname', 20),
-      dateOfBirth: extractValue(text, 'date of birth', 10),
-      email: extractValue(text, 'email', 30),
-      phone: extractValue(text, 'phone|mobile number', 15),
-      gender: extractValue(text, 'gender', 10),
-      nationality: extractValue(text, 'nationality', 20),
-      maritalStatus: extractValue(text, 'marital status', 15),
-    },
-    employmentDetails: {
-      employerName: extractValue(text, 'employer|department|company', 30),
-      position: extractValue(text, 'position', 30),
-      employmentDate: extractValue(text, 'employment date|date employed', 10),
-      fileNumber: extractValue(text, 'file number', 20),
-      paymaster: extractValue(text, 'paymaster', 30),
-      workPhoneNumber: extractValue(text, 'work phone', 15),
-      postalAddress: extractValue(text, 'postal address', 50),
-      fax: extractValue(text, 'fax', 15),
-    },
-    residentialDetails: {
-      address: extractValue(text, 'address', 50),
-      city: extractValue(text, 'city', 20),
-      province: extractValue(text, 'province', 20),
-      district: extractValue(text, 'district', 20),
-      village: extractValue(text, 'village', 20),
-      suburb: extractValue(text, 'suburb', 20),
-      lot: extractValue(text, 'lot', 10),
-      section: extractValue(text, 'section', 10),
-      streetName: extractValue(text, 'street name', 30),
-      spouseLastName: extractValue(text, 'spouse last name', 20),
-      spouseFirstName: extractValue(text, 'spouse first name', 20),
-      spouseEmployerName: extractValue(text, 'spouse employer', 30),
-      spouseContactDetails: extractValue(text, 'spouse contact', 30),
-    },
-    financialDetails: {
-      bank: extractValue(text, 'bank', 20),
-      bankBranch: extractValue(text, 'bank branch', 20),
-      bsbCode: extractValue(text, 'bsb code', 10),
-      accountName: extractValue(text, 'account name', 30),
-      accountNumber: extractValue(text, 'account number', 20),
-      accountType: extractValue(text, 'account type', 15),
-      income: extractValue(text, 'income|gross salary', 15),
-      netIncome: extractValue(text, 'net income', 15),
-    },
-    loanDetails: {
-      loanAmount: extractValue(text, 'loan amount', 15),
-      loanTerm: extractValue(text, 'loan term', 10),
-      loanPurpose: extractValue(text, 'purpose of loan', 50),
-      fortnightlyInstallment: extractValue(text, 'bi-weekly installment|fortnightly installment', 15),
-      totalRepayable: extractValue(text, 'total repayable', 15),
-    }
-  };
-}
-
-// Extract text from PDF using PDF.js (fallback method)
-async function extractTextFromPdf(file: File): Promise<string> {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      
-      console.log(`PDF loaded with ${pdf.numPages} pages`);
-      let fullText = '';
-      
-      // Process up to first 5 pages only (for performance)
-      const maxPages = Math.min(pdf.numPages, 5);
-      
-      for (let i = 1; i <= maxPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items
-          .map((item: any) => item.str)
-          .join(' ');
-        
-        fullText += pageText + ' ';
-        console.log(`Extracted text from page ${i}`);
-      }
-      
-      resolve(fullText);
-    } catch (error) {
-      console.error('Error extracting text from PDF:', error);
-      reject(error);
-    }
-  });
-}
-
-// Extract text from image using Tesseract.js (fallback method)
-async function extractTextFromImage(file: File): Promise<string> {
-  try {
-    console.log('Initializing Tesseract worker');
-    
-    // Create worker with proper API for Tesseract.js v4
-    const worker = await createWorker();
-    
-    console.log('Worker created, beginning OCR process');
-    
-    // Convert file to image URL
-    const imageUrl = URL.createObjectURL(file);
-    
-    // Properly initialize with the current API
-    await worker.loadLanguage('eng');
-    await worker.initialize('eng');
-    
-    // Recognize text
-    console.log('Starting Tesseract OCR processing...');
-    const result = await worker.recognize(imageUrl);
-    
-    // Check confidence level and warn if low
-    const confidence = result.data.confidence;
-    console.log(`OCR completed with confidence level: ${confidence}%`);
-    
-    if (confidence < 70) {
-      console.warn("Low OCR confidence:", confidence);
-      toast.warning("OCR result may be inaccurate. Please verify extracted data carefully.");
-    }
-    
-    console.log('Tesseract OCR processing complete');
-    
-    // Clean up
-    URL.revokeObjectURL(imageUrl);
-    await worker.terminate();
-    
-    return result.data.text;
-  } catch (error) {
-    console.error('Error processing image with Tesseract:', error);
-    throw error;
-  }
-}
-
-// Helper function to extract values from text with support for multiple labels
-function extractValue(text: string, label: string, maxLength: number): string {
-  // Support multiple label variations separated by |
-  const labelVariations = label.split('|');
-  let value = '';
-  
-  for (const labelVar of labelVariations) {
-    const regex = new RegExp(`${labelVar}[\\s:\\-]*([^\\n]{1,${maxLength}})`, 'i');
-    const match = text.match(regex);
-    if (match) {
-      value = match[1].trim();
-      break;
-    }
-  }
-  
-  return value;
 }
 
 /**
