@@ -1,13 +1,21 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { dashboardApi } from "@/lib/api/dashboard";
+import { supabase } from "@/integrations/supabase/client";
 import DashboardMetrics from "@/components/dashboard/DashboardMetrics";
 import { Loader2 } from "lucide-react";
 
 const Dashboard = () => {
   const { data: metrics, isLoading: loadingMetrics } = useQuery({
     queryKey: ["dashboard-metrics"],
-    queryFn: dashboardApi.getMetrics
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('dashboard_metrics_view')
+        .select('*')
+        .single();
+      
+      if (error) throw error;
+      return data;
+    }
   });
 
   if (loadingMetrics) {

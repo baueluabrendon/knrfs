@@ -1,10 +1,18 @@
 
 import { Card } from "@/components/ui/card";
 import { DollarSign, Users, FileText, AlertCircle } from "lucide-react";
-import { DashboardMetrics as DashboardMetricsType } from "@/lib/api/dashboard";
 
 interface DashboardMetricsProps {
-  metrics: DashboardMetricsType;
+  metrics: {
+    active_loans_count: number;
+    active_borrowers_count: number;
+    at_risk_loans_count: number;
+    pending_applications_count: number;
+    total_principal_amount: number;
+    total_outstanding_balance: number;
+    total_repayments_amount: number;
+    avg_loan_duration_days: number;
+  };
 }
 
 const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
@@ -33,8 +41,8 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
       value: new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD'
-      }).format(metrics.total_principal_amount),
-      subtitle: `${Math.round((metrics.total_repayments_amount / metrics.total_principal_amount) * 100)}% Repaid`,
+      }).format(metrics.total_principal_amount || 0),
+      subtitle: `${Math.round(((metrics.total_repayments_amount || 0) / (metrics.total_principal_amount || 1)) * 100)}% Repaid`,
       icon: Users,
     }
   ];

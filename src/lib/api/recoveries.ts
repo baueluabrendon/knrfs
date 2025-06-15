@@ -1,35 +1,50 @@
 
-import { ApiResponse } from './types';
 import { supabase } from '@/integrations/supabase/client';
-
-const API_BASE_URL = 'http://localhost:5000';
 
 export const recoveriesApi = {
   async getLoansInArrears() {
     try {
       const { data, error } = await supabase
-        .from("loans_in_arrears_view")
-        .select("*");
-      
+        .from('loans')
+        .select(`
+          loan_id,
+          borrower_id,
+          principal,
+          interest,
+          arrears,
+          last_payment_date,
+          borrowers (
+            given_name,
+            surname,
+            email,
+            mobile_number,
+            file_number,
+            department_company
+          )
+        `)
+        .gt('arrears', 0)
+        .eq('loan_status', 'active');
+
       if (error) throw error;
-      
-      // Map the returned data to our expected interface format
-      return data.map((item) => ({
-        loanId: item.loan_id,
-        borrowerName: item.borrower_name,
-        fileNumber: item.file_number || '',
-        email: item.email || '',
-        mobileNumber: item.mobile_number || '',
-        organization: item.organization || '',
-        loanAmount: item.principal + item.interest,
-        amountOverdue: item.arrears,
-        daysOverdue: item.days_late,
-        overdueBucket: item.overdue_bucket || 'Unknown',
-        lastPaymentDate: item.last_payment_date,
-        payPeriod: item.pay_period || 'N/A',
-      }));
+
+      return data?.map(loan => ({
+        loan_id: loan.loan_id,
+        borrower_name: `${loan.borrowers?.given_name || ''} ${loan.borrowers?.surname || ''}`.trim(),
+        file_number: loan.borrowers?.file_number || '',
+        email: loan.borrowers?.email || '',
+        mobile_number: loan.borrowers?.mobile_number || '',
+        organization: loan.borrowers?.department_company || '',
+        loan_amount: (loan.principal || 0) + (loan.interest || 0),
+        arrears: loan.arrears || 0,
+        days_late: loan.last_payment_date ? 
+          Math.floor((new Date().getTime() - new Date(loan.last_payment_date).getTime()) / (1000 * 3600 * 24)) : 0,
+        overdue_bucket: loan.arrears && loan.arrears > 1000 ? '30+ Days' : 
+                       loan.arrears && loan.arrears > 500 ? '15-30 Days' : '1-15 Days',
+        last_payment_date: loan.last_payment_date,
+        pay_period: 'N/A'
+      })) || [];
     } catch (error) {
-      console.error('Get loans in arrears error:', error);
+      console.error('Error fetching loans in arrears:', error);
       throw error;
     }
   },
@@ -37,27 +52,43 @@ export const recoveriesApi = {
   async getMissedPayments() {
     try {
       const { data, error } = await supabase
-        .from("loans_in_arrears_view")
-        .select("*");
+        .from('repayment_schedule')
+        .select(`
+          *,
+          loans (
+            loan_id,
+            borrower_id,
+            borrowers (
+              given_name,
+              surname,
+              email,
+              mobile_number,
+              file_number,
+              department_company
+            )
+          )
+        `)
+        .eq('statusrs', 'default')
+        .order('due_date', { ascending: false });
 
       if (error) throw error;
 
-      return data
-        .filter((item) => item.missed_schedule_id !== null)
-        .map((item) => ({
-          loanId: item.loan_id,
-          borrowerName: item.borrower_name,
-          fileNumber: item.file_number || "",
-          organization: item.organization || "",
-          payPeriod: item.pay_period,
-          payrollType: item.missed_payroll_type,
-          dueDate: item.next_due_date,
-          amountDue: item.missed_due_amount || item.fortnightly_installment,
-          defaultAmount: item.missed_default_amount || 0,
-          outstandingBalance: item.outstanding_balance || 0,
-        }));
+      return data?.map(schedule => ({
+        loan_id: schedule.loans?.loan_id || '',
+        borrower_name: `${schedule.loans?.borrowers?.given_name || ''} ${schedule.loans?.borrowers?.surname || ''}`.trim(),
+        file_number: schedule.loans?.borrowers?.file_number || '',
+        email: schedule.loans?.borrowers?.email || '',
+        mobile_number: schedule.loans?.borrowers?.mobile_number || '',
+        organization: schedule.loans?.borrowers?.department_company || '',
+        scheduled_amount: schedule.repaymentrs || 0,
+        due_date: schedule.due_date,
+        days_overdue: schedule.due_date ? 
+          Math.floor((new Date().getTime() - new Date(schedule.due_date).getTime()) / (1000 * 3600 * 24)) : 0,
+        pay_period: schedule.pay_period || 'N/A',
+        payment_number: schedule.payment_number || 0
+      })) || [];
     } catch (error) {
-      console.error('Get missed payments error:', error);
+      console.error('Error fetching missed payments:', error);
       throw error;
     }
   },
@@ -65,37 +96,44 @@ export const recoveriesApi = {
   async getPartialPayments() {
     try {
       const { data, error } = await supabase
-        .from("repayment_schedule")
+        .from('repayment_schedule')
         .select(`
           *,
-          loans:loan_id (
+          loans (
+            loan_id,
             borrower_id,
-            borrowers:borrower_id (
+            borrowers (
               given_name,
-              surname
+              surname,
+              email,
+              mobile_number,
+              file_number,
+              department_company
             )
           )
         `)
-        .eq("statusrs", "partial");
+        .eq('statusrs', 'partial')
+        .order('due_date', { ascending: false });
 
       if (error) throw error;
 
-      return data.map((item) => {
-        const borrower = item.loans?.borrowers;
-        return {
-          id: item.schedule_id,
-          borrowerName: borrower ? `${borrower.given_name} ${borrower.surname}` : "Unknown",
-          paymentDate: item.settled_date || item.due_date,
-          amountDue: item.repaymentrs || 0,
-          amountPaid: item.repayment_received || 0,
-          shortfall: (item.repaymentrs || 0) - (item.repayment_received || 0),
-          loanId: item.loan_id,
-          payPeriod: item.pay_period || "N/A",
-          payrollType: item.payroll_type || "N/A"
-        };
-      });
+      return data?.map(schedule => ({
+        loan_id: schedule.loans?.loan_id || '',
+        borrower_name: `${schedule.loans?.borrowers?.given_name || ''} ${schedule.loans?.borrowers?.surname || ''}`.trim(),
+        file_number: schedule.loans?.borrowers?.file_number || '',
+        email: schedule.loans?.borrowers?.email || '',
+        mobile_number: schedule.loans?.borrowers?.mobile_number || '',
+        organization: schedule.loans?.borrowers?.department_company || '',
+        scheduled_amount: schedule.repaymentrs || 0,
+        paid_amount: schedule.repayment_received || 0,
+        outstanding_amount: schedule.balance || 0,
+        due_date: schedule.due_date,
+        payment_date: schedule.settled_date,
+        pay_period: schedule.pay_period || 'N/A',
+        payment_number: schedule.payment_number || 0
+      })) || [];
     } catch (error) {
-      console.error('Get partial payments error:', error);
+      console.error('Error fetching partial payments:', error);
       throw error;
     }
   }
