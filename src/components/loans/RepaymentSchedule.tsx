@@ -223,7 +223,7 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {ledgerWithBalance.slice(0, 10).map((entry, index) => (
+              {ledgerWithBalance.map((entry, index) => (
                 <TableRow key={index}>
                   <TableCell>{entry.payment_number || '-'}</TableCell>
                   <TableCell>{entry.entry_date ? format(new Date(entry.entry_date), "dd/MM/yyyy") : "N/A"}</TableCell>
@@ -240,13 +240,6 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                   </TableCell>
                 </TableRow>
               ))}
-              {ledgerWithBalance.length > 10 && (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center text-sm text-gray-500">
-                    Showing first 10 transactions. Download PDF for full statement.
-                  </TableCell>
-                </TableRow>
-              )}
             </TableBody>
           </Table>
         </div>
