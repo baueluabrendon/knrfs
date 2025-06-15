@@ -277,18 +277,9 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                 justifyContent: "space-between"
               }}
             >
-              {/* Header block */}
+              {/* Header block (NO image) */}
               <div>
-                <img
-                  src={headerImage}
-                  alt="Statement Header"
-                  style={{
-                    width: "100%",
-                    height: "40px",
-                    objectFit: "cover",
-                    marginBottom: "12px"
-                  }}
-                />
+                {/* Removed header image for export/pdf */}
                 <div style={{
                   fontSize: "1.2rem",
                   fontWeight: "bold",
@@ -412,7 +403,7 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                   </tbody>
                 </table>
               </div>
-              {/* Footer block */}
+              {/* Footer block (NO image) */}
               <div>
                 {/* On the last page show totals */}
                 {pageIndex === splitLedger.length - 1 && (
@@ -424,17 +415,7 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                     </div>
                   </div>
                 )}
-                {/* Footer image */}
-                <img
-                  src={footerImage}
-                  alt="Statement Footer"
-                  style={{
-                    marginTop: "14px",
-                    width: "100%",
-                    height: "40px",
-                    objectFit: "cover"
-                  }}
-                />
+                {/* Removed footer image for export/pdf */}
                 <div style={{
                   fontSize: "7px",
                   color: "#555",
