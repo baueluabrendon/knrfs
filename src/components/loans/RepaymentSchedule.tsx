@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchLetterheadUrls } from "@/lib/storage/fetchLetterheadUrls";
 import { Card } from "@/components/ui/card";
 import { format } from "date-fns";
 import html2pdf from "html2pdf.js";
@@ -21,8 +20,6 @@ interface RepaymentScheduleProps {
 export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
   const [ledger, setLedger] = useState<any[]>([]);
   const [summary, setSummary] = useState<any>(null);
-  const [headerUrl, setHeaderUrl] = useState("");
-  const [footerUrl, setFooterUrl] = useState("");
   const printRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -61,14 +58,6 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
           loan_status: f.loan_status,
           gross_loan: f.gross_loan,
         });
-
-        try {
-          const { headerUrl, footerUrl } = await fetchLetterheadUrls();
-          setHeaderUrl(headerUrl);
-          setFooterUrl(footerUrl);
-        } catch (e) {
-          console.error("Error fetching letterhead URLs:", e);
-        }
       } else if (error) {
         console.error("Error fetching ledger data:", error);
       }
@@ -260,8 +249,20 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                 fontFamily: "Arial, sans-serif",
               }}
             >
-              {headerUrl && <img src={headerUrl} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "40px", objectFit: "cover" }} />}
-              
+              <img
+                src="/df1b3e4a-1947-499a-bb35-528af5d6119d.png"
+                alt="K&R Header"
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "40px",
+                  objectFit: "cover",
+                  zIndex: 100,
+                }}
+              />
+
               <div style={{
                 position: "absolute",
                 top: "45%",
@@ -273,7 +274,7 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
               }}>
                 STATEMENT OF ACCOUNT
               </div>
-              
+
               <div style={{ position: "relative", zIndex: 1, marginTop: "40px" }}>
                 {pageIndex === 0 && summary && (
                   <div className="mb-6">
@@ -463,8 +464,20 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                   Authorized Signature
                 </div>
               )}
-              
-              {footerUrl && <img src={footerUrl} style={{ position: "absolute", bottom: 0, left: 0, width: "100%", height: "40px", objectFit: "cover" }} />}
+
+              <img
+                src="/319dd241-66bc-47d3-b48f-5bc2702b94de.png"
+                alt="K&R Footer"
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "40px",
+                  objectFit: "cover",
+                  zIndex: 100,
+                }}
+              />
             </div>
           ))}
         </div>
