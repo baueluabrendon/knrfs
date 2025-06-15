@@ -94,24 +94,12 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
     }
   };
 
-  const calculateRunningBalance = () => {
-    let balance = summary?.gross_loan || 0;
-    return ledger.map((entry) => {
-      const debit = entry.debit ?? 0;
-      const credit = entry.credit ?? 0;
-      balance += debit - credit;
-      return { ...entry, running_balance: balance };
-    });
-  };
-
-  const ledgerWithBalance = calculateRunningBalance();
   const totalDebits = ledger.reduce((sum, e) => sum + (e.debit ?? 0), 0);
   const totalCredits = ledger.reduce((sum, e) => sum + (e.credit ?? 0), 0);
-  const balance = totalDebits - totalCredits;
   const rowsPerPage = 20;
   const pages = Math.ceil(ledger.length / rowsPerPage);
   const splitLedger = Array.from({ length: pages }, (_, i) =>
-    ledgerWithBalance.slice(i * rowsPerPage, (i + 1) * rowsPerPage)
+    ledger.slice(i * rowsPerPage, (i + 1) * rowsPerPage)
   );
 
   if (!summary || ledger.length === 0) {
@@ -223,10 +211,12 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {ledgerWithBalance.map((entry, index) => (
+              {ledger.map((entry, index) => (
                 <TableRow key={index}>
                   <TableCell>{entry.payment_number || '-'}</TableCell>
-                  <TableCell>{entry.entry_date ? format(new Date(entry.entry_date), "dd/MM/yyyy") : "N/A"}</TableCell>
+                  <TableCell>
+                    {entry.entry_date ? format(new Date(entry.entry_date), "dd/MM/yyyy") : "N/A"}
+                  </TableCell>
                   <TableCell>{entry.pay_period || '-'}</TableCell>
                   <TableCell>{entry.description}</TableCell>
                   <TableCell className="text-right">
@@ -236,7 +226,9 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                     {entry.credit !== null ? `${entry.credit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "-"}
                   </TableCell>
                   <TableCell className="text-right">
-                    {entry.running_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    {entry.outstanding_balance !== undefined && entry.outstanding_balance !== null
+                      ? entry.outstanding_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })
+                      : "-"}
                   </TableCell>
                 </TableRow>
               ))}
@@ -427,7 +419,9 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                           {entry.credit !== null ? entry.credit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : "-"}
                         </td>
                         <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
-                          {entry.running_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          {entry.outstanding_balance !== undefined && entry.outstanding_balance !== null
+                            ? entry.outstanding_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })
+                            : "-"}
                         </td>
                       </tr>
                     ))}
