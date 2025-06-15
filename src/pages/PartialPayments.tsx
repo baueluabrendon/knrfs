@@ -60,10 +60,10 @@ const PartialPayments = () => {
       r.loanId
     ]);
 
-    const blob = new Blob([[headers, ...rows].map((r) => r.join(",")).join("\n")], {
-      type: "text/csv"
-    });
+    const csvContent = [headers, ...rows].map((r) => r.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
     link.href = url;
     link.download = "partial_payments.csv";
     document.body.appendChild(link);
