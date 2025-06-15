@@ -68,6 +68,16 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
     }
   }, [loan.id]);
 
+  const rowsPerPage = 20;
+  const splitLedger = Array.from({ length: Math.ceil(ledger.length / rowsPerPage) }, (_, i) =>
+    ledger.slice(i * rowsPerPage, (i + 1) * rowsPerPage)
+  ).filter((rows) => rows.length > 0);
+
+  const pages = splitLedger.length;
+
+  const headerImage = "/header.png";
+  const footerImage = "/footer.png";
+
   const downloadPdf = () => {
     if (printRef.current) {
       html2pdf()
@@ -77,6 +87,7 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
           image: { type: "jpeg", quality: 0.98 },
           html2canvas: { scale: 3 },
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+          pagebreak: { mode: ["avoid-all", "css", "legacy"] },
         })
         .from(printRef.current)
         .save();
@@ -85,11 +96,6 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
 
   const totalDebits = ledger.reduce((sum, e) => sum + (e.debit ?? 0), 0);
   const totalCredits = ledger.reduce((sum, e) => sum + (e.credit ?? 0), 0);
-  const rowsPerPage = 20;
-  const pages = Math.ceil(ledger.length / rowsPerPage);
-  const splitLedger = Array.from({ length: pages }, (_, i) =>
-    ledger.slice(i * rowsPerPage, (i + 1) * rowsPerPage)
-  );
 
   if (!summary || ledger.length === 0) {
     return (
@@ -244,14 +250,15 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                 width: "210mm",
                 padding: "20mm 15mm",
                 boxSizing: "border-box",
-                pageBreakAfter: "always",
+                pageBreakAfter: splitLedger.length > 1 && pageIndex < splitLedger.length - 1 ? "always" : "auto",
                 position: "relative",
                 fontFamily: "Arial, sans-serif",
+                overflow: "hidden"
               }}
             >
               <img
-                src="/df1b3e4a-1947-499a-bb35-528af5d6119d.png"
-                alt="K&R Header"
+                src={headerImage}
+                alt="Statement Header"
                 style={{
                   position: "absolute",
                   top: 0,
@@ -466,8 +473,8 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
               )}
 
               <img
-                src="/319dd241-66bc-47d3-b48f-5bc2702b94de.png"
-                alt="K&R Footer"
+                src={footerImage}
+                alt="Statement Footer"
                 style={{
                   position: "absolute",
                   bottom: 0,
