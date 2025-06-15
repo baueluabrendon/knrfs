@@ -87,7 +87,7 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
 
     if (!exportDiv) return;
 
-    // Remove sr-only class to ensure html2pdf renders content
+    // Remove sr-only class just for export, then restore after
     exportDiv.classList.remove("sr-only");
     html2pdf()
       .set({
