@@ -21,14 +21,27 @@ export const usePartialPayments = () => {
     queryFn: async () => {
       const result = await recoveriesApi.getPartialPayments();
       
-      const validDates = result.filter(r => isValid(parseISO(r.paymentDate)));
+      // Transform the API response to match our interface
+      const transformedResult = result.map(r => ({
+        id: r.loan_id + '-' + r.payment_number, // Generate ID from loan_id and payment_number
+        borrowerName: r.borrower_name,
+        paymentDate: r.payment_date,
+        amountDue: r.scheduled_amount,
+        amountPaid: r.paid_amount,
+        shortfall: r.outstanding_amount,
+        loanId: r.loan_id,
+        payPeriod: r.pay_period,
+        payrollType: 'N/A' // Not available in current API response
+      }));
+      
+      const validDates = transformedResult.filter(r => isValid(parseISO(r.paymentDate)));
       const uniqueYears = [...new Set(validDates.map(r => format(parseISO(r.paymentDate), "yyyy")))].sort().reverse();
       const uniqueMonths = [...new Set(validDates.map(r => format(parseISO(r.paymentDate), "MMMM")))];
-      const uniquePayPeriods = [...new Set(result.map(r => r.payPeriod).filter(Boolean))];
-      const uniquePayrollTypes = [...new Set(result.map(r => r.payrollType).filter(Boolean))];
+      const uniquePayPeriods = [...new Set(transformedResult.map(r => r.payPeriod).filter(Boolean))];
+      const uniquePayrollTypes = [...new Set(transformedResult.map(r => r.payrollType).filter(Boolean))];
       
       return {
-        data: result,
+        data: transformedResult,
         uniqueYears,
         uniqueMonths,
         uniquePayPeriods,

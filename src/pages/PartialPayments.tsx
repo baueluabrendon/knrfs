@@ -64,7 +64,6 @@ const PartialPayments = () => {
       type: "text/csv"
     });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
     link.href = url;
     link.download = "partial_payments.csv";
     document.body.appendChild(link);

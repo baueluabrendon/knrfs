@@ -47,19 +47,35 @@ const LoansInArrears = () => {
     try {
       setIsLoading(true);
       const data = await recoveriesApi.getLoansInArrears();
-      setLoansInArrears(data);
+      
+      // Transform the API response to match our interface
+      const transformedData = data.map(loan => ({
+        loanId: loan.loan_id,
+        fileNumber: loan.file_number,
+        borrowerName: loan.borrower_name,
+        email: loan.email,
+        mobileNumber: loan.mobile_number,
+        organization: loan.organization,
+        loanAmount: loan.loan_amount,
+        daysOverdue: loan.days_late,
+        amountOverdue: loan.arrears,
+        lastPaymentDate: loan.last_payment_date,
+        payPeriod: loan.pay_period
+      }));
+      
+      setLoansInArrears(transformedData);
 
-      setUniquePayPeriods([...new Set(data.map(l => l.payPeriod))].filter(Boolean));
+      setUniquePayPeriods([...new Set(transformedData.map(l => l.payPeriod))].filter(Boolean));
 
       const years = Array.from(new Set(
-        data.map((loan) => {
+        transformedData.map((loan) => {
           const date = parseISO(loan.lastPaymentDate);
           return isValid(date) ? format(date, "yyyy") : null;
         }).filter(Boolean)
       ));
 
       const months = Array.from(new Set(
-        data.map((loan) => {
+        transformedData.map((loan) => {
           const date = parseISO(loan.lastPaymentDate);
           return isValid(date) ? format(date, "MMMM") : null;
         }).filter(Boolean)
