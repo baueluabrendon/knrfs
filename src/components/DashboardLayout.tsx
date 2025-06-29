@@ -51,9 +51,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gradient-to-br from-yellow-50 to-amber-50">
       <aside
-        className={`bg-white shadow-lg border-r border-gray-200 transition-all duration-300 ease-in-out ${
+        className={`bg-white shadow-xl border-r border-yellow-200 transition-all duration-300 ease-in-out ${
           isSidebarOpen ? "w-64" : "w-16"
         }`}
       >
@@ -71,9 +71,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <DashboardHeader onToggleSidebar={toggleSidebar} />
         
-        <main className="flex-1 p-6 min-w-0 overflow-y-auto bg-gray-50">
+        <main className="flex-1 p-6 min-w-0 overflow-y-auto bg-gradient-to-br from-amber-50 to-yellow-50">
           <div className="max-w-7xl mx-auto">
-            {children || <Outlet />}
+            <div className="bg-white rounded-xl shadow-lg border border-yellow-200 p-6">
+              {children || <Outlet />}
+            </div>
           </div>
         </main>
       </div>

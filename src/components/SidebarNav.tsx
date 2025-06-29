@@ -23,7 +23,7 @@ interface SidebarNavProps {
 
 const SidebarNav = ({ menuItems, hoveredItem, setHoveredItem, onCloseSidebar }: SidebarNavProps) => {
   return (
-    <nav className="flex-1 overflow-y-auto py-4 space-y-1">
+    <nav className="flex-1 overflow-y-auto py-4 space-y-1 bg-gradient-to-b from-yellow-50 to-yellow-100">
       <div className="px-3">
         {menuItems.map((item) => (
           <SidebarMenuItem
