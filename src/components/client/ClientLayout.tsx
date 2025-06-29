@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -72,66 +71,66 @@ const ClientLayout = () => {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen">
       <aside
-        className={`bg-white shadow-lg border-r border-gray-200 ${
+        className={`bg-[#32CD32] text-white ${
           isSidebarOpen ? "w-64" : "w-16"
         } transition-all duration-300 ease-in-out`}
       >
         <div className="flex flex-col h-full">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h1 className={`font-bold text-xl text-gray-900 ${isSidebarOpen ? "block" : "hidden"}`}>
-                Client Portal
-              </h1>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="text-gray-600 hover:bg-gray-100"
-              >
-                {isSidebarOpen ? (
-                  <X className="h-5 w-5" />
-                ) : (
-                  <Menu className="h-5 w-5" />
-                )}
-              </Button>
-            </div>
-          </div>
-
-          <nav className="flex-1 p-4 space-y-2">
-            {menuItems.map((item) => (
-              <Button
-                key={item.path}
-                variant="ghost"
-                className="w-full justify-start text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200"
-                onClick={() => navigate(item.path)}
-              >
-                <item.icon className="mr-3 h-5 w-5" />
-                {isSidebarOpen && <span className="font-medium">{item.label}</span>}
-              </Button>
-            ))}
-          </nav>
-
-          <div className="p-4 border-t border-gray-200">
+          <div className="p-4 flex justify-between items-center">
+            <h1 className={`font-bold ${isSidebarOpen ? "block" : "hidden"}`}>
+              Client Portal
+            </h1>
             <Button
               variant="ghost"
-              className="w-full justify-start text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors duration-200"
+              size="icon"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="text-white hover:bg-white/10"
+            >
+              {isSidebarOpen ? (
+                <X className="h-4 w-4" />
+              ) : (
+                <Menu className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+
+          <nav className="flex-1 p-4">
+            <ul className="space-y-2">
+              {menuItems.map((item) => (
+                <li key={item.path}>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-white hover:bg-white/10"
+                    onClick={() => navigate(item.path)}
+                  >
+                    <item.icon className="mr-2 h-4 w-4" />
+                    {isSidebarOpen && item.label}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <div className="p-4">
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-white hover:bg-white/10"
               onClick={handleSignOut}
             >
-              <LogOut className="mr-3 h-5 w-5" />
-              {isSidebarOpen && <span className="font-medium">Sign Out</span>}
+              <LogOut className="mr-2 h-4 w-4" />
+              {isSidebarOpen && "Sign Out"}
             </Button>
           </div>
         </div>
       </aside>
 
       <main className="flex-1 overflow-auto">
-        <div className="bg-white shadow-sm border-b border-gray-200 p-6">
-          <h1 className="text-2xl font-bold text-gray-900">K&R Financial Services</h1>
-          <p className="text-gray-600 mt-1">Professional Financial Solutions</p>
+        <div className="bg-[#FFD700] p-4">
+          <h1 className="text-xl font-bold">Welcome to K&R Financial Services</h1>
         </div>
-        <div className="p-6 max-w-7xl mx-auto">
+        <div className="p-6">
           <Outlet />
         </div>
       </main>
