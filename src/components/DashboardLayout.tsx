@@ -1,3 +1,4 @@
+
 import { ReactNode, useState, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { toast } from "sonner";
@@ -49,12 +50,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     setIsSidebarOpen((prev) => !prev);
   };
 
-  // No need to modify menuItems since we removed the subItems from config
-
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-gray-50">
       <aside
-        className={`bg-primary border-r border-gray-200 transition-all duration-200 ${
+        className={`bg-white border-r border-gray-200 shadow-lg transition-all duration-300 ease-in-out ${
           isSidebarOpen ? "w-64" : "w-16"
         }`}
       >
@@ -72,8 +71,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <DashboardHeader onToggleSidebar={toggleSidebar} />
         
-        <main className="flex-1 p-4 min-w-0 overflow-y-auto">
-          {children || <Outlet />}
+        <main className="flex-1 p-6 min-w-0 overflow-y-auto bg-gray-50">
+          <div className="max-w-7xl mx-auto">
+            {children || <Outlet />}
+          </div>
         </main>
       </div>
 

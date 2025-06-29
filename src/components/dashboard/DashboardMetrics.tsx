@@ -22,18 +22,27 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
       value: metrics.active_loans_count.toString(),
       subtitle: `${metrics.active_borrowers_count} Active Borrowers`,
       icon: DollarSign,
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+      borderColor: "border-green-200",
     },
     {
       title: "Pending Applications",
       value: metrics.pending_applications_count.toString(),
       subtitle: "Awaiting Review",
       icon: FileText,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+      borderColor: "border-blue-200",
     },
     {
       title: "At Risk Loans",
       value: metrics.at_risk_loans_count.toString(),
       subtitle: "Require Attention",
       icon: AlertCircle,
+      color: "text-red-600",
+      bgColor: "bg-red-50",
+      borderColor: "border-red-200",
       alert: true,
     },
     {
@@ -44,20 +53,30 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
       }).format(metrics.total_principal_amount || 0),
       subtitle: `${Math.round(((metrics.total_repayments_amount || 0) / (metrics.total_principal_amount || 1)) * 100)}% Repaid`,
       icon: Users,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
+      borderColor: "border-purple-200",
     }
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
       {stats.map((stat) => (
-        <Card key={stat.title} className="p-6">
-          <div className="flex items-center justify-between">
-            <stat.icon className={`h-5 w-5 ${stat.alert ? 'text-destructive' : 'text-muted-foreground'}`} />
-            <span className="text-xs font-medium">{stat.subtitle}</span>
+        <Card key={stat.title} className={`p-6 border-2 ${stat.borderColor} ${stat.bgColor} hover:shadow-md transition-shadow duration-200`}>
+          <div className="flex items-center justify-between mb-4">
+            <div className={`p-3 rounded-full ${stat.bgColor} border ${stat.borderColor}`}>
+              <stat.icon className={`h-6 w-6 ${stat.color}`} />
+            </div>
+            {stat.alert && (
+              <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                Alert
+              </span>
+            )}
           </div>
-          <div className="mt-4">
-            <h3 className="text-2xl font-bold">{stat.value}</h3>
-            <p className="text-xs text-muted-foreground">{stat.title}</p>
+          <div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</h3>
+            <p className="text-sm font-medium text-gray-600 mb-1">{stat.title}</p>
+            <p className="text-xs text-gray-500">{stat.subtitle}</p>
           </div>
         </Card>
       ))}

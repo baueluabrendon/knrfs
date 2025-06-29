@@ -1,5 +1,6 @@
+
 import React, { useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -18,8 +19,9 @@ import {
 
 const ClientLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSignOut = async () => {
     try {
@@ -70,23 +72,26 @@ const ClientLayout = () => {
     },
   ];
 
+  const isActive = (path: string) => location.pathname === path;
+
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-gray-50">
       <aside
-        className={`bg-[#32CD32] text-white ${
+        className={`bg-white border-r border-gray-200 shadow-lg transition-all duration-300 ease-in-out ${
           isSidebarOpen ? "w-64" : "w-16"
-        } transition-all duration-300 ease-in-out`}
+        }`}
       >
         <div className="flex flex-col h-full">
-          <div className="p-4 flex justify-between items-center">
-            <h1 className={`font-bold ${isSidebarOpen ? "block" : "hidden"}`}>
-              Client Portal
-            </h1>
+          <div className="p-4 flex justify-between items-center bg-gradient-to-r from-green-600 to-green-700 border-b border-gray-200">
+            <div className={`text-center flex-1 ${isSidebarOpen ? "block" : "hidden"}`}>
+              <h1 className="font-bold text-white text-lg">Client Portal</h1>
+              <p className="text-green-100 text-xs mt-1">K&R Financial Services</p>
+            </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="text-white hover:bg-white/10"
+              className="text-white hover:bg-white/10 flex-shrink-0"
             >
               {isSidebarOpen ? (
                 <X className="h-4 w-4" />
@@ -96,42 +101,50 @@ const ClientLayout = () => {
             </Button>
           </div>
 
-          <nav className="flex-1 p-4">
-            <ul className="space-y-2">
-              {menuItems.map((item) => (
-                <li key={item.path}>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-white hover:bg-white/10"
-                    onClick={() => navigate(item.path)}
-                  >
-                    <item.icon className="mr-2 h-4 w-4" />
-                    {isSidebarOpen && item.label}
-                  </Button>
-                </li>
-              ))}
-            </ul>
+          <nav className="flex-1 p-4 space-y-1">
+            {menuItems.map((item) => (
+              <Button
+                key={item.path}
+                variant="ghost"
+                className={`w-full justify-start transition-all duration-200 ${
+                  isActive(item.path)
+                    ? "bg-green-50 text-green-700 border-l-4 border-green-600 shadow-sm"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-700"
+                }`}
+                onClick={() => navigate(item.path)}
+              >
+                <item.icon className={`mr-3 h-4 w-4 ${
+                  isActive(item.path) ? "text-green-600" : "text-gray-500"
+                }`} />
+                {isSidebarOpen && <span className="font-medium">{item.label}</span>}
+              </Button>
+            ))}
           </nav>
 
-          <div className="p-4">
+          <div className="p-4 border-t border-gray-200">
             <Button
-              variant="ghost"
-              className="w-full justify-start text-white hover:bg-white/10"
+              variant="outline"
+              className="w-full justify-start border-gray-300 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-colors duration-200"
               onClick={handleSignOut}
             >
-              <LogOut className="mr-2 h-4 w-4" />
-              {isSidebarOpen && "Sign Out"}
+              <LogOut className="mr-3 h-4 w-4" />
+              {isSidebarOpen && <span className="font-medium">Sign Out</span>}
             </Button>
           </div>
         </div>
       </aside>
 
       <main className="flex-1 overflow-auto">
-        <div className="bg-[#FFD700] p-4">
-          <h1 className="text-xl font-bold">Welcome to K&R Financial Services</h1>
+        <div className="bg-white border-b border-gray-200 shadow-sm">
+          <div className="px-6 py-4">
+            <h1 className="text-xl font-bold text-gray-800">Welcome to K&R Financial Services</h1>
+            <p className="text-sm text-gray-600 mt-1">Hello, {user?.first_name || "Client"} - Manage your loans and applications</p>
+          </div>
         </div>
-        <div className="p-6">
-          <Outlet />
+        <div className="p-6 bg-gray-50 min-h-full">
+          <div className="max-w-7xl mx-auto">
+            <Outlet />
+          </div>
         </div>
       </main>
     </div>
