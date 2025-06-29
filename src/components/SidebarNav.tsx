@@ -1,4 +1,3 @@
-
 import React from 'react';
 import SidebarMenuItem from './SidebarMenuItem';
 import { LucideIcon } from 'lucide-react';
@@ -23,19 +22,17 @@ interface SidebarNavProps {
 
 const SidebarNav = ({ menuItems, hoveredItem, setHoveredItem, onCloseSidebar }: SidebarNavProps) => {
   return (
-    <nav className="flex-1 overflow-y-auto py-4 space-y-1 bg-gradient-to-b from-yellow-50 to-yellow-100">
-      <div className="px-3">
-        {menuItems.map((item) => (
-          <SidebarMenuItem
-            key={item.label}
-            {...item}
-            isHovered={hoveredItem === item.label}
-            onMouseEnter={() => setHoveredItem(item.label)}
-            onMouseLeave={() => setHoveredItem(null)}
-            onCloseSidebar={onCloseSidebar}
-          />
-        ))}
-      </div>
+    <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+      {menuItems.map((item) => (
+        <SidebarMenuItem
+          key={item.label}
+          {...item}
+          isHovered={hoveredItem === item.label}
+          onMouseEnter={() => setHoveredItem(item.label)}
+          onMouseLeave={() => setHoveredItem(null)}
+          onCloseSidebar={onCloseSidebar}
+        />
+      ))}
     </nav>
   );
 };

@@ -1,8 +1,9 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, TrendingUp, Clock, DollarSign, FileText, FileSignature } from "lucide-react";
+import { Loader2, TrendingUp, Clock, DollarSign, FileText } from "lucide-react";
 
 const ClientDashboard = () => {
   const { user } = useAuth();
