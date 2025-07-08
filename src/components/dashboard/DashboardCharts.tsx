@@ -4,75 +4,91 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-// Sample data - in real implementation, this would come from your API
-const generateSampleData = (type: string) => {
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+// Generate sample data based on filter type
+const generateSampleData = (type: string, filter: string) => {
+  let timeLabels: string[] = [];
   
-  switch (type) {
-    case 'loanReleased':
-      return months.map(month => ({
-        month,
-        amount: Math.floor(Math.random() * 500000) + 100000
-      }));
-    case 'collections':
-      return months.map(month => ({
-        month,
-        amount: Math.floor(Math.random() * 400000) + 80000
-      }));
-    case 'collectionsVsRepayments':
-      return months.map(month => ({
-        month,
-        collections: Math.floor(Math.random() * 400000) + 80000,
-        repaymentsDue: Math.floor(Math.random() * 450000) + 90000
-      }));
-    case 'collectionsVsReleased':
-      return months.map(month => ({
-        month,
-        collections: Math.floor(Math.random() * 400000) + 80000,
-        loansReleased: Math.floor(Math.random() * 500000) + 100000
-      }));
-    case 'outstandingLoans':
-      return months.map(month => ({
-        month,
-        amount: Math.floor(Math.random() * 2000000) + 500000
-      }));
-    case 'feesComparison':
-      return months.map(month => ({
-        month,
-        defaultFees: Math.floor(Math.random() * 50000) + 10000,
-        riskInsurance: Math.floor(Math.random() * 80000) + 20000,
-        docFees: Math.floor(Math.random() * 30000) + 5000
-      }));
-    case 'numberOfOpenLoans':
-      return months.map(month => ({
-        month,
-        count: Math.floor(Math.random() * 500) + 100
-      }));
-    case 'loansReleased':
-      return months.map(month => ({
-        month,
-        count: Math.floor(Math.random() * 150) + 30
-      }));
-    case 'repaymentsCollected':
-      return months.map(month => ({
-        month,
-        count: Math.floor(Math.random() * 400) + 80
-      }));
-    case 'fullyPaidLoans':
-      return months.map(month => ({
-        month,
-        count: Math.floor(Math.random() * 200) + 40
-      }));
-    case 'newClients':
-      return months.map(month => ({
-        month,
-        count: Math.floor(Math.random() * 80) + 20
-      }));
+  switch (filter) {
+    case 'daily':
+      // Generate days 1-30 for current month
+      timeLabels = Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`);
+      break;
+    case 'weekly':
+      // Generate 4 weeks per month for current year (48 weeks)
+      timeLabels = Array.from({ length: 48 }, (_, i) => {
+        const month = Math.floor(i / 4) + 1;
+        const week = (i % 4) + 1;
+        return `M${month}W${week}`;
+      });
+      break;
+    case 'monthly':
+      timeLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      break;
+    case 'yearly':
+      // Last 5 years to current year
+      const currentYear = new Date().getFullYear();
+      timeLabels = Array.from({ length: 6 }, (_, i) => `${currentYear - 5 + i}`);
+      break;
     default:
-      return [];
+      timeLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  }
+  
+  return timeLabels.map(label => {
+    const baseMultiplier = filter === 'yearly' ? 12 : filter === 'weekly' ? 0.25 : 1;
+    
+    switch (type) {
+      case 'loanReleased':
+        return { [getTimeKey(filter)]: label, amount: Math.floor(Math.random() * 500000 * baseMultiplier) + 100000 };
+      case 'collections':
+        return { [getTimeKey(filter)]: label, amount: Math.floor(Math.random() * 400000 * baseMultiplier) + 80000 };
+      case 'collectionsVsRepayments':
+        return {
+          [getTimeKey(filter)]: label,
+          collections: Math.floor(Math.random() * 400000 * baseMultiplier) + 80000,
+          repaymentsDue: Math.floor(Math.random() * 450000 * baseMultiplier) + 90000
+        };
+      case 'collectionsVsReleased':
+        return {
+          [getTimeKey(filter)]: label,
+          collections: Math.floor(Math.random() * 400000 * baseMultiplier) + 80000,
+          loansReleased: Math.floor(Math.random() * 500000 * baseMultiplier) + 100000
+        };
+      case 'outstandingLoans':
+        return { [getTimeKey(filter)]: label, amount: Math.floor(Math.random() * 2000000 * baseMultiplier) + 500000 };
+      case 'feesComparison':
+        return {
+          [getTimeKey(filter)]: label,
+          defaultFees: Math.floor(Math.random() * 50000 * baseMultiplier) + 10000,
+          riskInsurance: Math.floor(Math.random() * 80000 * baseMultiplier) + 20000,
+          docFees: Math.floor(Math.random() * 30000 * baseMultiplier) + 5000
+        };
+      case 'numberOfOpenLoans':
+        return { [getTimeKey(filter)]: label, count: Math.floor(Math.random() * 500 * baseMultiplier) + 100 };
+      case 'loansReleased':
+        return { [getTimeKey(filter)]: label, count: Math.floor(Math.random() * 150 * baseMultiplier) + 30 };
+      case 'repaymentsCollected':
+        return { [getTimeKey(filter)]: label, count: Math.floor(Math.random() * 400 * baseMultiplier) + 80 };
+      case 'fullyPaidLoans':
+        return { [getTimeKey(filter)]: label, count: Math.floor(Math.random() * 200 * baseMultiplier) + 40 };
+      case 'newClients':
+        return { [getTimeKey(filter)]: label, count: Math.floor(Math.random() * 80 * baseMultiplier) + 20 };
+      default:
+        return { [getTimeKey(filter)]: label, value: 0 };
+    }
+  });
+};
+
+const getTimeKey = (filter: string) => {
+  switch (filter) {
+    case 'daily': return 'day';
+    case 'weekly': return 'week';
+    case 'monthly': return 'month';
+    case 'yearly': return 'year';
+    default: return 'month';
   }
 };
 
+// Updated pie chart data without percentage labels
 const pieChartData = {
   loanStatus: [
     { name: 'Loans on Schedule', value: 45, color: '#22C55E' },
@@ -147,6 +163,23 @@ const DashboardCharts = () => {
     return null;
   };
 
+  // Legend component for pie charts
+  const PieChartLegend = ({ data }: { data: any[] }) => (
+    <div className="flex flex-wrap justify-center gap-4 mt-4 text-sm">
+      {data.map((entry, index) => (
+        <div key={index} className="flex items-center gap-2">
+          <div 
+            className="w-3 h-3 rounded" 
+            style={{ backgroundColor: entry.color }}
+          ></div>
+          <span className="text-gray-700">
+            {entry.name}: {entry.value}%
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
       {/* Filter Header */}
@@ -176,9 +209,9 @@ const DashboardCharts = () => {
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4">Loan Released - {getFilterLabel()}</h3>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={generateSampleData('loanReleased')}>
+              <LineChart data={generateSampleData('loanReleased', timeFilter)}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
+                <XAxis dataKey={getTimeKey(timeFilter)} />
                 <YAxis />
                 <Tooltip content={<CustomTooltip />} />
                 <Line type="monotone" dataKey="amount" stroke="#DC2626" strokeWidth={3} dot={{ fill: '#DC2626', r: 6 }} />
@@ -190,9 +223,9 @@ const DashboardCharts = () => {
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4">Loan Collections - {getFilterLabel()}</h3>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={generateSampleData('collections')}>
+              <LineChart data={generateSampleData('collections', timeFilter)}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
+                <XAxis dataKey={getTimeKey(timeFilter)} />
                 <YAxis />
                 <Tooltip content={<CustomTooltip />} />
                 <Line type="monotone" dataKey="amount" stroke="#0EA5E9" strokeWidth={3} dot={{ fill: '#0EA5E9', r: 6 }} />
@@ -204,9 +237,9 @@ const DashboardCharts = () => {
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4">Loan Collections vs Repayments Due - {getFilterLabel()}</h3>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={generateSampleData('collectionsVsRepayments')}>
+              <LineChart data={generateSampleData('collectionsVsRepayments', timeFilter)}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
+                <XAxis dataKey={getTimeKey(timeFilter)} />
                 <YAxis />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
@@ -220,9 +253,9 @@ const DashboardCharts = () => {
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4">Loan Collections vs Loans Released - {getFilterLabel()}</h3>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={generateSampleData('collectionsVsReleased')}>
+              <BarChart data={generateSampleData('collectionsVsReleased', timeFilter)}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
+                <XAxis dataKey={getTimeKey(timeFilter)} />
                 <YAxis />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
@@ -236,9 +269,9 @@ const DashboardCharts = () => {
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4">Total Outstanding Open Loans - {getFilterLabel()}</h3>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={generateSampleData('outstandingLoans')}>
+              <LineChart data={generateSampleData('outstandingLoans', timeFilter)}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
+                <XAxis dataKey={getTimeKey(timeFilter)} />
                 <YAxis />
                 <Tooltip content={<CustomTooltip />} />
                 <Line type="monotone" dataKey="amount" stroke="#DC2626" strokeWidth={3} dot={{ fill: '#DC2626', r: 6 }} />
@@ -250,9 +283,9 @@ const DashboardCharts = () => {
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4">Default Fees vs Loan Risk Insurance Fee vs Doc Fee Collections - {getFilterLabel()}</h3>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={generateSampleData('feesComparison')}>
+              <LineChart data={generateSampleData('feesComparison', timeFilter)}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
+                <XAxis dataKey={getTimeKey(timeFilter)} />
                 <YAxis />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
@@ -267,9 +300,9 @@ const DashboardCharts = () => {
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4">Number of Open Loans - {getFilterLabel()}</h3>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={generateSampleData('numberOfOpenLoans')}>
+              <LineChart data={generateSampleData('numberOfOpenLoans', timeFilter)}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
+                <XAxis dataKey={getTimeKey(timeFilter)} />
                 <YAxis />
                 <Tooltip content={<CustomCountTooltip />} />
                 <Line type="monotone" dataKey="count" stroke="#0EA5E9" strokeWidth={3} dot={{ fill: '#0EA5E9', r: 6 }} />
@@ -284,9 +317,9 @@ const DashboardCharts = () => {
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4">Number of Loans Released - {getFilterLabel()}</h3>
             <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={generateSampleData('loansReleased')}>
+              <BarChart data={generateSampleData('loansReleased', timeFilter)}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
+                <XAxis dataKey={getTimeKey(timeFilter)} />
                 <YAxis />
                 <Tooltip content={<CustomCountTooltip />} />
                 <Bar dataKey="count" fill="#DC2626" />
@@ -298,9 +331,9 @@ const DashboardCharts = () => {
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4">Number of Repayments Collected - {getFilterLabel()}</h3>
             <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={generateSampleData('repaymentsCollected')}>
+              <BarChart data={generateSampleData('repaymentsCollected', timeFilter)}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
+                <XAxis dataKey={getTimeKey(timeFilter)} />
                 <YAxis />
                 <Tooltip content={<CustomCountTooltip />} />
                 <Bar dataKey="count" fill="#0EA5E9" />
@@ -312,9 +345,9 @@ const DashboardCharts = () => {
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4">Number of Fully Paid Loans - {getFilterLabel()}</h3>
             <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={generateSampleData('fullyPaidLoans')}>
+              <BarChart data={generateSampleData('fullyPaidLoans', timeFilter)}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
+                <XAxis dataKey={getTimeKey(timeFilter)} />
                 <YAxis />
                 <Tooltip content={<CustomCountTooltip />} />
                 <Bar dataKey="count" fill="#0EA5E9" />
@@ -326,9 +359,9 @@ const DashboardCharts = () => {
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4">Borrowers with First Loans (New Clients) - {getFilterLabel()}</h3>
             <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={generateSampleData('newClients')}>
+              <BarChart data={generateSampleData('newClients', timeFilter)}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
+                <XAxis dataKey={getTimeKey(timeFilter)} />
                 <YAxis />
                 <Tooltip content={<CustomCountTooltip />} />
                 <Bar dataKey="count" fill="#DC2626" />
@@ -349,7 +382,6 @@ const DashboardCharts = () => {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
@@ -361,6 +393,7 @@ const DashboardCharts = () => {
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
+            <PieChartLegend data={pieChartData.loanStatus} />
           </Card>
 
           {/* Gender Chart - Pie Chart */}
@@ -373,7 +406,6 @@ const DashboardCharts = () => {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
@@ -385,6 +417,7 @@ const DashboardCharts = () => {
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
+            <PieChartLegend data={pieChartData.gender} />
           </Card>
 
           {/* Total Clients per Company - Pie Chart */}
@@ -397,7 +430,6 @@ const DashboardCharts = () => {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
@@ -409,6 +441,7 @@ const DashboardCharts = () => {
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
+            <PieChartLegend data={pieChartData.clientsPerCompany} />
           </Card>
 
           {/* Defaults Per Company - Pie Chart */}
@@ -421,7 +454,6 @@ const DashboardCharts = () => {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
@@ -433,6 +465,7 @@ const DashboardCharts = () => {
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
+            <PieChartLegend data={pieChartData.defaultsPerCompany} />
           </Card>
         </div>
       </div>
