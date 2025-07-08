@@ -47,11 +47,36 @@ const SidebarMenuItem = ({
     }
   };
 
+  const handleMouseEnter = () => {
+    onMouseEnter();
+  };
+
+  const handleMouseLeave = (e: React.MouseEvent) => {
+    // Only hide dropdown if mouse is not moving to the dropdown area
+    const rect = e.currentTarget.getBoundingClientRect();
+    const isMovingToDropdown = e.clientX > rect.right;
+    
+    if (!isMovingToDropdown) {
+      onMouseLeave();
+    }
+  };
+
+  const handleDropdownMouseLeave = (e: React.MouseEvent) => {
+    // Only hide dropdown if mouse is leaving the entire menu area
+    const rect = e.currentTarget.getBoundingClientRect();
+    const isLeavingDropdown = e.clientX < rect.left || e.clientX > rect.right || 
+                             e.clientY < rect.top || e.clientY > rect.bottom;
+    
+    if (isLeavingDropdown) {
+      onMouseLeave();
+    }
+  };
+
   return (
     <div 
       className="relative"
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <button
         onClick={() => handleClick(path)}
@@ -82,8 +107,13 @@ const SidebarMenuItem = ({
       
       {subItems.length > 0 && isHovered && (
         <div 
-          className="absolute left-full top-0 ml-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50"
-          style={{ pointerEvents: 'auto' }}
+          className="absolute left-full top-0 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50"
+          style={{ 
+            pointerEvents: 'auto',
+            marginLeft: '4px'
+          }}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleDropdownMouseLeave}
         >
           {subItems.map((subItem) => {
             const SubIcon = subItem.icon;

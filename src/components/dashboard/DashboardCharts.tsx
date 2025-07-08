@@ -27,12 +27,12 @@ const generateSampleData = (type: string, filter: string) => {
       timeLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       break;
     case 'quarterly':
-      // Current year and previous year quarters
-      timeLabels = ['Jan-Mar 2023', 'Apr-Jun 2023', 'Jul-Sep 2023', 'Oct-Dec 2023', 'Jan-Mar 2024', 'Apr-Jun 2024', 'Jul-Sep 2024', 'Oct-Dec 2024'];
+      // Current year quarters only
+      timeLabels = ['Jan-Mar', 'Apr-Jun', 'Jul-Sep', 'Oct-Dec'];
       break;
     case 'half-yearly':
-      // Previous two years till current year
-      timeLabels = ['Jan-Jun 2022', 'Jul-Dec 2022', 'Jan-Jun 2023', 'Jul-Dec 2023', 'Jan-Jun 2024', 'Jul-Dec 2024'];
+      // Current year half-years only
+      timeLabels = ['Jan-Jun', 'Jul-Dec'];
       break;
     case 'yearly':
       // Last 5 years to current year
@@ -148,10 +148,10 @@ const DashboardCharts = () => {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-medium">{`${label}`}</p>
+        <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-lg">
+          <p className="font-semibold text-gray-800 mb-2">{`${label}`}</p>
           {payload.map((entry: any, index: number) => (
-            <p key={index} style={{ color: entry.color }}>
+            <p key={index} style={{ color: entry.color }} className="font-medium">
               {`${entry.dataKey}: ${new Intl.NumberFormat('en-US', {
                 style: 'currency',
                 currency: 'USD'
@@ -167,11 +167,11 @@ const DashboardCharts = () => {
   const CustomCountTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-medium">{`${label}`}</p>
+        <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-lg">
+          <p className="font-semibold text-gray-800 mb-2">{`${label}`}</p>
           {payload.map((entry: any, index: number) => (
-            <p key={index} style={{ color: entry.color }}>
-              {`${entry.dataKey}: ${entry.value}`}
+            <p key={index} style={{ color: entry.color }} className="font-medium">
+              {`${entry.dataKey}: ${entry.value.toLocaleString()}`}
             </p>
           ))}
         </div>
@@ -182,14 +182,14 @@ const DashboardCharts = () => {
 
   // Legend component for pie charts
   const PieChartLegend = ({ data }: { data: any[] }) => (
-    <div className="flex flex-wrap justify-center gap-4 mt-4 text-sm">
+    <div className="flex flex-wrap justify-center gap-4 mt-6 text-sm">
       {data.map((entry, index) => (
         <div key={index} className="flex items-center gap-2">
           <div 
-            className="w-3 h-3 rounded" 
+            className="w-4 h-4 rounded-sm" 
             style={{ backgroundColor: entry.color }}
           ></div>
-          <span className="text-gray-700">
+          <span className="text-gray-700 font-medium">
             {entry.name}: {entry.value}%
           </span>
         </div>
@@ -198,14 +198,14 @@ const DashboardCharts = () => {
   );
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8">
       {/* Filter Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-900">Analytics Dashboard</h2>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">Filter:</span>
+      <div className="flex justify-between items-center mb-8">
+        <h2 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h2>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium text-gray-600">Filter:</span>
           <Select value={timeFilter} onValueChange={setTimeFilter}>
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-40 border-gray-300 focus:border-blue-500 focus:ring-blue-500">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -221,20 +221,21 @@ const DashboardCharts = () => {
 
       <div className="space-y-8">
         {/* Full Width Charts */}
-        <div className="space-y-6">
+        <div className="space-y-8">
           {/* Loan Released - Line Chart */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Loan Released - {getFilterLabel()}</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={generateSampleData('loanReleased', timeFilter)}>
-                <CartesianGrid strokeDasharray="3 3" />
+          <Card className="p-6 shadow-md">
+            <h3 className="text-xl font-bold mb-6 text-gray-800">Loan Released - {getFilterLabel()}</h3>
+            <ResponsiveContainer width="100%" height={350}>
+              <LineChart data={generateSampleData('loanReleased', timeFilter)} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis 
                   dataKey={getTimeKey(timeFilter)} 
                   angle={timeFilter === 'daily' ? -45 : 0}
                   textAnchor={timeFilter === 'daily' ? 'end' : 'middle'}
                   height={timeFilter === 'daily' ? 80 : 60}
+                  tick={{ fontSize: 12 }}
                 />
-                <YAxis />
+                <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Line type="monotone" dataKey="amount" stroke="#DC2626" strokeWidth={3} dot={{ fill: '#DC2626', r: 6 }} />
               </LineChart>
@@ -242,18 +243,19 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Loan Collections - Line Chart */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Loan Collections - {getFilterLabel()}</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={generateSampleData('collections', timeFilter)}>
-                <CartesianGrid strokeDasharray="3 3" />
+          <Card className="p-6 shadow-md">
+            <h3 className="text-xl font-bold mb-6 text-gray-800">Loan Collections - {getFilterLabel()}</h3>
+            <ResponsiveContainer width="100%" height={350}>
+              <LineChart data={generateSampleData('collections', timeFilter)} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis 
                   dataKey={getTimeKey(timeFilter)} 
                   angle={timeFilter === 'daily' ? -45 : 0}
                   textAnchor={timeFilter === 'daily' ? 'end' : 'middle'}
                   height={timeFilter === 'daily' ? 80 : 60}
+                  tick={{ fontSize: 12 }}
                 />
-                <YAxis />
+                <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Line type="monotone" dataKey="amount" stroke="#0EA5E9" strokeWidth={3} dot={{ fill: '#0EA5E9', r: 6 }} />
               </LineChart>
@@ -261,18 +263,19 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Collections vs Repayments Due - Line Chart */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Loan Collections vs Repayments Due - {getFilterLabel()}</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={generateSampleData('collectionsVsRepayments', timeFilter)}>
-                <CartesianGrid strokeDasharray="3 3" />
+          <Card className="p-6 shadow-md">
+            <h3 className="text-xl font-bold mb-6 text-gray-800">Loan Collections vs Repayments Due - {getFilterLabel()}</h3>
+            <ResponsiveContainer width="100%" height={350}>
+              <LineChart data={generateSampleData('collectionsVsRepayments', timeFilter)} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis 
                   dataKey={getTimeKey(timeFilter)} 
                   angle={timeFilter === 'daily' ? -45 : 0}
                   textAnchor={timeFilter === 'daily' ? 'end' : 'middle'}
                   height={timeFilter === 'daily' ? 80 : 60}
+                  tick={{ fontSize: 12 }}
                 />
-                <YAxis />
+                <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
                 <Line type="monotone" dataKey="collections" stroke="#0EA5E9" strokeWidth={3} name="Collections" />
@@ -282,18 +285,19 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Collections vs Loans Released - Bar Chart */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Loan Collections vs Loans Released - {getFilterLabel()}</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={generateSampleData('collectionsVsReleased', timeFilter)}>
-                <CartesianGrid strokeDasharray="3 3" />
+          <Card className="p-6 shadow-md">
+            <h3 className="text-xl font-bold mb-6 text-gray-800">Loan Collections vs Loans Released - {getFilterLabel()}</h3>
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart data={generateSampleData('collectionsVsReleased', timeFilter)} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis 
                   dataKey={getTimeKey(timeFilter)} 
                   angle={timeFilter === 'daily' ? -45 : 0}
                   textAnchor={timeFilter === 'daily' ? 'end' : 'middle'}
                   height={timeFilter === 'daily' ? 80 : 60}
+                  tick={{ fontSize: 12 }}
                 />
-                <YAxis />
+                <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
                 <Bar dataKey="collections" fill="#0EA5E9" name="Collections" />
@@ -303,18 +307,19 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Total Outstanding Open Loans - Line Chart */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Total Outstanding Open Loans - {getFilterLabel()}</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={generateSampleData('outstandingLoans', timeFilter)}>
-                <CartesianGrid strokeDasharray="3 3" />
+          <Card className="p-6 shadow-md">
+            <h3 className="text-xl font-bold mb-6 text-gray-800">Total Outstanding Open Loans - {getFilterLabel()}</h3>
+            <ResponsiveContainer width="100%" height={350}>
+              <LineChart data={generateSampleData('outstandingLoans', timeFilter)} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis 
                   dataKey={getTimeKey(timeFilter)} 
                   angle={timeFilter === 'daily' ? -45 : 0}
                   textAnchor={timeFilter === 'daily' ? 'end' : 'middle'}
                   height={timeFilter === 'daily' ? 80 : 60}
+                  tick={{ fontSize: 12 }}
                 />
-                <YAxis />
+                <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Line type="monotone" dataKey="amount" stroke="#DC2626" strokeWidth={3} dot={{ fill: '#DC2626', r: 6 }} />
               </LineChart>
@@ -322,18 +327,19 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Default Fees vs Loan Risk Insurance vs Doc Fee Collections - Line Chart */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Default Fees vs Loan Risk Insurance Fee vs Doc Fee Collections - {getFilterLabel()}</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={generateSampleData('feesComparison', timeFilter)}>
-                <CartesianGrid strokeDasharray="3 3" />
+          <Card className="p-6 shadow-md">
+            <h3 className="text-xl font-bold mb-6 text-gray-800">Default Fees vs Loan Risk Insurance Fee vs Doc Fee Collections - {getFilterLabel()}</h3>
+            <ResponsiveContainer width="100%" height={350}>
+              <LineChart data={generateSampleData('feesComparison', timeFilter)} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis 
                   dataKey={getTimeKey(timeFilter)} 
                   angle={timeFilter === 'daily' ? -45 : 0}
                   textAnchor={timeFilter === 'daily' ? 'end' : 'middle'}
                   height={timeFilter === 'daily' ? 80 : 60}
+                  tick={{ fontSize: 12 }}
                 />
-                <YAxis />
+                <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
                 <Line type="monotone" dataKey="defaultFees" stroke="#DC2626" strokeWidth={2} name="Default Fees" />
@@ -344,18 +350,19 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Number of Open Loans - Line Chart */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Number of Open Loans - {getFilterLabel()}</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={generateSampleData('numberOfOpenLoans', timeFilter)}>
-                <CartesianGrid strokeDasharray="3 3" />
+          <Card className="p-6 shadow-md">
+            <h3 className="text-xl font-bold mb-6 text-gray-800">Number of Open Loans - {getFilterLabel()}</h3>
+            <ResponsiveContainer width="100%" height={350}>
+              <LineChart data={generateSampleData('numberOfOpenLoans', timeFilter)} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis 
                   dataKey={getTimeKey(timeFilter)} 
                   angle={timeFilter === 'daily' ? -45 : 0}
                   textAnchor={timeFilter === 'daily' ? 'end' : 'middle'}
                   height={timeFilter === 'daily' ? 80 : 60}
+                  tick={{ fontSize: 12 }}
                 />
-                <YAxis />
+                <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip content={<CustomCountTooltip />} />
                 <Line type="monotone" dataKey="count" stroke="#0EA5E9" strokeWidth={3} dot={{ fill: '#0EA5E9', r: 6 }} />
               </LineChart>
@@ -364,20 +371,21 @@ const DashboardCharts = () => {
         </div>
 
         {/* Half Width Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Number of Loans Released - Bar Chart */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Number of Loans Released - {getFilterLabel()}</h3>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={generateSampleData('loansReleased', timeFilter)}>
-                <CartesianGrid strokeDasharray="3 3" />
+          <Card className="p-6 shadow-md">
+            <h3 className="text-lg font-bold mb-4 text-gray-800">Number of Loans Released - {getFilterLabel()}</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={generateSampleData('loansReleased', timeFilter)} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis 
                   dataKey={getTimeKey(timeFilter)} 
                   angle={timeFilter === 'daily' ? -45 : 0}
                   textAnchor={timeFilter === 'daily' ? 'end' : 'middle'}
                   height={timeFilter === 'daily' ? 80 : 60}
+                  tick={{ fontSize: 12 }}
                 />
-                <YAxis />
+                <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip content={<CustomCountTooltip />} />
                 <Bar dataKey="count" fill="#DC2626" />
               </BarChart>
@@ -385,18 +393,19 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Number of Repayments Collected - Bar Chart */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Number of Repayments Collected - {getFilterLabel()}</h3>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={generateSampleData('repaymentsCollected', timeFilter)}>
-                <CartesianGrid strokeDasharray="3 3" />
+          <Card className="p-6 shadow-md">
+            <h3 className="text-lg font-bold mb-4 text-gray-800">Number of Repayments Collected - {getFilterLabel()}</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={generateSampleData('repaymentsCollected', timeFilter)} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis 
                   dataKey={getTimeKey(timeFilter)} 
                   angle={timeFilter === 'daily' ? -45 : 0}
                   textAnchor={timeFilter === 'daily' ? 'end' : 'middle'}
                   height={timeFilter === 'daily' ? 80 : 60}
+                  tick={{ fontSize: 12 }}
                 />
-                <YAxis />
+                <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip content={<CustomCountTooltip />} />
                 <Bar dataKey="count" fill="#0EA5E9" />
               </BarChart>
@@ -404,18 +413,19 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Number of Fully Paid Loans - Bar Chart */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Number of Fully Paid Loans - {getFilterLabel()}</h3>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={generateSampleData('fullyPaidLoans', timeFilter)}>
-                <CartesianGrid strokeDasharray="3 3" />
+          <Card className="p-6 shadow-md">
+            <h3 className="text-lg font-bold mb-4 text-gray-800">Number of Fully Paid Loans - {getFilterLabel()}</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={generateSampleData('fullyPaidLoans', timeFilter)} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis 
                   dataKey={getTimeKey(timeFilter)} 
                   angle={timeFilter === 'daily' ? -45 : 0}
                   textAnchor={timeFilter === 'daily' ? 'end' : 'middle'}
                   height={timeFilter === 'daily' ? 80 : 60}
+                  tick={{ fontSize: 12 }}
                 />
-                <YAxis />
+                <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip content={<CustomCountTooltip />} />
                 <Bar dataKey="count" fill="#0EA5E9" />
               </BarChart>
@@ -423,18 +433,19 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Borrowers with First Loans - Bar Chart */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Borrowers with First Loans (New Clients) - {getFilterLabel()}</h3>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={generateSampleData('newClients', timeFilter)}>
-                <CartesianGrid strokeDasharray="3 3" />
+          <Card className="p-6 shadow-md">
+            <h3 className="text-lg font-bold mb-4 text-gray-800">Borrowers with First Loans (New Clients) - {getFilterLabel()}</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={generateSampleData('newClients', timeFilter)} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis 
                   dataKey={getTimeKey(timeFilter)} 
                   angle={timeFilter === 'daily' ? -45 : 0}
                   textAnchor={timeFilter === 'daily' ? 'end' : 'middle'}
                   height={timeFilter === 'daily' ? 80 : 60}
+                  tick={{ fontSize: 12 }}
                 />
-                <YAxis />
+                <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip content={<CustomCountTooltip />} />
                 <Bar dataKey="count" fill="#DC2626" />
               </BarChart>
@@ -443,10 +454,10 @@ const DashboardCharts = () => {
         </div>
 
         {/* Pie Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Open Loans Status - Pie Chart */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Open Loans Status (To Date)</h3>
+          <Card className="p-6 shadow-md">
+            <h3 className="text-lg font-bold mb-4 text-gray-800">Open Loans Status (To Date)</h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -469,8 +480,8 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Gender Chart - Pie Chart */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Gender Distribution</h3>
+          <Card className="p-6 shadow-md">
+            <h3 className="text-lg font-bold mb-4 text-gray-800">Gender Distribution</h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -493,8 +504,8 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Total Clients per Company - Pie Chart */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Total Clients per Company</h3>
+          <Card className="p-6 shadow-md">
+            <h3 className="text-lg font-bold mb-4 text-gray-800">Total Clients per Company</h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -517,8 +528,8 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Defaults Per Company - Pie Chart */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Defaults Per Company</h3>
+          <Card className="p-6 shadow-md">
+            <h3 className="text-lg font-bold mb-4 text-gray-800">Defaults Per Company</h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
