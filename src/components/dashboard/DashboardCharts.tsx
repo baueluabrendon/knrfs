@@ -10,19 +10,29 @@ const generateSampleData = (type: string, filter: string) => {
   
   switch (filter) {
     case 'daily':
-      // Generate days 1-30 for current month
-      timeLabels = Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`);
+      // Generate days 1-30 for current month with ordinal labels
+      timeLabels = Array.from({ length: 30 }, (_, i) => {
+        const day = i + 1;
+        const suffix = day === 1 || day === 21 || day === 31 ? 'st' : 
+                      day === 2 || day === 22 ? 'nd' : 
+                      day === 3 || day === 23 ? 'rd' : 'th';
+        return `${day}${suffix}`;
+      });
       break;
     case 'weekly':
-      // Generate 4 weeks per month for current year (48 weeks)
-      timeLabels = Array.from({ length: 48 }, (_, i) => {
-        const month = Math.floor(i / 4) + 1;
-        const week = (i % 4) + 1;
-        return `M${month}W${week}`;
-      });
+      // Generate 4 weeks for current month with date ranges
+      timeLabels = ['1-7', '8-14', '15-21', '22-28'];
       break;
     case 'monthly':
       timeLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      break;
+    case 'quarterly':
+      // Current year and previous year quarters
+      timeLabels = ['Jan-Mar 2023', 'Apr-Jun 2023', 'Jul-Sep 2023', 'Oct-Dec 2023', 'Jan-Mar 2024', 'Apr-Jun 2024', 'Jul-Sep 2024', 'Oct-Dec 2024'];
+      break;
+    case 'half-yearly':
+      // Previous two years till current year
+      timeLabels = ['Jan-Jun 2022', 'Jul-Dec 2022', 'Jan-Jun 2023', 'Jul-Dec 2023', 'Jan-Jun 2024', 'Jul-Dec 2024'];
       break;
     case 'yearly':
       // Last 5 years to current year
@@ -34,7 +44,10 @@ const generateSampleData = (type: string, filter: string) => {
   }
   
   return timeLabels.map(label => {
-    const baseMultiplier = filter === 'yearly' ? 12 : filter === 'weekly' ? 0.25 : 1;
+    const baseMultiplier = filter === 'yearly' ? 12 : 
+                          filter === 'quarterly' ? 3 :
+                          filter === 'half-yearly' ? 6 :
+                          filter === 'weekly' ? 0.25 : 1;
     
     switch (type) {
       case 'loanReleased':
@@ -83,6 +96,8 @@ const getTimeKey = (filter: string) => {
     case 'daily': return 'day';
     case 'weekly': return 'week';
     case 'monthly': return 'month';
+    case 'quarterly': return 'quarter';
+    case 'half-yearly': return 'halfYear';
     case 'yearly': return 'year';
     default: return 'month';
   }
@@ -121,6 +136,8 @@ const DashboardCharts = () => {
     { value: 'daily', label: 'Daily' },
     { value: 'weekly', label: 'Weekly' },
     { value: 'monthly', label: 'Monthly' },
+    { value: 'quarterly', label: 'Quarterly' },
+    { value: 'half-yearly', label: 'Half-Yearly' },
     { value: 'yearly', label: 'Yearly' }
   ];
 
@@ -211,7 +228,12 @@ const DashboardCharts = () => {
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={generateSampleData('loanReleased', timeFilter)}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey={getTimeKey(timeFilter)} />
+                <XAxis 
+                  dataKey={getTimeKey(timeFilter)} 
+                  angle={timeFilter === 'daily' ? -45 : 0}
+                  textAnchor={timeFilter === 'daily' ? 'end' : 'middle'}
+                  height={timeFilter === 'daily' ? 80 : 60}
+                />
                 <YAxis />
                 <Tooltip content={<CustomTooltip />} />
                 <Line type="monotone" dataKey="amount" stroke="#DC2626" strokeWidth={3} dot={{ fill: '#DC2626', r: 6 }} />
@@ -225,7 +247,12 @@ const DashboardCharts = () => {
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={generateSampleData('collections', timeFilter)}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey={getTimeKey(timeFilter)} />
+                <XAxis 
+                  dataKey={getTimeKey(timeFilter)} 
+                  angle={timeFilter === 'daily' ? -45 : 0}
+                  textAnchor={timeFilter === 'daily' ? 'end' : 'middle'}
+                  height={timeFilter === 'daily' ? 80 : 60}
+                />
                 <YAxis />
                 <Tooltip content={<CustomTooltip />} />
                 <Line type="monotone" dataKey="amount" stroke="#0EA5E9" strokeWidth={3} dot={{ fill: '#0EA5E9', r: 6 }} />
@@ -239,7 +266,12 @@ const DashboardCharts = () => {
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={generateSampleData('collectionsVsRepayments', timeFilter)}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey={getTimeKey(timeFilter)} />
+                <XAxis 
+                  dataKey={getTimeKey(timeFilter)} 
+                  angle={timeFilter === 'daily' ? -45 : 0}
+                  textAnchor={timeFilter === 'daily' ? 'end' : 'middle'}
+                  height={timeFilter === 'daily' ? 80 : 60}
+                />
                 <YAxis />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
@@ -255,7 +287,12 @@ const DashboardCharts = () => {
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={generateSampleData('collectionsVsReleased', timeFilter)}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey={getTimeKey(timeFilter)} />
+                <XAxis 
+                  dataKey={getTimeKey(timeFilter)} 
+                  angle={timeFilter === 'daily' ? -45 : 0}
+                  textAnchor={timeFilter === 'daily' ? 'end' : 'middle'}
+                  height={timeFilter === 'daily' ? 80 : 60}
+                />
                 <YAxis />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
@@ -271,7 +308,12 @@ const DashboardCharts = () => {
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={generateSampleData('outstandingLoans', timeFilter)}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey={getTimeKey(timeFilter)} />
+                <XAxis 
+                  dataKey={getTimeKey(timeFilter)} 
+                  angle={timeFilter === 'daily' ? -45 : 0}
+                  textAnchor={timeFilter === 'daily' ? 'end' : 'middle'}
+                  height={timeFilter === 'daily' ? 80 : 60}
+                />
                 <YAxis />
                 <Tooltip content={<CustomTooltip />} />
                 <Line type="monotone" dataKey="amount" stroke="#DC2626" strokeWidth={3} dot={{ fill: '#DC2626', r: 6 }} />
@@ -285,7 +327,12 @@ const DashboardCharts = () => {
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={generateSampleData('feesComparison', timeFilter)}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey={getTimeKey(timeFilter)} />
+                <XAxis 
+                  dataKey={getTimeKey(timeFilter)} 
+                  angle={timeFilter === 'daily' ? -45 : 0}
+                  textAnchor={timeFilter === 'daily' ? 'end' : 'middle'}
+                  height={timeFilter === 'daily' ? 80 : 60}
+                />
                 <YAxis />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
@@ -302,7 +349,12 @@ const DashboardCharts = () => {
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={generateSampleData('numberOfOpenLoans', timeFilter)}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey={getTimeKey(timeFilter)} />
+                <XAxis 
+                  dataKey={getTimeKey(timeFilter)} 
+                  angle={timeFilter === 'daily' ? -45 : 0}
+                  textAnchor={timeFilter === 'daily' ? 'end' : 'middle'}
+                  height={timeFilter === 'daily' ? 80 : 60}
+                />
                 <YAxis />
                 <Tooltip content={<CustomCountTooltip />} />
                 <Line type="monotone" dataKey="count" stroke="#0EA5E9" strokeWidth={3} dot={{ fill: '#0EA5E9', r: 6 }} />
@@ -319,7 +371,12 @@ const DashboardCharts = () => {
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={generateSampleData('loansReleased', timeFilter)}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey={getTimeKey(timeFilter)} />
+                <XAxis 
+                  dataKey={getTimeKey(timeFilter)} 
+                  angle={timeFilter === 'daily' ? -45 : 0}
+                  textAnchor={timeFilter === 'daily' ? 'end' : 'middle'}
+                  height={timeFilter === 'daily' ? 80 : 60}
+                />
                 <YAxis />
                 <Tooltip content={<CustomCountTooltip />} />
                 <Bar dataKey="count" fill="#DC2626" />
@@ -333,7 +390,12 @@ const DashboardCharts = () => {
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={generateSampleData('repaymentsCollected', timeFilter)}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey={getTimeKey(timeFilter)} />
+                <XAxis 
+                  dataKey={getTimeKey(timeFilter)} 
+                  angle={timeFilter === 'daily' ? -45 : 0}
+                  textAnchor={timeFilter === 'daily' ? 'end' : 'middle'}
+                  height={timeFilter === 'daily' ? 80 : 60}
+                />
                 <YAxis />
                 <Tooltip content={<CustomCountTooltip />} />
                 <Bar dataKey="count" fill="#0EA5E9" />
@@ -347,7 +409,12 @@ const DashboardCharts = () => {
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={generateSampleData('fullyPaidLoans', timeFilter)}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey={getTimeKey(timeFilter)} />
+                <XAxis 
+                  dataKey={getTimeKey(timeFilter)} 
+                  angle={timeFilter === 'daily' ? -45 : 0}
+                  textAnchor={timeFilter === 'daily' ? 'end' : 'middle'}
+                  height={timeFilter === 'daily' ? 80 : 60}
+                />
                 <YAxis />
                 <Tooltip content={<CustomCountTooltip />} />
                 <Bar dataKey="count" fill="#0EA5E9" />
@@ -361,7 +428,12 @@ const DashboardCharts = () => {
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={generateSampleData('newClients', timeFilter)}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey={getTimeKey(timeFilter)} />
+                <XAxis 
+                  dataKey={getTimeKey(timeFilter)} 
+                  angle={timeFilter === 'daily' ? -45 : 0}
+                  textAnchor={timeFilter === 'daily' ? 'end' : 'middle'}
+                  height={timeFilter === 'daily' ? 80 : 60}
+                />
                 <YAxis />
                 <Tooltip content={<CustomCountTooltip />} />
                 <Bar dataKey="count" fill="#DC2626" />
