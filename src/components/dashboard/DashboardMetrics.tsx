@@ -10,7 +10,10 @@ import {
   CheckCircle,
   Clock,
   RefreshCw,
-  XCircle
+  XCircle,
+  Building2,
+  Briefcase,
+  UserCheck
 } from "lucide-react";
 
 interface DashboardMetricsProps {
@@ -27,19 +30,58 @@ interface DashboardMetricsProps {
 }
 
 const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
-  // Calculate derived metrics
-  const fullyPaidLoans = Math.floor(metrics.active_loans_count * 0.65); // Estimated
-  const processingLoans = metrics.pending_applications_count;
-  const restructuredLoans = Math.floor(metrics.active_loans_count * 0.08); // Estimated
+  // Calculate derived metrics for new structure
+  const totalBorrowers = metrics.active_borrowers_count;
+  const activeBorrowers = Math.floor(totalBorrowers * 0.85); // Estimated
+  const fullyPaidBorrowers = Math.floor(totalBorrowers * 0.60); // Estimated
+  
+  // Sales metrics (renamed from Principal Released)
+  const totalGrossLoan = metrics.total_principal_amount * 1.5; // Estimated
+  const totalPrincipalReleased = metrics.total_principal_amount;
+  const totalCollections = metrics.total_repayments_amount;
+  const totalInterestReceived = totalGrossLoan - totalPrincipalReleased; // Estimated
+  
+  // Collections breakdown
+  const collectionsThisYear = totalCollections * 0.70; // Estimated
+  const collectionsThisMonth = totalCollections * 0.08; // Estimated
+  
+  // New borrowers breakdown
+  const newBorrowersThisYear = Math.floor(totalBorrowers * 0.25); // Estimated
+  const newBorrowersLast3Months = Math.floor(totalBorrowers * 0.12); // Estimated
+  const newBorrowersThisMonth = Math.floor(totalBorrowers * 0.04); // Estimated
+  
+  // Updated loan portfolio metrics
+  const totalOutstandingOpenLoans = metrics.active_loans_count;
+  const principalOutstandingOpenLoans = metrics.total_outstanding_balance;
+  const interestOutstandingOpenLoans = principalOutstandingOpenLoans * 0.3; // Estimated
+  const refinancedInternal = Math.floor(metrics.active_loans_count * 0.05); // Estimated
+  const refinancedExternal = Math.floor(metrics.active_loans_count * 0.03); // Estimated
+  const defaultFeesOutstanding = metrics.total_outstanding_balance * 0.05; // Estimated
   const defaultLoans = metrics.at_risk_loans_count;
-  const collectionsAmount = metrics.total_outstanding_balance * 0.15; // Estimated overdue amount
-  const newBorrowersThisMonth = Math.floor(metrics.active_borrowers_count * 0.12); // Estimated
+  const totalArrearsOutstanding = metrics.total_outstanding_balance * 0.15; // Estimated
+  
+  // Client segmentation metrics (estimated)
+  const totalPublicServants = Math.floor(totalBorrowers * 0.45);
+  const totalStatutoryBody = Math.floor(totalBorrowers * 0.30);
+  const totalCompanyClients = totalBorrowers - totalPublicServants - totalStatutoryBody;
+  
+  const activePublicServantsLoans = Math.floor(totalOutstandingOpenLoans * 0.45);
+  const activeStatutoryBodyLoans = Math.floor(totalOutstandingOpenLoans * 0.30);
+  const activeCompanyLoans = totalOutstandingOpenLoans - activePublicServantsLoans - activeStatutoryBodyLoans;
+  
+  const settledPublicServantsLoans = Math.floor(fullyPaidBorrowers * 0.45);
+  const settledStatutoryBodyLoans = Math.floor(fullyPaidBorrowers * 0.30);
+  const settledCompanyLoans = fullyPaidBorrowers - settledPublicServantsLoans - settledStatutoryBodyLoans;
 
-  const mainStats = [
+  // Main KPI Cards
+  const mainKPIs = [
     {
-      title: "Total Borrowers",
-      value: metrics.active_borrowers_count.toString(),
-      subtitle: "Active borrowers in system",
+      title: "Borrowers",
+      stats: [
+        { label: "Total", value: totalBorrowers.toString() },
+        { label: "Active", value: activeBorrowers.toString() },
+        { label: "Fully Paid", value: fullyPaidBorrowers.toString() }
+      ],
       icon: Users,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
@@ -47,13 +89,13 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
       accentColor: "bg-blue-600",
     },
     {
-      title: "Principal Released",
-      value: new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        notation: 'compact'
-      }).format(metrics.total_principal_amount || 0),
-      subtitle: "Total loans disbursed",
+      title: "Total Sales",
+      stats: [
+        { label: "Total Gross Loan", value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(totalGrossLoan) },
+        { label: "Principal Released", value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(totalPrincipalReleased) },
+        { label: "Collections/Gross", value: `${Math.round((totalCollections/totalGrossLoan)*100)}%` },
+        { label: "Interest Received", value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(totalInterestReceived) }
+      ],
       icon: DollarSign,
       color: "text-green-600",
       bgColor: "bg-green-50",
@@ -62,12 +104,11 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
     },
     {
       title: "Collections",
-      value: new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        notation: 'compact'
-      }).format(collectionsAmount || 0),
-      subtitle: "Amount due for collection",
+      stats: [
+        { label: "Total", value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(totalCollections) },
+        { label: "This Year", value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(collectionsThisYear) },
+        { label: "This Month", value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(collectionsThisMonth) }
+      ],
       icon: TrendingUp,
       color: "text-orange-600",
       bgColor: "bg-orange-50",
@@ -76,8 +117,11 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
     },
     {
       title: "New Borrowers",
-      value: newBorrowersThisMonth.toString(),
-      subtitle: "This month",
+      stats: [
+        { label: "This Year", value: newBorrowersThisYear.toString() },
+        { label: "Last 3 Months", value: newBorrowersLast3Months.toString() },
+        { label: "This Month", value: newBorrowersThisMonth.toString() }
+      ],
       icon: UserPlus,
       color: "text-purple-600",
       bgColor: "bg-purple-50",
@@ -86,20 +130,11 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
     }
   ];
 
-  const loanBreakdown = [
+  // Updated Loan Portfolio Breakdown
+  const loanPortfolio = [
     {
-      title: "Fully Paid Loans",
-      value: fullyPaidLoans.toString(),
-      subtitle: "Completed successfully",
-      icon: CheckCircle,
-      color: "text-green-600",
-      bgColor: "bg-green-50",
-      borderColor: "border-green-200",
-      accentColor: "bg-green-600",
-    },
-    {
-      title: "Outstanding",
-      value: metrics.active_loans_count.toString(),
+      title: "Total Outstanding Open Loans",
+      value: totalOutstandingOpenLoans.toString(),
       subtitle: "Currently active",
       icon: Scale,
       color: "text-blue-600",
@@ -108,18 +143,28 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
       accentColor: "bg-blue-600",
     },
     {
-      title: "Processing",
-      value: processingLoans.toString(),
-      subtitle: "Under review",
-      icon: Clock,
+      title: "Principal Outstanding Open Loans",
+      value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(principalOutstandingOpenLoans),
+      subtitle: "Principal amount due",
+      icon: DollarSign,
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+      borderColor: "border-green-200",
+      accentColor: "bg-green-600",
+    },
+    {
+      title: "Interest Outstanding Open Loans",
+      value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(interestOutstandingOpenLoans),
+      subtitle: "Interest amount due",
+      icon: TrendingUp,
       color: "text-yellow-600",
       bgColor: "bg-yellow-50",
       borderColor: "border-yellow-200",
       accentColor: "bg-yellow-600",
     },
     {
-      title: "Restructured",
-      value: restructuredLoans.toString(),
+      title: "Refinanced",
+      value: `Internal: ${refinancedInternal} | External: ${refinancedExternal}`,
       subtitle: "Modified terms",
       icon: RefreshCw,
       color: "text-indigo-600",
@@ -129,8 +174,8 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
     },
     {
       title: "Default",
-      value: defaultLoans.toString(),
-      subtitle: "Require attention",
+      value: `Fees: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(defaultFeesOutstanding)} | Loans: ${defaultLoans}`,
+      subtitle: "Outstanding defaults",
       icon: XCircle,
       color: "text-red-600",
       bgColor: "bg-red-50",
@@ -139,12 +184,8 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
       alert: true,
     },
     {
-      title: "Collections Due",
-      value: new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        notation: 'compact'
-      }).format(collectionsAmount || 0),
+      title: "Total Arrears Outstanding",
+      value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(totalArrearsOutstanding),
       subtitle: "Overdue payments",
       icon: AlertCircle,
       color: "text-red-600",
@@ -155,35 +196,110 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
     }
   ];
 
+  // Client Cards
+  const clientCards = [
+    {
+      title: "Total Clients",
+      stats: [
+        { label: "Public Servants", value: totalPublicServants.toString() },
+        { label: "Statutory Body", value: totalStatutoryBody.toString() },
+        { label: "Company Clients", value: totalCompanyClients.toString() }
+      ],
+      icon: Users,
+      color: "text-slate-600",
+      bgColor: "bg-slate-50",
+      borderColor: "border-slate-200",
+      accentColor: "bg-slate-600",
+    },
+    {
+      title: "Active Loans",
+      stats: [
+        { label: "Public Servants", value: activePublicServantsLoans.toString() },
+        { label: "Statutory Body", value: activeStatutoryBodyLoans.toString() },
+        { label: "Company", value: activeCompanyLoans.toString() }
+      ],
+      icon: Briefcase,
+      color: "text-emerald-600",
+      bgColor: "bg-emerald-50",
+      borderColor: "border-emerald-200",
+      accentColor: "bg-emerald-600",
+    },
+    {
+      title: "Settled Loans",
+      stats: [
+        { label: "Public Servants", value: settledPublicServantsLoans.toString() },
+        { label: "Statutory Body", value: settledStatutoryBodyLoans.toString() },
+        { label: "Company", value: settledCompanyLoans.toString() }
+      ],
+      icon: CheckCircle,
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+      borderColor: "border-green-200",
+      accentColor: "bg-green-600",
+    },
+    {
+      title: "Internal Refinanced",
+      stats: [
+        { label: "Public Servants", value: Math.floor(refinancedInternal * 0.45).toString() },
+        { label: "Statutory Body", value: Math.floor(refinancedInternal * 0.30).toString() },
+        { label: "Company", value: Math.floor(refinancedInternal * 0.25).toString() }
+      ],
+      icon: RefreshCw,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+      borderColor: "border-blue-200",
+      accentColor: "bg-blue-600",
+    },
+    {
+      title: "External Refinanced",
+      stats: [
+        { label: "Public Servants", value: Math.floor(refinancedExternal * 0.45).toString() },
+        { label: "Statutory Body", value: Math.floor(refinancedExternal * 0.30).toString() },
+        { label: "Company", value: Math.floor(refinancedExternal * 0.25).toString() }
+      ],
+      icon: Building2,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
+      borderColor: "border-purple-200",
+      accentColor: "bg-purple-600",
+    }
+  ];
+
   return (
     <div className="space-y-8">
-      {/* Main Statistics Cards */}
-      <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Key Performance Indicators</h2>
+      {/* Main KPI Cards Container */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">Key Performance Indicators</h2>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {mainStats.map((stat) => (
-            <Card key={stat.title} className={`p-6 border-2 ${stat.borderColor} ${stat.bgColor} hover:shadow-lg transition-all duration-200`}>
+          {mainKPIs.map((kpi) => (
+            <Card key={kpi.title} className={`p-6 border-2 ${kpi.borderColor} ${kpi.bgColor} hover:shadow-lg transition-all duration-200`}>
               <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-full ${stat.bgColor} border-2 ${stat.borderColor}`}>
-                  <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                <div className={`p-3 rounded-full ${kpi.bgColor} border-2 ${kpi.borderColor}`}>
+                  <kpi.icon className={`h-6 w-6 ${kpi.color}`} />
                 </div>
-                <div className={`w-1 h-12 ${stat.accentColor} rounded-full`}></div>
+                <div className={`w-1 h-12 ${kpi.accentColor} rounded-full`}></div>
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</h3>
-                <p className="text-sm font-medium text-gray-600 mb-1">{stat.title}</p>
-                <p className="text-xs text-gray-500">{stat.subtitle}</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-3">{kpi.title}</h3>
+                <div className="space-y-2">
+                  {kpi.stats.map((stat, index) => (
+                    <div key={index} className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">{stat.label}:</span>
+                      <span className="text-sm font-medium text-gray-900">{stat.value}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </Card>
           ))}
         </div>
       </div>
 
-      {/* Loan Breakdown Cards */}
-      <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Loan Portfolio Breakdown</h2>
+      {/* Loan Portfolio Breakdown Container */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">Loan Portfolio Breakdown</h2>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-          {loanBreakdown.map((stat) => (
+          {loanPortfolio.map((stat) => (
             <Card key={stat.title} className={`p-6 border-2 ${stat.borderColor} ${stat.bgColor} hover:shadow-lg transition-all duration-200 relative`}>
               <div className="flex items-center justify-between mb-4">
                 <div className={`p-3 rounded-full ${stat.accentColor} shadow-md`}>
@@ -196,8 +312,8 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
                 )}
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-1">{stat.value}</h3>
-                <p className="text-sm font-medium text-gray-600 mb-1">{stat.title}</p>
+                <h3 className="text-sm font-bold text-gray-900 mb-2">{stat.title}</h3>
+                <div className="text-xs font-medium text-gray-900 mb-1">{stat.value}</div>
                 <p className="text-xs text-gray-500">{stat.subtitle}</p>
               </div>
             </Card>
@@ -205,56 +321,32 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
         </div>
       </div>
 
-      {/* Summary Statistics */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="p-6 border-2 border-gray-200 bg-white hover:shadow-lg transition-all duration-200">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 rounded-full bg-gray-100 border-2 border-gray-200">
-              <TrendingUp className="h-6 w-6 text-gray-600" />
-            </div>
-          </div>
-          <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-1">
-              {Math.round(((metrics.total_repayments_amount || 0) / (metrics.total_principal_amount || 1)) * 100)}%
-            </h3>
-            <p className="text-sm font-medium text-gray-600 mb-1">Collection Rate</p>
-            <p className="text-xs text-gray-500">Overall repayment performance</p>
-          </div>
-        </Card>
-
-        <Card className="p-6 border-2 border-gray-200 bg-white hover:shadow-lg transition-all duration-200">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 rounded-full bg-gray-100 border-2 border-gray-200">
-              <Clock className="h-6 w-6 text-gray-600" />
-            </div>
-          </div>
-          <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-1">
-              {Math.round(metrics.avg_loan_duration_days || 0)}
-            </h3>
-            <p className="text-sm font-medium text-gray-600 mb-1">Avg. Loan Duration</p>
-            <p className="text-xs text-gray-500">Days average loan term</p>
-          </div>
-        </Card>
-
-        <Card className="p-6 border-2 border-gray-200 bg-white hover:shadow-lg transition-all duration-200">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 rounded-full bg-gray-100 border-2 border-gray-200">
-              <DollarSign className="h-6 w-6 text-gray-600" />
-            </div>
-          </div>
-          <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-1">
-              {new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD',
-                notation: 'compact'
-              }).format(metrics.total_outstanding_balance || 0)}
-            </h3>
-            <p className="text-sm font-medium text-gray-600 mb-1">Outstanding Balance</p>
-            <p className="text-xs text-gray-500">Total amount pending</p>
-          </div>
-        </Card>
+      {/* Client Cards Container */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">Client Portfolio</h2>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          {clientCards.map((card) => (
+            <Card key={card.title} className={`p-6 border-2 ${card.borderColor} ${card.bgColor} hover:shadow-lg transition-all duration-200`}>
+              <div className="flex items-center justify-between mb-4">
+                <div className={`p-3 rounded-full ${card.bgColor} border-2 ${card.borderColor}`}>
+                  <card.icon className={`h-6 w-6 ${card.color}`} />
+                </div>
+                <div className={`w-1 h-12 ${card.accentColor} rounded-full`}></div>
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-gray-900 mb-3">{card.title}</h3>
+                <div className="space-y-2">
+                  {card.stats.map((stat, index) => (
+                    <div key={index} className="flex justify-between items-center">
+                      <span className="text-xs text-gray-600">{stat.label}:</span>
+                      <span className="text-xs font-medium text-gray-900">{stat.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );

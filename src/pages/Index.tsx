@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardMetrics from "@/components/dashboard/DashboardMetrics";
+import DashboardCharts from "@/components/dashboard/DashboardCharts";
 import { Loader2, TrendingUp, Users, DollarSign } from "lucide-react";
 
 const Dashboard = () => {
@@ -66,8 +67,11 @@ const Dashboard = () => {
       {/* Dashboard Metrics */}
       {metrics && <DashboardMetrics metrics={metrics} />}
 
+      {/* Dashboard Charts */}
+      <DashboardCharts />
+
       {/* Quick Actions */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
         <div className="grid gap-4 md:grid-cols-3">
           <button className="p-4 text-left border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
