@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -191,6 +191,69 @@ export type Database = {
         }
         Relationships: []
       }
+      branches: {
+        Row: {
+          address_line1: string | null
+          address_line2: string | null
+          branch_code: string
+          branch_name: string
+          branch_type: string
+          city: string | null
+          country: string | null
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean | null
+          manager_contact: string | null
+          manager_name: string | null
+          opening_date: string | null
+          phone_number: string | null
+          postal_code: string | null
+          state_province: string | null
+          updated_at: string
+        }
+        Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
+          branch_code: string
+          branch_name: string
+          branch_type?: string
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          manager_contact?: string | null
+          manager_name?: string | null
+          opening_date?: string | null
+          phone_number?: string | null
+          postal_code?: string | null
+          state_province?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address_line1?: string | null
+          address_line2?: string | null
+          branch_code?: string
+          branch_name?: string
+          branch_type?: string
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          manager_contact?: string | null
+          manager_name?: string | null
+          opening_date?: string | null
+          phone_number?: string | null
+          postal_code?: string | null
+          state_province?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chart_of_accounts: {
         Row: {
           account_category: string
@@ -274,21 +337,21 @@ export type Database = {
       }
       documents: {
         Row: {
-          application_uuid: string
+          application_id: string
           document_id: number
           document_path: string
           document_type: Database["public"]["Enums"]["document_type_enum"]
           uploaded_at: string | null
         }
         Insert: {
-          application_uuid: string
+          application_id: string
           document_id?: number
           document_path: string
           document_type: Database["public"]["Enums"]["document_type_enum"]
           uploaded_at?: string | null
         }
         Update: {
-          application_uuid?: string
+          application_id?: string
           document_id?: number
           document_path?: string
           document_type?: Database["public"]["Enums"]["document_type_enum"]
@@ -296,8 +359,8 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "documents_application_uuid_fkey"
-            columns: ["application_uuid"]
+            foreignKeyName: "documents_application_id_fkey"
+            columns: ["application_id"]
             isOneToOne: false
             referencedRelation: "applications"
             referencedColumns: ["application_id"]
@@ -376,6 +439,7 @@ export type Database = {
         Row: {
           arrears: number | null
           borrower_id: string
+          client__type: string | null
           created_at: string | null
           default_fees_accumulated: number | null
           disbursement_date: string
@@ -412,6 +476,7 @@ export type Database = {
           principal: number
           principal_accumulated: number | null
           product: string
+          refinanced: string | null
           refinanced_by: string | null
           repayment_completion_percentage: number | null
           repayment_count: number | null
@@ -423,6 +488,7 @@ export type Database = {
         Insert: {
           arrears?: number | null
           borrower_id: string
+          client__type?: string | null
           created_at?: string | null
           default_fees_accumulated?: number | null
           disbursement_date: string
@@ -459,6 +525,7 @@ export type Database = {
           principal: number
           principal_accumulated?: number | null
           product: string
+          refinanced?: string | null
           refinanced_by?: string | null
           repayment_completion_percentage?: number | null
           repayment_count?: number | null
@@ -470,6 +537,7 @@ export type Database = {
         Update: {
           arrears?: number | null
           borrower_id?: string
+          client__type?: string | null
           created_at?: string | null
           default_fees_accumulated?: number | null
           disbursement_date?: string
@@ -506,6 +574,7 @@ export type Database = {
           principal?: number
           principal_accumulated?: number | null
           product?: string
+          refinanced?: string | null
           refinanced_by?: string | null
           repayment_completion_percentage?: number | null
           repayment_count?: number | null

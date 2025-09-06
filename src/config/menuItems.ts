@@ -17,6 +17,7 @@ import {
   TrendingUp, // Changed from LineChart
   ArrowUpDown, // Changed from ArrowDownUp
   Check,
+  Building2,
 } from "lucide-react";
 
 export const menuItems = [
@@ -30,6 +31,12 @@ export const menuItems = [
     icon: Users, 
     label: "User Management", 
     path: "/admin/users",
+    subItems: [] 
+  },
+  { 
+    icon: Building2, 
+    label: "Branch Management", 
+    path: "/admin/branches",
     subItems: [] 
   },
   { 

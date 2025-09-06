@@ -118,7 +118,7 @@ export function useDocumentUploader(applicationUuid: string) {
         const { error } = await supabase
           .from('documents')
           .insert({
-            application_uuid: applicationUuid,
+            application_id: applicationUuid,
             document_type: documentTypeEnum,
             document_path: documentUrl,
             uploaded_at: new Date().toISOString()

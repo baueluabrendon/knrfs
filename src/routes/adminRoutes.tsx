@@ -25,6 +25,7 @@ import PartialPayments from "@/pages/PartialPayments";
 import ClientRepaymentVerification from "@/pages/ClientRepaymentVerification";
 import AILoanAssistant from "@/components/ai-assistant/AILoanAssistant";
 import AIReporting from "@/pages/AIReporting";
+import BranchManagement from "@/pages/BranchManagement";
 
 export const adminRoutes: RouteObject[] = [
   {
@@ -50,6 +51,10 @@ export const adminRoutes: RouteObject[] = [
       {
         path: "users",
         element: <Users />
+      },
+      {
+        path: "branches",
+        element: <BranchManagement />
       },
       {
         path: "applications",
