@@ -85,6 +85,7 @@ export type Database = {
           bank: string | null
           bank_branch: string | null
           borrower_id: string
+          branch_id: string | null
           bsb_code: string | null
           company_branch: string | null
           date_employed: string | null
@@ -122,6 +123,7 @@ export type Database = {
           bank?: string | null
           bank_branch?: string | null
           borrower_id?: string
+          branch_id?: string | null
           bsb_code?: string | null
           company_branch?: string | null
           date_employed?: string | null
@@ -159,6 +161,7 @@ export type Database = {
           bank?: string | null
           bank_branch?: string | null
           borrower_id?: string
+          branch_id?: string | null
           bsb_code?: string | null
           company_branch?: string | null
           date_employed?: string | null
@@ -189,7 +192,15 @@ export type Database = {
           village?: string | null
           work_phone_number?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "borrowers_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       branches: {
         Row: {
