@@ -11,10 +11,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PersonalInfo } from "./PersonalInfo";
 import { EmploymentInfo } from "./EmploymentInfo";
 import { ResidentialInfo } from "./ResidentialInfo";
-import { FinancialInfo } from "./FinancialInfo";
-import { LoanDetails } from "./LoanDetails";
-import { ApplicationDetails } from "./ApplicationDetails";
-import { BranchSelector } from "./BranchSelector";
+import { LoanFundingDetails } from "./LoanFundingDetails";
+import { FinancialDetails } from "./FinancialDetails";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import React from "react";
@@ -79,11 +77,11 @@ export const DocumentUpload = () => {
         });
       }
       
-      if (formData.applicationDetails) {
-        Object.entries(formData.applicationDetails).forEach(([key, value]) => {
+      if (formData.loanFundingDetails) {
+        Object.entries(formData.loanFundingDetails).forEach(([key, value]) => {
           if (value) {
-            form.setValue(`applicationDetails.${key}`, value);
-            console.log(`Setting applicationDetails.${key} to`, value);
+            form.setValue(`loanFundingDetails.${key}`, value);
+            console.log(`Setting loanFundingDetails.${key} to`, value);
           }
         });
       }
@@ -122,7 +120,7 @@ export const DocumentUpload = () => {
         return;
       }
       
-      if (!formData?.applicationDetails?.branchId) {
+      if (!formData?.residentialDetails?.branchId) {
         toast.error("Please select a branch before processing the document");
         return;
       }
@@ -152,23 +150,8 @@ export const DocumentUpload = () => {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-xl font-semibold text-gray-800">Application Details</h2>
+          <h2 className="text-xl font-semibold text-gray-800">Upload Application Form</h2>
           <p className="text-sm text-gray-600 mb-4">
-            Please select your branch and upload your application form to proceed.
-          </p>
-          
-          <BranchSelector
-            selectedBranchId={formData?.applicationDetails?.branchId || ""}
-            onBranchSelect={(branchId) => {
-              updateFormData?.("applicationDetails", { branchId });
-            }}
-            disabled={isProcessingOCR || isSubmitting}
-          />
-        </div>
-        
-        <div>
-          <h3 className="text-lg font-medium text-gray-800 mb-2">Upload Documents</h3>
-          <p className="text-sm text-gray-600">
             Please upload your application form to proceed with your loan application.
           </p>
         </div>
@@ -200,7 +183,7 @@ export const DocumentUpload = () => {
           <div className="mt-6">
             <Button 
               onClick={handleProcessDocument} 
-              disabled={isSubmitting || isProcessingOCR || !formData?.applicationDetails?.branchId}
+              disabled={isSubmitting || isProcessingOCR}
               className="w-full"
             >
               {(isSubmitting || isProcessingOCR) ? (
@@ -219,11 +202,6 @@ export const DocumentUpload = () => {
               Your document will be processed using OCR to automatically extract application information.
               This process may take 1-2 minutes depending on the document complexity.
             </p>
-            {!formData?.applicationDetails?.branchId && (
-              <p className="text-sm text-amber-600 mt-2 font-medium">
-                ⚠️ Please select a branch before processing the document.
-              </p>
-            )}
           </div>
         )}
         
@@ -236,12 +214,11 @@ export const DocumentUpload = () => {
             
             <Form {...form}>
               <form className="space-y-6">
-                <ApplicationDetails />
                 <PersonalInfo />
                 <EmploymentInfo />
                 <ResidentialInfo />
-                <FinancialInfo />
-                <LoanDetails />
+                <LoanFundingDetails />
+                <FinancialDetails />
               </form>
             </Form>
           </div>

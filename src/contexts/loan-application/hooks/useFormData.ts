@@ -4,6 +4,9 @@ import { FormDataType } from "@/types/loan";
 import { defaultFormData } from "../default-values";
 import { submitApplication } from "../submit-application";
 
+// Optionally define the expected structure for extractedData
+type ExtractedDataType = Partial<FormDataType>;
+
 export function useFormData(applicationUuid: string) {
   const [formData, setFormData] = useState<FormDataType>({ ...defaultFormData });
 
@@ -17,35 +20,29 @@ export function useFormData(applicationUuid: string) {
     }));
   };
 
-  const updateExtractedData = (extractedData: any) => {
+  const updateExtractedData = (extractedData: ExtractedDataType) => {
     if (!extractedData) return;
-    
+
     setFormData(prevData => ({
       personalDetails: {
         ...prevData.personalDetails,
-        ...extractedData.personalDetails
+        ...(extractedData.personalDetails ?? {})
       },
       employmentDetails: {
         ...prevData.employmentDetails,
-        ...extractedData.employmentDetails
+        ...(extractedData.employmentDetails ?? {})
       },
       residentialDetails: {
         ...prevData.residentialDetails,
-        ...extractedData.residentialDetails
+        ...(extractedData.residentialDetails ?? {})
       },
       financialDetails: {
         ...prevData.financialDetails,
-        ...(extractedData.financialDetails || {}),
-        // Merge loan amount and other financial fields if they exist in loanDetails
-        ...(extractedData.loanDetails ? {
-          loanAmount: extractedData.loanDetails.loanAmount,
-          loanTerm: extractedData.loanDetails.loanTerm,
-          loanPurpose: extractedData.loanDetails.loanPurpose,
-        } : {})
+        ...(extractedData.financialDetails ?? {})
       },
-      applicationDetails: {
-        ...prevData.applicationDetails,
-        ...extractedData.applicationDetails
+      loanFundingDetails: {
+        ...prevData.loanFundingDetails,
+        ...(extractedData.loanFundingDetails ?? {})
       }
     }));
   };

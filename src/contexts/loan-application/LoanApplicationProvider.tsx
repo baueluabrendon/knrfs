@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
-import { LoanApplicationContextType } from "./types";
+import { LoanApplicationContextType } from "@/types/loan.ts";
 import { useApplicationSteps } from "./hooks/useApplicationSteps";
 import { useDocumentUploader } from "./hooks/useDocumentUploader";
 import { useFormData } from "./hooks/useFormData";
@@ -87,6 +87,7 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
         handleSubmit,
         processApplicationForm,
         updateFormData,
+        updateExtractedData,
       }}
     >
       {children}

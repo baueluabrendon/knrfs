@@ -4,70 +4,54 @@ import {
   EmploymentDetailsType, 
   ResidentialDetailsType,
   FinancialDetailsType,
-  ApplicationDetailsType,
+  LoanFundingDetailsType,
   DocumentUploadType,
   FormDataType
 } from "@/types/loan";
 
+// PersonalDetailsType
 export const defaultPersonalDetails: PersonalDetailsType = {
-  firstName: "",
-  middleName: "",
-  lastName: "",
-  dateOfBirth: "",
+  clientType: "",
+  givenName: "",
+  surname: "",
+  dateOfBirth: new Date(),
   gender: "",
   email: "",
-  phone: "",
-  idType: "",
-  idNumber: "",
+  mobile: "",
+  village: "",
+  district: "",
+  province: "",
   nationality: "",
-  maritalStatus: "",
-  spouseFirstName: "",
-  spouseLastName: "",
-  spouseEmployerName: "",
-  spouseContactDetails: ""
 };
 
+// EmploymentDetailsType
 export const defaultEmploymentDetails: EmploymentDetailsType = {
-  employerName: "",
-  employmentDate: "",
-  occupation: "",
-  salary: "",
-  payDay: "",
+  company: "",
   fileNumber: "",
   position: "",
   postalAddress: "",
-  workPhoneNumber: "",
+  phone: "",
   fax: "",
+  dateEmployed: new Date(),
   paymaster: ""
 };
 
+// ResidentialDetailsType
 export const defaultResidentialDetails: ResidentialDetailsType = {
-  address: "",
-  suburb: "",
-  city: "",
-  province: "",
-  postalCode: "",
-  residentialStatus: "",
-  yearsAtAddress: "",
   lot: "",
   section: "",
+  suburb: "",
   streetName: "",
-  village: "",
-  district: ""
+  maritalStatus: "",
+  spouseLastName: "",
+  spouseFirstName: "",
+  spouseEmployerName: "",
+  spouseContactDetails: "",
+  branchId: ""
 };
 
-export const defaultFinancialDetails: FinancialDetailsType = {
-  monthlyIncome: "",
-  otherIncome: "",
-  totalExpenses: "",
-  loanAmount: "",
-  loanPurpose: "",
-  loanTerm: "",
-  interestRate: "",
-  loanRiskInsurance: "",
-  documentationFee: "",
-  fortnightlyInstallment: "",
-  grossLoan: "",
+// LoanFundingDetailsType
+export const defaultLoanFundingDetails: LoanFundingDetailsType = {
   bank: "",
   bankBranch: "",
   bsbCode: "",
@@ -76,17 +60,24 @@ export const defaultFinancialDetails: FinancialDetailsType = {
   accountType: ""
 };
 
-export const defaultApplicationDetails = {
-  branchId: "",
-  applicationDate: new Date().toISOString().split('T')[0]
+// FinancialDetailsType
+export const defaultFinancialDetails: FinancialDetailsType = {
+  loanAmount: 0,
+  loanPurpose: "",
+  loanTerm: 0,
+  pvaAmount: 0,
+  totalRepayable: 0,
+  grossSalary: 0,
+  netSalary: 0
 };
 
+// FormDataType
 export const defaultFormData: FormDataType = {
   personalDetails: { ...defaultPersonalDetails },
   employmentDetails: { ...defaultEmploymentDetails },
   residentialDetails: { ...defaultResidentialDetails },
   financialDetails: { ...defaultFinancialDetails },
-  applicationDetails: { ...defaultApplicationDetails }
+  loanFundingDetails: { ...defaultLoanFundingDetails }
 };
 
 export const defaultDocuments: Record<string, DocumentUploadType> = {
