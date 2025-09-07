@@ -608,10 +608,10 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                 </table>
                 
                 {pageIndex === pages - 1 && (
-                  <div style={{ marginTop: "15px", textAlign: "right", fontSize: "9px" }}>
-                    <div style={{ marginBottom: "2px" }}><strong>Total Debits:</strong> K{totalDebits.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-                    <div style={{ marginBottom: "2px" }}><strong>Total Credits:</strong> K{totalCredits.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-                    <div style={{ fontWeight: "bold" }}>
+                  <div className="pdf-totals">
+                    <div className="pdf-totals-row"><strong>Total Debits:</strong> K{totalDebits.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                    <div className="pdf-totals-row"><strong>Total Credits:</strong> K{totalCredits.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                    <div className="pdf-totals-row pdf-totals-bold">
                       <strong>Outstanding Balance:</strong> K{summary.outstanding_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </div>
                   </div>

@@ -179,3 +179,18 @@
   object-fit: cover;
   z-index: 100;
 }
+
+/* Totals block at the end of the PDF */
+.pdf-totals {
+  margin-top: 15px;
+  text-align: right;
+  font-size: 9px;
+}
+
+.pdf-totals-row {
+  margin-bottom: 2px;
+}
+
+.pdf-totals-bold {
+  font-weight: 700;
+}
