@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import html2pdf from "html2pdf.js";
 import { Button } from "@/components/ui/button";
 import { Download, Mail, Printer } from "lucide-react";
+import "./repayment-schedule-pdf.css";
 
 interface RepaymentScheduleProps {
   loan: {
@@ -356,147 +357,122 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
           {splitLedger.map((rows, pageIndex) => (
             <div
               key={pageIndex}
-              style={{
-                height: "297mm",
-                width: "210mm",
-                padding: "20mm 15mm",
-                boxSizing: "border-box",
-                pageBreakAfter: splitLedger.length > 1 && pageIndex < splitLedger.length - 1 ? "always" : "auto",
-                position: "relative",
-                fontFamily: "Arial, sans-serif",
-                overflow: "hidden"
-              }}
+              className={`pdf-page ${splitLedger.length > 1 && pageIndex < splitLedger.length - 1 ? 'page-break' : ''}`}
             >
               <img
                 src={headerImage}
                 alt="Statement Header"
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "40px",
-                  objectFit: "cover",
-                  zIndex: 100,
-                }}
+                className="pdf-header-image"
               />
 
-              <div style={{
-                position: "absolute",
-                top: "45%",
-                left: "50%",
-                transform: "translate(-50%, -50%) rotate(-30deg)",
-                fontSize: "3rem",
-                color: "rgba(0,0,0,0.05)",
-                whiteSpace: "nowrap"
-              }}>
+              <div className="pdf-watermark">
                 STATEMENT OF ACCOUNT
               </div>
 
-              <div style={{ position: "relative", zIndex: 1, marginTop: "40px" }}>
+              <div className="pdf-content">
                 {pageIndex === 0 && summary && (
                   <div className="mb-6">
-                    <h2 style={{ fontSize: "18px", fontWeight: "bold", textAlign: "center", marginBottom: "12px", textTransform: "uppercase" }}>
+                    <h2 className="pdf-title">
                       Statement of Account
                     </h2>
                     
-                    <table style={{ width: "100%", fontSize: "10px", marginBottom: "15px", borderSpacing: "4px", borderCollapse: "separate" }}>
+                    <table className="pdf-info-table">
                       <tbody>
                         <tr>
-                          <td style={{ width: "20%", fontWeight: "bold", verticalAlign: "top" }}>Borrower:</td>
-                          <td style={{ width: "30%", verticalAlign: "top" }}>{summary.borrower_name}</td>
-                          <td style={{ width: "20%", fontWeight: "bold", verticalAlign: "top" }}>Loan ID:</td>
-                          <td style={{ width: "30%", verticalAlign: "top" }}>{summary.loan_id}</td>
+                          <td className="pdf-info-cell-label">Borrower:</td>
+                          <td className="pdf-info-cell-value">{summary.borrower_name}</td>
+                          <td className="pdf-info-cell-label">Loan ID:</td>
+                          <td className="pdf-info-cell-value">{summary.loan_id}</td>
                         </tr>
                         <tr>
-                          <td style={{ fontWeight: "bold", verticalAlign: "top" }}>Email:</td>
-                          <td style={{ verticalAlign: "top" }}>{summary.email}</td>
-                          <td style={{ fontWeight: "bold", verticalAlign: "top" }}>Phone:</td>
-                          <td style={{ verticalAlign: "top" }}>{summary.mobile_number}</td>
+                          <td className="pdf-info-cell-label">Email:</td>
+                          <td className="pdf-info-cell-value">{summary.email}</td>
+                          <td className="pdf-info-cell-label">Phone:</td>
+                          <td className="pdf-info-cell-value">{summary.mobile_number}</td>
                         </tr>
                         <tr>
-                          <td style={{ fontWeight: "bold", verticalAlign: "top" }}>Address:</td>
-                          <td style={{ verticalAlign: "top" }}>{summary.postal_address}</td>
-                          <td style={{ fontWeight: "bold", verticalAlign: "top" }}>Organization:</td>
-                          <td style={{ verticalAlign: "top" }}>{summary.department_company}</td>
+                          <td className="pdf-info-cell-label">Address:</td>
+                          <td className="pdf-info-cell-value">{summary.postal_address}</td>
+                          <td className="pdf-info-cell-label">Organization:</td>
+                          <td className="pdf-info-cell-value">{summary.department_company}</td>
                         </tr>
                         <tr>
-                          <td style={{ fontWeight: "bold", verticalAlign: "top" }}>File Number:</td>
-                          <td style={{ verticalAlign: "top" }}>{summary.file_number}</td>
-                          <td style={{ fontWeight: "bold", verticalAlign: "top" }}>Position:</td>
-                          <td style={{ verticalAlign: "top" }}>{summary.position}</td>
+                          <td className="pdf-info-cell-label">File Number:</td>
+                          <td className="pdf-info-cell-value">{summary.file_number}</td>
+                          <td className="pdf-info-cell-label">Position:</td>
+                          <td className="pdf-info-cell-value">{summary.position}</td>
                         </tr>
                         <tr>
-                          <td style={{ fontWeight: "bold", verticalAlign: "top" }}>Start Date:</td>
-                          <td style={{ verticalAlign: "top" }}>
+                          <td className="pdf-info-cell-label">Start Date:</td>
+                          <td className="pdf-info-cell-value">
                             {summary.disbursement_date ? format(new Date(summary.disbursement_date), "dd/MM/yyyy") : "N/A"}
                           </td>
-                          <td style={{ fontWeight: "bold", verticalAlign: "top" }}>End Date:</td>
-                          <td style={{ verticalAlign: "top" }}>
+                          <td className="pdf-info-cell-label">End Date:</td>
+                          <td className="pdf-info-cell-value">
                             {summary.maturity_date ? format(new Date(summary.maturity_date), "dd/MM/yyyy") : "N/A"}
                           </td>
                         </tr>
                         <tr>
-                          <td style={{ fontWeight: "bold", verticalAlign: "top" }}>Term:</td>
-                          <td style={{ verticalAlign: "top" }}>{summary.loan_term} fortnights</td>
-                          <td style={{ fontWeight: "bold", verticalAlign: "top" }}>Status:</td>
-                          <td style={{ verticalAlign: "top" }}>{summary.loan_status} ({summary.repayment_completion_percentage}% repaid)</td>
+                          <td className="pdf-info-cell-label">Term:</td>
+                          <td className="pdf-info-cell-value">{summary.loan_term} fortnights</td>
+                          <td className="pdf-info-cell-label">Status:</td>
+                          <td className="pdf-info-cell-value">{summary.loan_status} ({summary.repayment_completion_percentage}% repaid)</td>
                         </tr>
                         <tr>
-                          <td style={{ fontWeight: "bold", verticalAlign: "top" }}>PVA:</td>
-                          <td style={{ verticalAlign: "top" }}>K{summary.fortnightly_installment?.toLocaleString()}</td>
+                          <td className="pdf-info-cell-label">PVA:</td>
+                          <td className="pdf-info-cell-value">K{summary.fortnightly_installment?.toLocaleString()}</td>
                           <td></td>
                           <td></td>
                         </tr>
                       </tbody>
                     </table>
                     
-                    <h3 style={{ fontSize: "12px", fontWeight: "bold", marginBottom: "8px", marginTop: "15px" }}>Loan Charges</h3>
-                    <table style={{ width: "100%", borderCollapse: "separate", fontSize: "9px", borderSpacing: "4px" }}>
+                    <h3 className="pdf-charges-title">Loan Charges</h3>
+                    <table className="pdf-charges-table">
                       <tbody>
                         <tr>
-                          <td style={{ width: "33%", padding: "6px", border: "1px solid #e5e7eb", borderRadius: "4px" }}>
-                            <div style={{ display: "flex", justifyContent: "space-between" }}>
+                          <td className="pdf-charge-cell">
+                            <div className="pdf-charge-flex">
                               <span>Principal Amount:</span>
-                              <span style={{ fontWeight: "500" }}>K{summary.principal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                              <span className="pdf-charge-amount">K{summary.principal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                             </div>
                           </td>
-                          <td style={{ width: "33%", padding: "6px", border: "1px solid #e5e7eb", borderRadius: "4px" }}>
-                            <div style={{ display: "flex", justifyContent: "space-between" }}>
+                          <td className="pdf-charge-cell">
+                            <div className="pdf-charge-flex">
                               <span>Interest:</span>
-                              <span style={{ fontWeight: "500" }}>K{summary.interest.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                              <span className="pdf-charge-amount">K{summary.interest.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                             </div>
                           </td>
-                          <td style={{ width: "33%", padding: "6px", border: "1px solid #e5e7eb", borderRadius: "4px" }}>
-                            <div style={{ display: "flex", justifyContent: "space-between" }}>
+                          <td className="pdf-charge-cell">
+                            <div className="pdf-charge-flex">
                               <span>Risk Insurance:</span>
-                              <span style={{ fontWeight: "500" }}>K{summary.loan_risk_insurance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                              <span className="pdf-charge-amount">K{summary.loan_risk_insurance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                             </div>
                           </td>
                         </tr>
                         <tr>
-                          <td style={{ padding: "6px", border: "1px solid #e5e7eb", borderRadius: "4px" }}>
-                            <div style={{ display: "flex", justifyContent: "space-between" }}>
+                          <td className="pdf-charge-cell">
+                            <div className="pdf-charge-flex">
                               <span>Documentation Fee:</span>
-                              <span style={{ fontWeight: "500" }}>K{summary.documentation_fee.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                              <span className="pdf-charge-amount">K{summary.documentation_fee.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                             </div>
                           </td>
-                          <td style={{ padding: "6px", border: "1px solid #e5e7eb", borderRadius: "4px" }}>
-                            <div style={{ display: "flex", justifyContent: "space-between" }}>
+                          <td className="pdf-charge-cell">
+                            <div className="pdf-charge-flex">
                               <span>Default Fees:</span>
-                              <span style={{ fontWeight: "500" }}>K{summary.default_fees_accumulated.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                              <span className="pdf-charge-amount">K{summary.default_fees_accumulated.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                             </div>
                           </td>
-                          <td style={{ padding: "6px", border: "1px solid #e5e7eb", borderRadius: "4px" }}>
-                            <div style={{ display: "flex", justifyContent: "space-between" }}>
+                          <td className="pdf-charge-cell">
+                            <div className="pdf-charge-flex">
                               <span>GST:</span>
-                              <span style={{ fontWeight: "500" }}>K{summary.total_gst.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                              <span className="pdf-charge-amount">K{summary.total_gst.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                             </div>
                           </td>
                         </tr>
                         <tr>
-                          <td colSpan={3} style={{ padding: "6px", border: "1px solid #e5e7eb", borderRadius: "4px", backgroundColor: "#f9fafb" }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "bold" }}>
+                          <td colSpan={3} className="pdf-charge-cell total">
+                            <div className="pdf-charge-flex font-bold">
                               <span>Total (Gross Loan):</span>
                               <span>K{summary.gross_loan.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                             </div>
@@ -507,19 +483,19 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                   </div>
                 )}
 
-                <h3 style={{ fontSize: "12px", fontWeight: "bold", marginBottom: "8px", marginTop: "15px" }}>
+                <h3 className="pdf-transactions-title">
                   Transaction History
                 </h3>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "8px" }}>
+                <table className="pdf-transactions-table">
                   <thead>
-                    <tr style={{ backgroundColor: "#f3f4f6" }}>
-                      <th style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "left" }}>#</th>
-                      <th style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "left" }}>Date</th>
-                      <th style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "left" }}>Pay Period</th>
-                      <th style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "left" }}>Description</th>
-                      <th style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>Debit (K)</th>
-                      <th style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>Credit (K)</th>
-                      <th style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>Balance (K)</th>
+                    <tr className="pdf-table-header">
+                      <th className="pdf-table-cell">#</th>
+                      <th className="pdf-table-cell">Date</th>
+                      <th className="pdf-table-cell">Pay Period</th>
+                      <th className="pdf-table-cell">Description</th>
+                      <th className="pdf-table-cell text-right">Debit (K)</th>
+                      <th className="pdf-table-cell text-right">Credit (K)</th>
+                      <th className="pdf-table-cell text-right">Balance (K)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -553,20 +529,20 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                           if (group.scheduled) {
                             const entry = group.scheduled;
                             pdfRows.push(
-                              <tr key={`pdf-scheduled-${paymentNumber}`} style={{ fontWeight: "500" }}>
-                                <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>{entry.payment_number ?? "-"}</td>
-                                <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>
+                              <tr key={`pdf-scheduled-${paymentNumber}`} className="pdf-table-row">
+                                <td className="pdf-table-cell">{entry.payment_number ?? "-"}</td>
+                                <td className="pdf-table-cell">
                                   {entry.entry_date ? format(new Date(entry.entry_date), "dd/MM/yyyy") : "N/A"}
                                 </td>
-                                <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>{entry.pay_period || "-"}</td>
-                                <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>{entry.description}</td>
-                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                                <td className="pdf-table-cell">{entry.pay_period || "-"}</td>
+                                <td className="pdf-table-cell">{entry.description}</td>
+                                <td className="pdf-table-cell text-right">
                                   {entry.debit !== null ? entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : "-"}
                                 </td>
-                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                                <td className="pdf-table-cell text-right">
                                   {entry.credit !== null ? entry.credit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : "-"}
                                 </td>
-                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                                <td className="pdf-table-cell text-right">
                                   {entry.outstanding_balance !== undefined && entry.outstanding_balance !== null
                                     ? entry.outstanding_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })
                                     : "-"}
@@ -578,20 +554,20 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                           // 2. Repayment received rows (with visual distinction)
                           group.repayments.forEach((entry, repaymentIndex) => {
                             pdfRows.push(
-                              <tr key={`pdf-repayment-${paymentNumber}-${repaymentIndex}`} style={{ backgroundColor: "#f0f9ff", color: "#166534" }}>
-                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", paddingLeft: "12px" }}>-</td>
-                                <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>
+                              <tr key={`pdf-repayment-${paymentNumber}-${repaymentIndex}`} className="pdf-table-row repayment">
+                                <td className="pdf-table-cell indent">-</td>
+                                <td className="pdf-table-cell">
                                   {entry.entry_date ? format(new Date(entry.entry_date), "dd/MM/yyyy") : "N/A"}
                                 </td>
-                                <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>-</td>
-                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", paddingLeft: "8px" }}>{entry.description}</td>
-                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                                <td className="pdf-table-cell">-</td>
+                                <td className="pdf-table-cell indent-small">{entry.description}</td>
+                                <td className="pdf-table-cell text-right">
                                   {entry.debit !== null ? entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : "-"}
                                 </td>
-                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                                <td className="pdf-table-cell text-right">
                                   {entry.credit !== null ? entry.credit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : "-"}
                                 </td>
-                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                                <td className="pdf-table-cell text-right">
                                   {entry.outstanding_balance !== undefined && entry.outstanding_balance !== null
                                     ? entry.outstanding_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })
                                     : "-"}
@@ -603,20 +579,20 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                           // 3. Default rows (with visual distinction)
                           group.defaults.forEach((entry, defaultIndex) => {
                             pdfRows.push(
-                              <tr key={`pdf-default-${paymentNumber}-${defaultIndex}`} style={{ backgroundColor: "#fef2f2", color: "#991b1b" }}>
-                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", paddingLeft: "12px" }}>-</td>
-                                <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>
+                              <tr key={`pdf-default-${paymentNumber}-${defaultIndex}`} className="pdf-table-row default">
+                                <td className="pdf-table-cell indent">-</td>
+                                <td className="pdf-table-cell">
                                   {entry.entry_date ? format(new Date(entry.entry_date), "dd/MM/yyyy") : "N/A"}
                                 </td>
-                                <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>-</td>
-                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", paddingLeft: "8px" }}>{entry.description}</td>
-                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                                <td className="pdf-table-cell">-</td>
+                                <td className="pdf-table-cell indent-small">{entry.description}</td>
+                                <td className="pdf-table-cell text-right">
                                   {entry.debit !== null ? entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : "-"}
                                 </td>
-                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                                <td className="pdf-table-cell text-right">
                                   {entry.credit !== null ? entry.credit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : "-"}
                                 </td>
-                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                                <td className="pdf-table-cell text-right">
                                   {entry.outstanding_balance !== undefined && entry.outstanding_balance !== null
                                     ? entry.outstanding_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })
                                     : "-"}
@@ -642,44 +618,35 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                 )}
               </div>
               
-              <div style={{
-                position: "absolute",
-                bottom: "50px",
-                right: "15mm",
-                fontSize: "8px",
-                color: "gray"
-              }}>
+              <div className="absolute bottom-[50px] right-[15mm] text-xs text-gray-500">
                 Page {pageIndex + 1} of {pages}
               </div>
-              
-              {pageIndex === pages - 1 && (
-                <div style={{ 
-                  position: "absolute", 
-                  bottom: "80px", 
-                  left: "15mm",
-                  fontSize: "8px", 
-                  borderTop: "1px solid #e5e7eb",
-                  width: "120px",
-                  textAlign: "center",
-                  paddingTop: "4px"
-                }}>
-                  Authorized Signature
-                </div>
-              )}
+                
+                {pageIndex === pages - 1 && (
+                  <div className="absolute bottom-20 left-[15mm] text-xs border-t border-gray-200 w-[120px] text-center pt-1">
+                    Authorized Signature
+                  </div>
+                )}
 
-              <img
-                src={footerImage}
-                alt="Statement Footer"
-                style={{
-                  position: "absolute",
-                  bottom: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "40px",
-                  objectFit: "cover",
-                  zIndex: 100,
-                }}
-              />
+                {pageIndex === pages - 1 && (
+                  <div className="pdf-summary">
+                    <div className="pdf-summary-row">
+                      <span className="pdf-summary-label">Total Debits:</span> K{splitLedger.reduce((sum, rows) => sum + rows.reduce((rowSum, e) => rowSum + (e.debit ?? 0), 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </div>
+                    <div className="pdf-summary-row">
+                      <span className="pdf-summary-label">Total Credits:</span> K{splitLedger.reduce((sum, rows) => sum + rows.reduce((rowSum, e) => rowSum + (e.credit ?? 0), 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </div>
+                    <div className="pdf-summary-row">
+                      <span className="pdf-summary-label">Outstanding Balance:</span> K{summary.outstanding_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </div>
+                  </div>
+                )}
+
+                <img
+                  src={footerImage}
+                  alt="Statement Footer"
+                  className="pdf-footer-image"
+                />
             </div>
           ))}
         </div>

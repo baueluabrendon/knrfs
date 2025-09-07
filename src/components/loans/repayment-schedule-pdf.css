@@ -1,0 +1,181 @@
+.pdf-page {
+  height: 297mm;
+  width: 210mm;
+  padding: 20mm 15mm;
+  box-sizing: border-box;
+  position: relative;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
+}
+
+.pdf-page.page-break {
+  page-break-after: always;
+}
+
+.pdf-header-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 40px;
+  object-fit: cover;
+  z-index: 100;
+}
+
+.pdf-watermark {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-30deg);
+  font-size: 3rem;
+  color: rgba(0,0,0,0.05);
+  white-space: nowrap;
+}
+
+.pdf-content {
+  position: relative;
+  z-index: 1;
+  margin-top: 40px;
+}
+
+.pdf-title {
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.pdf-info-table {
+  width: 100%;
+  font-size: 10px;
+  margin-bottom: 15px;
+  border-spacing: 4px;
+  border-collapse: separate;
+}
+
+.pdf-info-cell-label {
+  width: 20%;
+  font-weight: bold;
+  vertical-align: top;
+}
+
+.pdf-info-cell-value {
+  width: 30%;
+  vertical-align: top;
+}
+
+.pdf-charges-title {
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  margin-top: 15px;
+}
+
+.pdf-charges-table {
+  width: 100%;
+  border-collapse: separate;
+  font-size: 9px;
+  border-spacing: 4px;
+}
+
+.pdf-charge-cell {
+  padding: 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+}
+
+.pdf-charge-cell.total {
+  background-color: #f9fafb;
+}
+
+.pdf-charge-flex {
+  display: flex;
+  justify-content: space-between;
+}
+
+.pdf-charge-amount {
+  font-weight: 500;
+}
+
+.pdf-transactions-title {
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  margin-top: 15px;
+}
+
+.pdf-transactions-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 8px;
+}
+
+.pdf-table-header {
+  background-color: #f3f4f6;
+}
+
+.pdf-table-header th {
+  padding: 4px;
+  border: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+.pdf-table-header th.text-right {
+  text-align: right;
+}
+
+.pdf-table-row {
+  font-weight: 500;
+}
+
+.pdf-table-row.repayment {
+  background-color: #f0f9ff;
+  color: #166534;
+}
+
+.pdf-table-row.default {
+  background-color: #fef2f2;
+  color: #991b1b;
+}
+
+.pdf-table-cell {
+  padding: 4px;
+  border: 1px solid #e5e7eb;
+}
+
+.pdf-table-cell.text-right {
+  text-align: right;
+}
+
+.pdf-table-cell.indent {
+  padding-left: 12px;
+}
+
+.pdf-table-cell.indent-small {
+  padding-left: 8px;
+}
+
+.pdf-summary {
+  text-align: right;
+  font-size: 10px;
+  margin-top: 15px;
+}
+
+.pdf-summary-row {
+  margin-bottom: 4px;
+}
+
+.pdf-summary-label {
+  font-weight: bold;
+}
+
+.pdf-footer-image {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 40px;
+  object-fit: cover;
+  z-index: 100;
+}
