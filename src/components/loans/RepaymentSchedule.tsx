@@ -32,7 +32,33 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
         .order("entry_date", { ascending: true });
 
       if (data?.length) {
-        setLedger(data);
+        // Group and sort data: scheduled first, then repayments, then defaults
+        const groupedData = data.reduce((acc, entry) => {
+          const paymentNumber = entry.payment_number || 0;
+          if (!acc[paymentNumber]) {
+            acc[paymentNumber] = [];
+          }
+          acc[paymentNumber].push(entry);
+          return acc;
+        }, {} as Record<number, any[]>);
+
+        // Sort each group: Schedule → Repayment → Default
+        const sortedLedger = Object.keys(groupedData)
+          .sort((a, b) => Number(a) - Number(b))
+          .flatMap(paymentNumber => {
+            const entries = groupedData[Number(paymentNumber)];
+            return entries.sort((a, b) => {
+              const getOrder = (desc: string) => {
+                if (desc.includes('Scheduled Repayment')) return 1;
+                if (desc.includes('Repayment Received')) return 2;
+                if (desc.includes('Default')) return 3;
+                return 4;
+              };
+              return getOrder(a.description) - getOrder(b.description);
+            });
+          });
+
+        setLedger(sortedLedger);
         const f = data[0];
         setSummary({
           borrower_name: f.borrower_name,
