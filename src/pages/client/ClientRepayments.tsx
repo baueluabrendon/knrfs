@@ -32,11 +32,15 @@ const ClientRepayments = () => {
   const { data: repayments, isLoading, error, refetch } = useQuery({
     queryKey: ["client-repayments", user?.user_id],
     queryFn: async () => {
+      if (!user?.user_id) {
+        throw new Error("User not authenticated");
+      }
+
       // Get user's borrower_id
       const { data: userProfile, error: profileError } = await supabase
         .from("user_profiles")
         .select("borrower_id")
-        .eq("user_id", user?.user_id)
+        .eq("user_id", user.user_id)
         .maybeSingle();
 
       if (profileError) {
