@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Upload, X, Download } from "lucide-react";
 import Papa from "papaparse";
@@ -19,6 +19,7 @@ interface CSVBorrower {
   surname: string;
   given_name: string;
   email: string;
+  branch_name: string;
   mobile_number: string;
   date_of_birth: string;
   gender: string;
@@ -56,6 +57,7 @@ interface BorrowerInsert {
   surname: string;
   given_name: string;
   email: string;
+  branch_id: string | null;
   mobile_number: string | null;
   date_of_birth: string | null;
   gender: string | null;
@@ -92,6 +94,33 @@ interface BorrowerInsert {
 const BulkBorrowers = () => {
   const [csvData, setCSVData] = useState<CSVBorrower[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [branches, setBranches] = useState<{[key: string]: string}>({});
+
+  // Fetch branches on component mount for mapping
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('branches')
+          .select('id, branch_name, branch_code')
+          .eq('is_active', true);
+
+        if (error) throw error;
+        
+        // Create a map of branch names to IDs for CSV lookup
+        const branchMap: {[key: string]: string} = {};
+        data?.forEach(branch => {
+          branchMap[branch.branch_name.toLowerCase()] = branch.id;
+          branchMap[branch.branch_code.toLowerCase()] = branch.id;
+        });
+        setBranches(branchMap);
+      } catch (error) {
+        console.error('Error fetching branches:', error);
+      }
+    };
+
+    fetchBranches();
+  }, []);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -123,6 +152,7 @@ const BulkBorrowers = () => {
             gender: row.gender || "",
             mobile_number: row.mobile_number || "",
             email: row.email || "",
+            branch_name: row.branch_name || "",
             village: row.village || "",
             district: row.district || "",
             province: row.province || "",
@@ -180,10 +210,15 @@ const BulkBorrowers = () => {
     
     try {
       const borrowersToInsert: BorrowerInsert[] = csvData.map(borrower => {
+        // Look up branch ID from branch name
+        const branchId = borrower.branch_name ? 
+          branches[borrower.branch_name.toLowerCase()] || null : null;
+        
         return {
           surname: borrower.surname,
           given_name: borrower.given_name,
           email: borrower.email,
+          branch_id: branchId,
           mobile_number: borrower.mobile_number || null,
           date_of_birth: borrower.date_of_birth || null,
           gender: borrower.gender || null,
@@ -260,7 +295,7 @@ const BulkBorrowers = () => {
   };
 
   const downloadTemplateCSV = () => {
-    const headers = "surname,given_name,date_of_birth,gender,mobile_number,email,village,district,province,nationality,department_company,file_number,position,postal_address,work_phone_number,fax,date_employed,paymaster,lot,section,suburb,street_name,marital_status,spouse_last_name,spouse_first_name,spouse_employer_name,spouse_contact_details,company_branch,bank,bank_branch,bsb_code,account_name,account_number,account_type";
+    const headers = "surname,given_name,date_of_birth,gender,mobile_number,email,branch_name,village,district,province,nationality,department_company,file_number,position,postal_address,work_phone_number,fax,date_employed,paymaster,lot,section,suburb,street_name,marital_status,spouse_last_name,spouse_first_name,spouse_employer_name,spouse_contact_details,company_branch,bank,bank_branch,bsb_code,account_name,account_number,account_type";
     const csvContent = `${headers}\n`;
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -285,7 +320,7 @@ const BulkBorrowers = () => {
         <div className="space-y-4">
           <div className="flex flex-col space-y-2">
             <p className="text-muted-foreground mb-2">
-              Upload a CSV file with the following columns: Surname, Given Name, Date of Birth, Gender, Mobile Number, Email, Village, District, Province, Nationality, Department/Company, File Number, Position, Postal Address, Work Phone Number, Fax, Date Employed, Paymaster, Lot, Section, Suburb, Street Name, Marital Status, Spouse Last Name, Spouse First Name, Spouse Employer Name, Spouse Contact Details, Company Branch, Bank, Bank Branch, BSB Code, Account Name, Account Number, Account Type
+              Upload a CSV file with the following columns: Surname, Given Name, Date of Birth, Gender, Mobile Number, Email, Branch Name, Village, District, Province, Nationality, Department/Company, File Number, Position, Postal Address, Work Phone Number, Fax, Date Employed, Paymaster, Lot, Section, Suburb, Street Name, Marital Status, Spouse Last Name, Spouse First Name, Spouse Employer Name, Spouse Contact Details, Company Branch, Bank, Bank Branch, BSB Code, Account Name, Account Number, Account Type
             </p>
             <div className="flex items-center space-x-4">
               <Button
@@ -325,6 +360,7 @@ const BulkBorrowers = () => {
                       <TableHead>Gender</TableHead>
                       <TableHead>Mobile Number</TableHead>
                       <TableHead>Email</TableHead>
+                      <TableHead>Branch Name</TableHead>
                       <TableHead>Village</TableHead>
                       <TableHead>District</TableHead>
                       <TableHead>Province</TableHead>
@@ -364,6 +400,7 @@ const BulkBorrowers = () => {
                         <TableCell>{borrower.gender}</TableCell>
                         <TableCell>{borrower.mobile_number}</TableCell>
                         <TableCell>{borrower.email}</TableCell>
+                        <TableCell>{borrower.branch_name}</TableCell>
                         <TableCell>{borrower.village}</TableCell>
                         <TableCell>{borrower.district}</TableCell>
                         <TableCell>{borrower.province}</TableCell>

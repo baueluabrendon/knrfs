@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -9,12 +9,15 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Database } from "@/integrations/supabase/types";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 // Create schema based on actual database columns from the borrowers table
 const borrowerFormSchema = z.object({
   given_name: z.string().min(1, "First name is required"),
   surname: z.string().min(1, "Last name is required"),
   email: z.string().email("Invalid email address"),
+  branch_id: z.string().min(1, "Branch is required"),
   mobile_number: z.string().optional(),
   date_of_birth: z.string().optional(),
   gender: z.string().optional(),
@@ -57,6 +60,7 @@ export type BorrowerInsertData = {
   given_name: string;
   surname: string;
   email: string;
+  branch_id?: string | null;
   mobile_number?: string | null;
   date_of_birth?: string | null;
   gender?: string | null;
@@ -90,18 +94,29 @@ export type BorrowerInsertData = {
   account_type?: string | null;
 };
 
+interface Branch {
+  id: string;
+  branch_name: string;
+  branch_code: string;
+  is_active: boolean;
+}
+
 interface BorrowerFormProps {
   onSubmit: (data: BorrowerFormData) => void;
   onCancel?: () => void;
 }
 
 const BorrowerForm = ({ onSubmit, onCancel }: BorrowerFormProps) => {
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [isLoadingBranches, setIsLoadingBranches] = useState(false);
+
   const form = useForm<BorrowerFormData>({
     resolver: zodResolver(borrowerFormSchema),
     defaultValues: {
       given_name: "",
       surname: "",
       email: "",
+      branch_id: "",
       mobile_number: "",
       date_of_birth: "",
       gender: "",
@@ -135,6 +150,30 @@ const BorrowerForm = ({ onSubmit, onCancel }: BorrowerFormProps) => {
       account_type: ""
     }
   });
+
+  // Fetch branches on component mount
+  useEffect(() => {
+    const fetchBranches = async () => {
+      setIsLoadingBranches(true);
+      try {
+        const { data, error } = await supabase
+          .from('branches')
+          .select('id, branch_name, branch_code, is_active')
+          .eq('is_active', true)
+          .order('branch_name', { ascending: true });
+
+        if (error) throw error;
+        setBranches(data || []);
+      } catch (error) {
+        console.error('Error fetching branches:', error);
+        toast.error('Failed to load branches');
+      } finally {
+        setIsLoadingBranches(false);
+      }
+    };
+
+    fetchBranches();
+  }, []);
 
   const handleSubmit = form.handleSubmit((data) => {
     onSubmit(data);
@@ -184,6 +223,31 @@ const BorrowerForm = ({ onSubmit, onCancel }: BorrowerFormProps) => {
                   <FormLabel>Email *</FormLabel>
                   <FormControl>
                     <Input type="email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="branch_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Branch *</FormLabel>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoadingBranches}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={isLoadingBranches ? "Loading branches..." : "Select branch"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {branches.map((branch) => (
+                          <SelectItem key={branch.id} value={branch.id}>
+                            {branch.branch_name} ({branch.branch_code})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
