@@ -26,41 +26,49 @@ interface DashboardMetricsProps {
     total_outstanding_balance: number;
     total_repayments_amount: number;
     avg_loan_duration_days: number;
+    settled_loans_count: number;
+    total_arrears_amount: number;
+    total_default_fees: number;
+    loans_with_missed_payments: number;
+    loans_with_partial_payments: number;
+    collection_efficiency_percentage: number;
   };
 }
 
 const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
-  // Calculate derived metrics for new structure
+  // Use actual metrics from the enhanced database view
   const totalBorrowers = metrics.active_borrowers_count;
-  const activeBorrowers = Math.floor(totalBorrowers * 0.85); // Estimated
-  const fullyPaidBorrowers = Math.floor(totalBorrowers * 0.60); // Estimated
+  const activeBorrowers = metrics.active_borrowers_count;
+  const fullyPaidBorrowers = metrics.settled_loans_count;
   
-  // Sales metrics (renamed from Principal Released)
-  const totalGrossLoan = metrics.total_principal_amount * 1.5; // Estimated
+  // Sales metrics - use actual data
   const totalPrincipalReleased = metrics.total_principal_amount;
   const totalCollections = metrics.total_repayments_amount;
-  const totalInterestReceived = totalGrossLoan - totalPrincipalReleased; // Estimated
+  const collectionEfficiency = metrics.collection_efficiency_percentage;
   
-  // Collections breakdown
+  // Collections breakdown (estimate from total - could be enhanced with time-based queries)
   const collectionsThisYear = totalCollections * 0.70; // Estimated
   const collectionsThisMonth = totalCollections * 0.08; // Estimated
   
-  // New borrowers breakdown
-  const newBorrowersThisYear = Math.floor(totalBorrowers * 0.25); // Estimated
-  const newBorrowersLast3Months = Math.floor(totalBorrowers * 0.12); // Estimated
-  const newBorrowersThisMonth = Math.floor(totalBorrowers * 0.04); // Estimated
+  // New borrowers breakdown (estimated - could be enhanced with date-based queries)
+  const newBorrowersThisYear = Math.floor(totalBorrowers * 0.25);
+  const newBorrowersLast3Months = Math.floor(totalBorrowers * 0.12);
+  const newBorrowersThisMonth = Math.floor(totalBorrowers * 0.04);
   
-  // Updated loan portfolio metrics
+  // Use actual loan portfolio metrics
   const totalOutstandingOpenLoans = metrics.active_loans_count;
   const principalOutstandingOpenLoans = metrics.total_outstanding_balance;
-  const interestOutstandingOpenLoans = principalOutstandingOpenLoans * 0.3; // Estimated
-  const refinancedInternal = Math.floor(metrics.active_loans_count * 0.05); // Estimated
-  const refinancedExternal = Math.floor(metrics.active_loans_count * 0.03); // Estimated
-  const defaultFeesOutstanding = metrics.total_outstanding_balance * 0.05; // Estimated
+  const totalArrearsOutstanding = metrics.total_arrears_amount;
+  const defaultFeesOutstanding = metrics.total_default_fees;
   const defaultLoans = metrics.at_risk_loans_count;
-  const totalArrearsOutstanding = metrics.total_outstanding_balance * 0.15; // Estimated
+  const loansWithMissedPayments = metrics.loans_with_missed_payments;
+  const loansWithPartialPayments = metrics.loans_with_partial_payments;
   
-  // Client segmentation metrics (estimated)
+  // Estimated breakdowns (could be enhanced with better database queries)
+  const refinancedInternal = Math.floor(metrics.active_loans_count * 0.05);
+  const refinancedExternal = Math.floor(metrics.active_loans_count * 0.03);
+  
+  // Client segmentation metrics (estimated - could be enhanced with borrower type data)
   const totalPublicServants = Math.floor(totalBorrowers * 0.45);
   const totalStatutoryBody = Math.floor(totalBorrowers * 0.30);
   const totalCompanyClients = totalBorrowers - totalPublicServants - totalStatutoryBody;
@@ -91,10 +99,10 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
     {
       title: "Total Sales",
       stats: [
-        { label: "Total Gross Loan", value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(totalGrossLoan) },
         { label: "Principal Released", value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(totalPrincipalReleased) },
-        { label: "Collections/Gross", value: `${Math.round((totalCollections/totalGrossLoan)*100)}%` },
-        { label: "Interest Received", value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(totalInterestReceived) }
+        { label: "Collections Total", value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(totalCollections) },
+        { label: "Collection Efficiency", value: `${Math.round(collectionEfficiency)}%` },
+        { label: "Outstanding Balance", value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(principalOutstandingOpenLoans) }
       ],
       icon: DollarSign,
       color: "text-green-600",
@@ -153,9 +161,9 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
       accentColor: "bg-green-600",
     },
     {
-      title: "Interest Outstanding Open Loans",
-      value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(interestOutstandingOpenLoans),
-      subtitle: "Interest amount due",
+      title: "Loans with Payment Issues",
+      value: `Missed: ${loansWithMissedPayments} | Partial: ${loansWithPartialPayments}`,
+      subtitle: "Payment tracking",
       icon: TrendingUp,
       color: "text-yellow-600",
       bgColor: "bg-yellow-50",

@@ -942,7 +942,13 @@ export type Database = {
           active_loans_count: number | null
           at_risk_loans_count: number | null
           avg_loan_duration_days: number | null
+          collection_efficiency_percentage: number | null
+          loans_with_missed_payments: number | null
+          loans_with_partial_payments: number | null
           pending_applications_count: number | null
+          settled_loans_count: number | null
+          total_arrears_amount: number | null
+          total_default_fees: number | null
           total_outstanding_balance: number | null
           total_principal_amount: number | null
           total_repayments_amount: number | null
