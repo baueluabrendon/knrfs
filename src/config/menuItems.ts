@@ -71,6 +71,7 @@ export const menuItems = [
     label: "Recoveries", 
     path: "#",
     subItems: [
+      { icon: PiggyBank, label: "Recoveries Management", path: "/admin/recoveries" },
       { icon: AlertOctagon, label: "Loans In Arrears", path: "/admin/recoveries/loans-in-arrears" },
       { icon: AlertIcon, label: "Missed Payments", path: "/admin/recoveries/missed-payments" },
       { icon: MoneyIcon, label: "Partial Payments", path: "/admin/recoveries/partial-payments" },
