@@ -211,6 +211,8 @@ export async function createUserWithAdmin(email: string, password: string, userD
   branch_id?: string | null
 }): Promise<{ user: any; error: any }> {
   try {
+    console.log("createUserWithAdmin called with:", { email, userData });
+    
     const { data, error } = await supabase.functions.invoke('create-user', {
       body: {
         email,
@@ -222,8 +224,10 @@ export async function createUserWithAdmin(email: string, password: string, userD
       }
     })
 
+    console.log("Edge function response:", { data, error });
+
     if (error) throw error
-    return { user: data.user, error: null }
+    return { user: data?.user, error: null }
   } catch (error) {
     console.error('Error creating user:', error)
     return { user: null, error }

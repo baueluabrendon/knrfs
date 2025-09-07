@@ -196,6 +196,8 @@ const Users = () => {
     e.preventDefault();
     setIsAddingUser(true);
 
+    console.log("Starting user creation with data:", formData);
+
     try {
       if (!formData.email || !formData.role || !formData.firstName || !formData.lastName) {
         toast.error("Please fill in all required fields");
@@ -215,6 +217,8 @@ const Users = () => {
         setIsAddingUser(false);
         return;
       }
+
+      console.log("Calling createUserWithAdmin...");
       
       const { user, error } = await authService.createUserWithAdmin(
         formData.email,
@@ -227,8 +231,10 @@ const Users = () => {
         }
       );
       
+      console.log("createUserWithAdmin result:", { user, error });
+      
       if (error) {
-        toast.error("Admin operations require a server-side function. This feature needs to be updated.");
+        toast.error(`Error creating user: ${error.message || 'Unknown error'}`);
         console.error("Error creating user:", error);
         setIsAddingUser(false);
         return;
