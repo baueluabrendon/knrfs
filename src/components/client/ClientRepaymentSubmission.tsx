@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Plus, Upload, Calendar } from "lucide-react";
 import { toast } from "sonner";
@@ -12,75 +11,98 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import RepaymentBorrowerSelect from "./RepaymentBorrowerSelect";
 import { format } from "date-fns";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface RepaymentDialogProps {
+interface ClientRepaymentSubmissionProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  onSubmissionSuccess?: () => void;
 }
 
-const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange }) => {
+interface LoanOption {
+  loan_id: string;
+  outstanding_balance: number;
+  fortnightly_installment: number;
+}
+
+const ClientRepaymentSubmission: React.FC<ClientRepaymentSubmissionProps> = ({ 
+  isOpen, 
+  onOpenChange,
+  onSubmissionSuccess 
+}) => {
+  const { user } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
-  const [borrowerId, setBorrowerId] = useState("");
-  const [borrowerName, setBorrowerName] = useState("");
-  const [loanId, setLoanId] = useState("");
-  const [availableLoans, setAvailableLoans] = useState<{ id: string; status: string }[]>([]);
+  const [selectedLoan, setSelectedLoan] = useState("");
+  const [availableLoans, setAvailableLoans] = useState<LoanOption[]>([]);
   const [amount, setAmount] = useState("");
   const [paymentDate, setPaymentDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState("");
   const [notes, setNotes] = useState("");
+  const [isLoadingLoans, setIsLoadingLoans] = useState(false);
 
   useEffect(() => {
-    // When borrower is selected, fetch their active loans
-    if (borrowerId) {
-      fetchBorrowerLoans(borrowerId);
-    } else {
-      setLoanId("");
-      setAvailableLoans([]);
+    if (isOpen && user?.user_id) {
+      fetchClientLoans();
     }
-  }, [borrowerId]);
+  }, [isOpen, user?.user_id]);
 
-  const fetchBorrowerLoans = async (id: string) => {
+  const fetchClientLoans = async () => {
+    if (!user?.user_id) return;
+    
+    setIsLoadingLoans(true);
     try {
-      const { data, error } = await supabase
+      // Get user's borrower_id first
+      const { data: userProfile, error: profileError } = await supabase
+        .from("user_profiles")
+        .select("borrower_id")
+        .eq("user_id", user.user_id)
+        .single();
+
+      if (profileError || !userProfile?.borrower_id) {
+        toast.error("Could not find borrower profile");
+        return;
+      }
+
+      // Fetch active loans for this borrower
+      const { data: loans, error: loansError } = await supabase
         .from("loans")
-        .select("loan_id, loan_status")
-        .eq("borrower_id", id)
+        .select("loan_id, outstanding_balance, fortnightly_installment")
+        .eq("borrower_id", userProfile.borrower_id)
         .eq("loan_status", "active");
 
-      if (error) {
-        throw error;
+      if (loansError) {
+        console.error("Error fetching loans:", loansError);
+        toast.error("Failed to load active loans");
+        return;
       }
 
-      if (data && data.length > 0) {
-        setAvailableLoans(data.map(loan => ({ 
-          id: loan.loan_id, 
-          status: loan.loan_status 
-        })));
-        
-        // Auto-select the first active loan
-        setLoanId(data[0].loan_id);
-      } else {
-        setAvailableLoans([]);
-        setLoanId("");
-        toast.info("No active loans found for this borrower");
+      setAvailableLoans(loans || []);
+      
+      if (loans && loans.length > 0) {
+        setSelectedLoan(loans[0].loan_id);
+        setAmount(loans[0].fortnightly_installment.toString());
       }
     } catch (error) {
-      console.error("Error fetching borrower loans:", error);
-      toast.error("Failed to load borrower loans");
+      console.error("Error in fetchClientLoans:", error);
+      toast.error("An error occurred while loading loans");
+    } finally {
+      setIsLoadingLoans(false);
     }
   };
 
-  const handleBorrowerSelect = (id: string, name: string) => {
-    setBorrowerId(id);
-    setBorrowerName(name);
+  const handleLoanSelect = (loanId: string) => {
+    setSelectedLoan(loanId);
+    const loan = availableLoans.find(l => l.loan_id === loanId);
+    if (loan) {
+      setAmount(loan.fortnightly_installment.toString());
+    }
   };
 
-  // Check if file is a valid type (PDF or approved image)
   const isValidFileType = (file: File): boolean => {
     const validTypes = [
       'application/pdf', 
@@ -110,8 +132,8 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
   const uploadReceipt = async (file: File): Promise<string | null> => {
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}_${loanId}.${fileExt}`;
-      const filePath = `repayments/${fileName}`;
+      const fileName = `client_${Date.now()}_${selectedLoan}.${fileExt}`;
+      const filePath = `client-repayments/${fileName}`;
       
       const { error: uploadError } = await supabase.storage
         .from('application_documents')
@@ -134,8 +156,8 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
   };
 
   const handleSubmit = async () => {
-    if (!loanId || !amount || !file || !paymentDate) {
-      toast.error("Please fill in all fields and select a receipt document.");
+    if (!selectedLoan || !amount || !file || !paymentDate) {
+      toast.error("Please fill in all required fields and upload a receipt.");
       return;
     }
     
@@ -149,83 +171,98 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
         throw new Error("Failed to upload receipt");
       }
       
-      // Insert the repayment record
+      // Insert the repayment record with 'client' source
       const { error } = await supabase
         .from('repayments')
         .insert({
-          loan_id: loanId,
+          loan_id: selectedLoan,
           amount: parseFloat(amount),
           receipt_url: receiptUrl,
           payment_date: paymentDate,
           notes: notes || null,
-          source: 'system' // Admin-added repayments bypass verification
+          source: 'client' // This will trigger the verification workflow
         });
       
       if (error) {
         console.error('Error saving repayment:', error);
-        throw new Error('Failed to save repayment');
+        throw new Error('Failed to submit repayment');
       }
       
-      toast.success("Repayment added successfully");
+      toast.success("Repayment submitted successfully! It will be reviewed by our team.");
       
       // Reset form and close dialog
-      setBorrowerId("");
-      setBorrowerName("");
-      setLoanId("");
+      setSelectedLoan("");
       setAmount("");
       setPaymentDate(format(new Date(), 'yyyy-MM-dd'));
       setFile(null);
       setNotes("");
+      setFileError("");
       onOpenChange(false);
+      
+      // Call success callback if provided
+      if (onSubmissionSuccess) {
+        onSubmissionSuccess();
+      }
       
     } catch (error) {
       console.error('Error in handleSubmit:', error);
-      toast.error("Failed to add repayment. Please try again.");
+      toast.error("Failed to submit repayment. Please try again.");
     } finally {
       setIsUploading(false);
     }
   };
 
+  const selectedLoanDetails = availableLoans.find(l => l.loan_id === selectedLoan);
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Repayment
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Add Repayment</DialogTitle>
+          <DialogTitle>Submit Repayment</DialogTitle>
         </DialogHeader>
+        
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="borrower">Borrower</Label>
-            <RepaymentBorrowerSelect onBorrowerSelect={handleBorrowerSelect} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="loanId">Loan ID</Label>
-            <Input 
-              id="loanId" 
-              placeholder="Loan ID will appear here"
-              value={loanId}
-              readOnly
-              className="bg-gray-100"
-            />
-            {availableLoans.length === 0 && borrowerId && (
-              <p className="text-sm text-amber-600">No active loans found for this borrower</p>
+            <Label htmlFor="loan">Select Loan</Label>
+            {isLoadingLoans ? (
+              <div className="text-sm text-muted-foreground">Loading loans...</div>
+            ) : availableLoans.length === 0 ? (
+              <div className="text-sm text-muted-foreground">No active loans found</div>
+            ) : (
+              <Select value={selectedLoan} onValueChange={handleLoanSelect}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a loan" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableLoans.map((loan) => (
+                    <SelectItem key={loan.loan_id} value={loan.loan_id}>
+                      {loan.loan_id} - Outstanding: K{loan.outstanding_balance.toFixed(2)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            
+            {selectedLoanDetails && (
+              <div className="text-xs text-muted-foreground p-2 bg-muted rounded">
+                <div>Fortnightly Payment: K{selectedLoanDetails.fortnightly_installment.toFixed(2)}</div>
+                <div>Outstanding Balance: K{selectedLoanDetails.outstanding_balance.toFixed(2)}</div>
+              </div>
             )}
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="amount">Amount</Label>
             <Input 
               id="amount" 
               type="number" 
-              placeholder="Enter amount"
+              step="0.01"
+              placeholder="Enter repayment amount"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
             />
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="paymentDate">Payment Date</Label>
             <div className="relative">
@@ -233,25 +270,26 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
               <Input 
                 id="paymentDate" 
                 type="date" 
-                placeholder="Select payment date"
                 value={paymentDate}
                 onChange={(e) => setPaymentDate(e.target.value)}
                 className="pl-10"
               />
             </div>
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="notes">Notes (Optional)</Label>
             <Textarea
               id="notes"
-              placeholder="Add any additional notes about this repayment"
+              placeholder="Add any additional information about this repayment"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
             />
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="receipt">Receipt Document</Label>
+            <Label htmlFor="receipt">Receipt Document *</Label>
             <Input
               id="receipt"
               type="file"
@@ -261,27 +299,32 @@ const RepaymentDialog: React.FC<RepaymentDialogProps> = ({ isOpen, onOpenChange 
             />
             {fileError && <p className="text-sm text-red-500">{fileError}</p>}
             <p className="text-xs text-muted-foreground">
-              Allowed file types: PDF, JPEG, PNG, BMP, TIFF
+              Required: Upload proof of payment (PDF, JPEG, PNG, BMP, TIFF)
             </p>
           </div>
+
           <Button 
             className="w-full" 
             onClick={handleSubmit}
-            disabled={isUploading || !loanId || !amount || !file || !paymentDate}
+            disabled={isUploading || !selectedLoan || !amount || !file || !paymentDate || availableLoans.length === 0}
           >
             {isUploading ? (
-              <span>Uploading...</span>
+              <span>Submitting...</span>
             ) : (
               <>
                 <Upload className="w-4 h-4 mr-2" />
-                Upload Receipt
+                Submit for Review
               </>
             )}
           </Button>
+          
+          <p className="text-xs text-muted-foreground text-center">
+            Your repayment will be reviewed by our team before being processed.
+          </p>
         </div>
       </DialogContent>
     </Dialog>
   );
 };
 
-export default RepaymentDialog;
+export default ClientRepaymentSubmission;

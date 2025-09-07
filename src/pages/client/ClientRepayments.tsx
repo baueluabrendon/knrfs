@@ -1,7 +1,8 @@
 
 import { useState, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -10,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import ClientRepaymentSubmission from "@/components/client/ClientRepaymentSubmission";
 import { supabase } from "@/integrations/supabase/client";
 import { Repayment } from "@/types/repayment";
 import {
@@ -25,8 +27,9 @@ import { useQuery } from "@tanstack/react-query";
 const ClientRepayments = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSubmissionOpen, setIsSubmissionOpen] = useState(false);
 
-  const { data: repayments, isLoading, error } = useQuery({
+  const { data: repayments, isLoading, error, refetch } = useQuery({
     queryKey: ["client-repayments", user?.user_id],
     queryFn: async () => {
       // Get user's borrower_id
@@ -92,6 +95,11 @@ const ClientRepayments = () => {
     enabled: !!user?.user_id,
   });
 
+  const handleSubmissionSuccess = () => {
+    // Refetch repayments after successful submission
+    refetch();
+  };
+
   // Filter repayments based on search query
   const filteredRepayments = useMemo(() => {
     if (!repayments || !searchQuery.trim()) return repayments || [];
@@ -128,7 +136,12 @@ const ClientRepayments = () => {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold">My Repayments</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">My Repayments</h1>
+        <Button onClick={() => setIsSubmissionOpen(true)}>
+          Submit Repayment
+        </Button>
+      </div>
       
       <Card>
         <CardContent className="p-6">
@@ -228,6 +241,12 @@ const ClientRepayments = () => {
           </div>
         </CardContent>
       </Card>
+
+      <ClientRepaymentSubmission
+        isOpen={isSubmissionOpen}
+        onOpenChange={setIsSubmissionOpen}
+        onSubmissionSuccess={handleSubmissionSuccess}
+      />
     </div>
   );
 };
