@@ -258,7 +258,7 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                   .sort((a, b) => Number(a) - Number(b))
                   .map(paymentNumber => {
                     const group = groupedEntries[Number(paymentNumber)];
-                    const rows = [];
+                    const rows: JSX.Element[] = [];
 
                     // 1. Scheduled payment row (main row)
                     if (group.scheduled) {
