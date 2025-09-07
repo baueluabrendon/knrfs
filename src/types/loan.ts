@@ -76,11 +76,17 @@ export interface FinancialDetailsType {
   accountType: string;
 }
 
+export interface ApplicationDetailsType {
+  branchId: string;
+  applicationDate: string;
+}
+
 export interface FormDataType {
   personalDetails: PersonalDetailsType;
   employmentDetails: EmploymentDetailsType;
   residentialDetails: ResidentialDetailsType;
   financialDetails: FinancialDetailsType;
+  applicationDetails: ApplicationDetailsType;
 }
 
 export interface LoanApplicationType {

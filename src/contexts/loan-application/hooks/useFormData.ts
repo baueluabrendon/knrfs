@@ -42,6 +42,10 @@ export function useFormData(applicationUuid: string) {
           loanTerm: extractedData.loanDetails.loanTerm,
           loanPurpose: extractedData.loanDetails.loanPurpose,
         } : {})
+      },
+      applicationDetails: {
+        ...prevData.applicationDetails,
+        ...extractedData.applicationDetails
       }
     }));
   };

@@ -4,6 +4,7 @@ import {
   EmploymentDetailsType, 
   ResidentialDetailsType,
   FinancialDetailsType,
+  ApplicationDetailsType,
   DocumentUploadType,
   FormDataType
 } from "@/types/loan";
@@ -75,11 +76,17 @@ export const defaultFinancialDetails: FinancialDetailsType = {
   accountType: ""
 };
 
+export const defaultApplicationDetails = {
+  branchId: "",
+  applicationDate: new Date().toISOString().split('T')[0]
+};
+
 export const defaultFormData: FormDataType = {
   personalDetails: { ...defaultPersonalDetails },
   employmentDetails: { ...defaultEmploymentDetails },
   residentialDetails: { ...defaultResidentialDetails },
-  financialDetails: { ...defaultFinancialDetails }
+  financialDetails: { ...defaultFinancialDetails },
+  applicationDetails: { ...defaultApplicationDetails }
 };
 
 export const defaultDocuments: Record<string, DocumentUploadType> = {
