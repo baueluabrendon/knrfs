@@ -101,7 +101,7 @@ const BulkBorrowers = () => {
     const fetchBranches = async () => {
       try {
         const { data, error } = await supabase
-          .from('branches')
+          .from('branches' as any)
           .select('id, branch_name, branch_code')
           .eq('is_active', true);
 
@@ -109,7 +109,7 @@ const BulkBorrowers = () => {
         
         // Create a map of branch names to IDs for CSV lookup
         const branchMap: {[key: string]: string} = {};
-        data?.forEach(branch => {
+        data?.forEach((branch: any) => {
           branchMap[branch.branch_name.toLowerCase()] = branch.id;
           branchMap[branch.branch_code.toLowerCase()] = branch.id;
         });
@@ -261,7 +261,7 @@ const BulkBorrowers = () => {
         const batch = borrowersToInsert.slice(i, i + batchSize);
         
         const { data, error } = await supabase
-          .from('borrowers')
+          .from('borrowers' as any)
           .insert(batch)
           .select();
         
@@ -323,20 +323,30 @@ const BulkBorrowers = () => {
               Upload a CSV file with the following columns: Surname, Given Name, Date of Birth, Gender, Mobile Number, Email, Branch Name, Village, District, Province, Nationality, Department/Company, File Number, Position, Postal Address, Work Phone Number, Fax, Date Employed, Paymaster, Lot, Section, Suburb, Street Name, Marital Status, Spouse Last Name, Spouse First Name, Spouse Employer Name, Spouse Contact Details, Company Branch, Bank, Bank Branch, BSB Code, Account Name, Account Number, Account Type
             </p>
             <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                className="relative"
-                disabled={isLoading}
-              >
-                <input
-                  type="file"
-                  accept=".csv"
-                  onChange={handleFileUpload}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                <Upload className="mr-2 h-4 w-4" />
-                Select CSV File
-              </Button>
+              <div className="relative">
+                <label htmlFor="csv-file-input" className="sr-only">
+                  Upload CSV file with borrower data
+                </label>
+                <Button
+                  variant="outline"
+                  className="relative"
+                  disabled={isLoading}
+                  asChild
+                >
+                  <label htmlFor="csv-file-input" className="cursor-pointer">
+                    <input
+                      id="csv-file-input"
+                      type="file"
+                      accept=".csv"
+                      onChange={handleFileUpload}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      aria-label="Upload CSV file with borrower data"
+                    />
+                    <Upload className="mr-2 h-4 w-4" />
+                    Select CSV File
+                  </label>
+                </Button>
+              </div>
               <Button
                 variant="outline"
                 onClick={downloadTemplateCSV}
