@@ -27,7 +27,7 @@ serve(async (req) => {
     )
 
     // Get request body
-    const { email, password, firstName, lastName, role, borrowerId } = await req.json()
+    const { email, password, firstName, lastName, role } = await req.json()
 
     // Verify admin role of caller
     const authHeader = req.headers.get('Authorization')
@@ -66,23 +66,16 @@ serve(async (req) => {
 
     // Create user profile
     if (newUser?.user) {
-      const profileData: any = {
-        user_id: newUser.user.id,
-        email: email,
-        first_name: firstName,
-        last_name: lastName,
-        role: role,
-        is_password_changed: false
-      };
-
-      // Add borrower_id for client users
-      if (role === 'client' && borrowerId) {
-        profileData.borrower_id = borrowerId;
-      }
-
       const { error: profileError } = await supabaseAdmin
         .from('user_profiles')
-        .insert(profileData)
+        .insert({
+          user_id: newUser.user.id,
+          email: email,
+          first_name: firstName,
+          last_name: lastName,
+          role: role,
+          is_password_changed: false
+        })
 
       if (profileError) throw profileError
     }

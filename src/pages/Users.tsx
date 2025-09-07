@@ -31,7 +31,6 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import * as authService from "@/services/authService";
-import { useBorrowerSelect } from "@/hooks/useBorrowerSelect";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,7 +47,6 @@ interface UserFormData {
   role: string;
   firstName: string;
   lastName: string;
-  borrowerId?: string;
 }
 
 interface UserData {
@@ -80,9 +78,6 @@ const Users = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<UserData | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  
-  // Use the borrower selection hook
-  const { borrowers, isLoading: borrowersLoading, getBorrowerNameById } = useBorrowerSelect();
 
   useEffect(() => {
     fetchUsers();
@@ -125,11 +120,7 @@ const Users = () => {
   };
 
   const handleRoleChange = (value: string) => {
-    setFormData({ ...formData, role: value, borrowerId: "" });
-  };
-
-  const handleBorrowerChange = (value: string) => {
-    setFormData({ ...formData, borrowerId: value });
+    setFormData({ ...formData, role: value });
   };
 
   const resetForm = () => {
@@ -138,7 +129,6 @@ const Users = () => {
       role: "",
       firstName: "",
       lastName: "",
-      borrowerId: "",
     });
     setOpen(false);
   };
@@ -168,12 +158,6 @@ const Users = () => {
         return;
       }
       
-      if (formData.role === "client" && !formData.borrowerId) {
-        toast.error("Please select a borrower for client users");
-        setIsAddingUser(false);
-        return;
-      }
-      
       if (!canAddRole(formData.role)) {
         toast.error("You don't have permission to add users with this role");
         setIsAddingUser(false);
@@ -186,8 +170,7 @@ const Users = () => {
         {
           first_name: formData.firstName,
           last_name: formData.lastName,
-          role: formData.role,
-          borrower_id: formData.role === "client" ? formData.borrowerId : null
+          role: formData.role
         }
       );
       
@@ -373,32 +356,6 @@ const Users = () => {
                   </SelectContent>
                 </Select>
               </div>
-              
-              {/* Borrower Selection - Only show for client role */}
-              {formData.role === "client" && (
-                <div>
-                  <Label htmlFor="borrower" className="text-sm font-medium text-gray-700">
-                    Select Borrower *
-                  </Label>
-                  <Select onValueChange={handleBorrowerChange} value={formData.borrowerId}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={borrowersLoading ? "Loading borrowers..." : "Select a borrower"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {borrowers.map((borrower) => (
-                        <SelectItem key={borrower.borrower_id} value={borrower.borrower_id}>
-                          {borrower.given_name} {borrower.surname} - {borrower.email}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {formData.borrowerId && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Selected: {getBorrowerNameById(formData.borrowerId)}
-                    </p>
-                  )}
-                </div>
-              )}
               <div className="text-sm text-gray-600 p-2 bg-gray-100 rounded">
                 <p>User will be created with default password: <strong>password123</strong></p>
                 <p>They will be prompted to change it on first login.</p>
