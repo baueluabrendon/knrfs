@@ -89,8 +89,14 @@ export const menuItems = [
   },
   { 
     icon: BarChart3, 
-    label: "Analytics", 
-    path: "/admin/analytics",
+    label: "Reports", 
+    path: "/admin/reports",
+    subItems: [] 
+  },
+  { 
+    icon: MoneyIcon, 
+    label: "Promotions", 
+    path: "/admin/promotions",
     subItems: [] 
   },
 ];

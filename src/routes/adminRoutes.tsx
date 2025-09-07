@@ -9,7 +9,15 @@ import AddLoan from "@/pages/AddLoan";
 import Users from "@/pages/Users";
 import Repayments from "@/pages/Repayments";
 import Applications from "@/pages/Applications";
-import Analytics from "@/pages/Analytics";
+import Reports from "@/pages/Reports";
+import UsersReport from "@/pages/reports/UsersReport";
+import BorrowersReport from "@/pages/reports/BorrowersReport";
+import ApplicationsReport from "@/pages/reports/ApplicationsReport";
+import LoansReport from "@/pages/reports/LoansReport";
+import RepaymentsReport from "@/pages/reports/RepaymentsReport";
+import RecoveriesReport from "@/pages/reports/RecoveriesReport";
+import PromotionsReport from "@/pages/reports/PromotionsReport";
+import Promotions from "@/pages/Promotions";
 import ChartOfAccounts from "@/pages/ChartOfAccounts";
 import ProfitAndLoss from "@/pages/ProfitAndLoss";
 import BalanceSheet from "@/pages/BalanceSheet";
@@ -85,8 +93,40 @@ export const adminRoutes: RouteObject[] = [
         element: <PartialPayments />
       },
       {
-        path: "analytics",
-        element: <Analytics />
+        path: "reports",
+        element: <Reports />
+      },
+      {
+        path: "reports/users",
+        element: <UsersReport />
+      },
+      {
+        path: "reports/borrowers",
+        element: <BorrowersReport />
+      },
+      {
+        path: "reports/applications",
+        element: <ApplicationsReport />
+      },
+      {
+        path: "reports/loans",
+        element: <LoansReport />
+      },
+      {
+        path: "reports/repayments",
+        element: <RepaymentsReport />
+      },
+      {
+        path: "reports/recoveries",
+        element: <RecoveriesReport />
+      },
+      {
+        path: "reports/promotions",
+        element: <PromotionsReport />
+      },
+      {
+        path: "promotions",
+        element: <Promotions />
       },
       {
         path: "accounting/chart-of-accounts",
