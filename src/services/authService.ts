@@ -211,8 +211,14 @@ export async function createUserWithAdmin(email: string, password: string, userD
   branch_id?: string | null
 }): Promise<{ user: any; error: any }> {
   try {
-    console.log("createUserWithAdmin called with:", { email, userData });
+    console.log("=== CreateUserWithAdmin Debug Start ===");
+    console.log("Input params:", { email, userData });
     
+    // Check current session
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    console.log("Current session:", { user: sessionData.session?.user?.email, error: sessionError });
+    
+    console.log("Calling edge function create-user...");
     const { data, error } = await supabase.functions.invoke('create-user', {
       body: {
         email,
@@ -222,14 +228,23 @@ export async function createUserWithAdmin(email: string, password: string, userD
         role: userData.role,
         branchId: userData.branch_id
       }
-    })
+    });
 
-    console.log("Edge function response:", { data, error });
-
-    if (error) throw error
-    return { user: data?.user, error: null }
+    console.log("Edge function raw response:", { data, error, status: error?.status });
+    
+    if (error) {
+      console.log("Edge function error details:", {
+        message: error.message,
+        context: error.context,
+        details: error.details
+      });
+      throw error;
+    }
+    
+    console.log("=== CreateUserWithAdmin Debug End ===");
+    return { user: data?.user, error: null };
   } catch (error) {
-    console.error('Error creating user:', error)
-    return { user: null, error }
+    console.error('=== CreateUserWithAdmin Error ===', error);
+    return { user: null, error };
   }
 }
