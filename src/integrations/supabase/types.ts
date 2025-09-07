@@ -936,6 +936,41 @@ export type Database = {
       }
     }
     Views: {
+      dashboard_analytics_view: {
+        Row: {
+          active_loans_count: number | null
+          analysis_date: string | null
+          day: number | null
+          default_fees_collected: number | null
+          defaults_count: number | null
+          doc_fees_collected: number | null
+          female_count: number | null
+          loans_released_count: number | null
+          male_count: number | null
+          month: number | null
+          new_borrowers_count: number | null
+          principal_released: number | null
+          private_company_count: number | null
+          private_defaults: number | null
+          public_defaults: number | null
+          public_service_count: number | null
+          quarter: number | null
+          repayments_collected_count: number | null
+          repayments_due_count: number | null
+          risk_insurance_collected: number | null
+          settled_loans_count: number | null
+          statutory_body_count: number | null
+          statutory_defaults: number | null
+          total_collections: number | null
+          total_default_amount: number | null
+          total_due_amount: number | null
+          total_loan_amount: number | null
+          total_outstanding: number | null
+          week: number | null
+          year: number | null
+        }
+        Relationships: []
+      }
       dashboard_metrics_view: {
         Row: {
           active_borrowers_count: number | null
@@ -1082,6 +1117,37 @@ export type Database = {
       generate_repayment_id: {
         Args: { p_loan_id: string }
         Returns: string
+      }
+      get_dashboard_analytics: {
+        Args: {
+          p_end_date?: string
+          p_period_type?: string
+          p_start_date?: string
+        }
+        Returns: {
+          active_loans_count: number
+          default_fees_collected: number
+          defaults_count: number
+          doc_fees_collected: number
+          female_count: number
+          loans_released_count: number
+          male_count: number
+          new_borrowers_count: number
+          period_label: string
+          principal_released: number
+          private_company_count: number
+          private_defaults: number
+          public_defaults: number
+          public_service_count: number
+          repayments_collected_count: number
+          risk_insurance_collected: number
+          settled_loans_count: number
+          statutory_body_count: number
+          statutory_defaults: number
+          total_collections: number
+          total_due_amount: number
+          total_outstanding: number
+        }[]
       }
     }
     Enums: {
