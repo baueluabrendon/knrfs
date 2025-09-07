@@ -47,6 +47,7 @@ interface UserFormData {
   role: string;
   firstName: string;
   lastName: string;
+  branchId: string;
 }
 
 interface UserData {
@@ -58,6 +59,8 @@ interface UserData {
   last_name: string | null;
   created_at: string | null;
   status: string;
+  branch_id?: string | null;
+  branch_name?: string | null;
 }
 
 const Users = () => {
@@ -65,12 +68,15 @@ const Users = () => {
   const [isAddingUser, setIsAddingUser] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [users, setUsers] = useState<UserData[]>([]);
+  const [branches, setBranches] = useState<any[]>([]);
+  const [loadingBranches, setLoadingBranches] = useState(false);
   const { user: currentUser } = useAuth();
   const [formData, setFormData] = useState<UserFormData>({
     email: "",
     role: "",
     firstName: "",
     lastName: "",
+    branchId: "",
   });
   const [open, setOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
@@ -81,6 +87,7 @@ const Users = () => {
 
   useEffect(() => {
     fetchUsers();
+    fetchBranches();
   }, []);
 
   const fetchUsers = async () => {
@@ -88,7 +95,12 @@ const Users = () => {
       setIsLoading(true);
       const { data, error } = await supabase
         .from('user_profiles')
-        .select('*');
+        .select(`
+          *,
+          branches:branch_id (
+            branch_name
+          )
+        `);
         
       if (error) {
         throw error;
@@ -102,7 +114,9 @@ const Users = () => {
         first_name: profile.first_name,
         last_name: profile.last_name,
         created_at: profile.created_at,
-        status: profile.is_password_changed ? "Active" : "Pending Setup"
+        status: profile.is_password_changed ? "Active" : "Pending Setup",
+        branch_id: profile.branch_id,
+        branch_name: profile.branches?.branch_name
       }));
       
       setUsers(transformedData);
@@ -114,13 +128,43 @@ const Users = () => {
     }
   };
 
+  const fetchBranches = async () => {
+    try {
+      setLoadingBranches(true);
+      const { data, error } = await supabase
+        .from('branches')
+        .select('id, branch_name, branch_code')
+        .eq('is_active', true)
+        .order('branch_name');
+        
+      if (error) {
+        throw error;
+      }
+      
+      setBranches(data || []);
+    } catch (error: any) {
+      console.error("Error fetching branches:", error);
+      toast.error("Failed to fetch branches");
+    } finally {
+      setLoadingBranches(false);
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setFormData({ ...formData, [id]: value });
   };
 
   const handleRoleChange = (value: string) => {
-    setFormData({ ...formData, role: value });
+    setFormData({ ...formData, role: value, branchId: "" });
+  };
+
+  const handleBranchChange = (value: string) => {
+    setFormData({ ...formData, branchId: value });
+  };
+
+  const shouldShowBranchSelection = (role: string) => {
+    return role && !['super user', 'client'].includes(role);
   };
 
   const resetForm = () => {
@@ -129,6 +173,7 @@ const Users = () => {
       role: "",
       firstName: "",
       lastName: "",
+      branchId: "",
     });
     setOpen(false);
   };
@@ -157,6 +202,13 @@ const Users = () => {
         setIsAddingUser(false);
         return;
       }
+
+      // Validate branch selection for applicable roles
+      if (shouldShowBranchSelection(formData.role) && !formData.branchId) {
+        toast.error("Please select a branch for this role");
+        setIsAddingUser(false);
+        return;
+      }
       
       if (!canAddRole(formData.role)) {
         toast.error("You don't have permission to add users with this role");
@@ -170,7 +222,8 @@ const Users = () => {
         {
           first_name: formData.firstName,
           last_name: formData.lastName,
-          role: formData.role
+          role: formData.role,
+          branch_id: shouldShowBranchSelection(formData.role) ? formData.branchId : null
         }
       );
       
@@ -204,6 +257,7 @@ const Users = () => {
       role: user.role,
       firstName: user.first_name || "",
       lastName: user.last_name || "",
+      branchId: user.branch_id || "",
     });
     setEditDialogOpen(true);
   };
@@ -236,7 +290,8 @@ const Users = () => {
         .update({
           first_name: formData.firstName, 
           last_name: formData.lastName,
-          role: formData.role
+          role: formData.role,
+          branch_id: shouldShowBranchSelection(formData.role) ? formData.branchId || null : null
         })
         .eq('user_id', editingUser.user_id);
       
@@ -356,6 +411,33 @@ const Users = () => {
                   </SelectContent>
                 </Select>
               </div>
+              
+              {shouldShowBranchSelection(formData.role) && (
+                <div>
+                  <Label htmlFor="branchId" className="text-sm font-medium text-gray-700">
+                    Branch *
+                  </Label>
+                  <Select onValueChange={handleBranchChange} value={formData.branchId}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a branch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {loadingBranches ? (
+                        <SelectItem value="" disabled>Loading branches...</SelectItem>
+                      ) : branches.length === 0 ? (
+                        <SelectItem value="" disabled>No branches available</SelectItem>
+                      ) : (
+                        branches.map((branch) => (
+                          <SelectItem key={branch.id} value={branch.id}>
+                            {branch.branch_name} ({branch.branch_code})
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              
               <div className="text-sm text-gray-600 p-2 bg-gray-100 rounded">
                 <p>User will be created with default password: <strong>password123</strong></p>
                 <p>They will be prompted to change it on first login.</p>
@@ -391,6 +473,7 @@ const Users = () => {
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
+              <TableHead>Branch</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
@@ -398,13 +481,13 @@ const Users = () => {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8">
+                <TableCell colSpan={6} className="text-center py-8">
                   Loading users...
                 </TableCell>
               </TableRow>
             ) : filteredUsers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8">
+                <TableCell colSpan={6} className="text-center py-8">
                   No users found.
                 </TableCell>
               </TableRow>
@@ -416,6 +499,11 @@ const Users = () => {
                   </TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell className="capitalize">{user.role}</TableCell>
+                  <TableCell className="text-sm">
+                    {user.branch_name || 
+                      (!shouldShowBranchSelection(user.role) ? 'N/A' : 'Not assigned')
+                    }
+                  </TableCell>
                   <TableCell>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       user.status === 'Active' 
@@ -516,9 +604,36 @@ const Users = () => {
                   <SelectItem value="administration officer">Administration Officer</SelectItem>
                   <SelectItem value="super user">Super User</SelectItem>
                 </SelectContent>
-              </Select>
-            </div>
-            <DialogFooter>
+                </Select>
+              </div>
+              
+              {shouldShowBranchSelection(formData.role) && (
+                <div>
+                  <Label htmlFor="editBranchId" className="text-sm font-medium text-gray-700">
+                    Branch *
+                  </Label>
+                  <Select onValueChange={handleBranchChange} value={formData.branchId}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a branch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {loadingBranches ? (
+                        <SelectItem value="" disabled>Loading branches...</SelectItem>
+                      ) : branches.length === 0 ? (
+                        <SelectItem value="" disabled>No branches available</SelectItem>
+                      ) : (
+                        branches.map((branch) => (
+                          <SelectItem key={branch.id} value={branch.id}>
+                            {branch.branch_name} ({branch.branch_code})
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              
+              <DialogFooter>
               <Button
                 type="button"
                 variant="outline"

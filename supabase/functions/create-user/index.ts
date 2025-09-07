@@ -27,7 +27,7 @@ serve(async (req) => {
     )
 
     // Get request body
-    const { email, password, firstName, lastName, role } = await req.json()
+    const { email, password, firstName, lastName, role, branchId } = await req.json()
 
     // Verify admin role of caller
     const authHeader = req.headers.get('Authorization')
@@ -74,6 +74,7 @@ serve(async (req) => {
           first_name: firstName,
           last_name: lastName,
           role: role,
+          branch_id: branchId || null,
           is_password_changed: false
         })
 

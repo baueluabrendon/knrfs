@@ -879,6 +879,7 @@ export type Database = {
       user_profiles: {
         Row: {
           borrower_id: string | null
+          branch_id: string | null
           created_at: string | null
           email: string
           first_name: string
@@ -889,6 +890,7 @@ export type Database = {
         }
         Insert: {
           borrower_id?: string | null
+          branch_id?: string | null
           created_at?: string | null
           email?: string
           first_name?: string
@@ -899,6 +901,7 @@ export type Database = {
         }
         Update: {
           borrower_id?: string | null
+          branch_id?: string | null
           created_at?: string | null
           email?: string
           first_name?: string
@@ -921,6 +924,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "loans_in_arrears_view"
             referencedColumns: ["borrower_id"]
+          },
+          {
+            foreignKeyName: "user_profiles_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
           },
         ]
       }

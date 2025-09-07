@@ -207,7 +207,8 @@ export function setupAuthListener(callback: (user: UserProfile | null) => void):
 export async function createUserWithAdmin(email: string, password: string, userData: { 
   first_name: string, 
   last_name: string, 
-  role: string 
+  role: string,
+  branch_id?: string | null
 }): Promise<{ user: any; error: any }> {
   try {
     const { data, error } = await supabase.functions.invoke('create-user', {
@@ -216,7 +217,8 @@ export async function createUserWithAdmin(email: string, password: string, userD
         password,
         firstName: userData.first_name,
         lastName: userData.last_name,
-        role: userData.role
+        role: userData.role,
+        branchId: userData.branch_id
       }
     })
 
