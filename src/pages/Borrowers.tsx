@@ -28,6 +28,8 @@ interface Borrower {
   monthlyIncome: number;
   activeLoanId: string | null;
   fileNumber: string | null;
+  branchName?: string;
+  branchCode?: string;
   // Additional fields from borrowers table
   givenName?: string;
   surname?: string;
@@ -103,7 +105,14 @@ const Borrowers = () => {
       setIsLoading(true);
       const { data, error } = await supabase
         .from('borrowers')
-        .select('*');
+        .select(`
+          *,
+          branches!branch_id (
+            id,
+            branch_name,
+            branch_code
+          )
+        `);
       
       if (error) {
         toast.error('Failed to fetch borrowers: ' + error.message);
@@ -143,6 +152,8 @@ const Borrowers = () => {
         monthlyIncome: 0,
         activeLoanId: activeLoanMap.get(b.borrower_id) || null,
         fileNumber: b.file_number,
+        branchName: b.branches?.branch_name || 'No Branch',
+        branchCode: b.branches?.branch_code,
         // Map additional fields
         givenName: b.given_name,
         surname: b.surname,

@@ -9,7 +9,14 @@ export const borrowersApi = {
     try {
       const { data, error } = await supabase
         .from('borrowers')
-        .select('*')
+        .select(`
+          *,
+          branches!branch_id (
+            id,
+            branch_name,
+            branch_code
+          )
+        `)
         .order('surname', { ascending: true });
       
       if (error) {

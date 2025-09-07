@@ -16,6 +16,8 @@ interface Borrower {
   monthlyIncome: number;
   activeLoanId: string | null;
   fileNumber: string | null;
+  branchName?: string;
+  branchCode?: string;
 }
 
 interface BorrowersTableProps {
@@ -103,6 +105,7 @@ const BorrowersTable = ({
             <TableHead>Phone</TableHead>
             <TableHead>Organization</TableHead>
             <TableHead>Occupation</TableHead>
+            <TableHead>Branch</TableHead>
             <TableHead>File Number</TableHead>
             <TableHead>Active Loan ID</TableHead>
           </TableRow>
@@ -130,6 +133,7 @@ const BorrowersTable = ({
               <TableCell>{borrower.phone}</TableCell>
               <TableCell>{borrower.organization}</TableCell>
               <TableCell>{borrower.occupation}</TableCell>
+              <TableCell>{borrower.branchName || 'No Branch'}</TableCell>
               <TableCell>{borrower.fileNumber || 'N/A'}</TableCell>
               <TableCell>{borrower.activeLoanId || 'No active loan'}</TableCell>
             </TableRow>
