@@ -37,7 +37,7 @@ const ClientRepayments = () => {
         .from("user_profiles")
         .select("borrower_id")
         .eq("user_id", user?.user_id)
-        .single();
+        .maybeSingle();
 
       if (profileError) {
         throw new Error("Could not fetch user profile");
@@ -106,11 +106,13 @@ const ClientRepayments = () => {
     
     const query = searchQuery.toLowerCase().trim();
     return repayments.filter((repayment) => {
-      const date = new Date(repayment.payment_date).toLocaleDateString().toLowerCase();
+      const date = repayment.payment_date 
+        ? new Date(repayment.payment_date).toLocaleDateString().toLowerCase() 
+        : '';
       const amount = repayment.amount.toString();
-      const repaymentId = repayment.repayment_id.toLowerCase();
-      const loanId = repayment.loan_id.toLowerCase();
-      const status = repayment.status.toLowerCase();
+      const repaymentId = repayment.repayment_id?.toLowerCase() || '';
+      const loanId = repayment.loan_id?.toLowerCase() || '';
+      const status = repayment.status?.toLowerCase() || '';
       
       return (
         date.includes(query) ||
@@ -175,9 +177,11 @@ const ClientRepayments = () => {
                 ) : filteredRepayments?.length > 0 ? (
                   filteredRepayments.map((repayment) => (
                     <TableRow key={repayment.repayment_id}>
-                      <TableCell>{repayment.repayment_id}</TableCell>
+                      <TableCell>{repayment.repayment_id || 'N/A'}</TableCell>
                       <TableCell>
-                        {new Date(repayment.payment_date).toLocaleDateString()}
+                        {repayment.payment_date 
+                          ? new Date(repayment.payment_date).toLocaleDateString()
+                          : 'N/A'}
                       </TableCell>
                       <TableCell>K{repayment.amount.toFixed(2)}</TableCell>
                       <TableCell>
@@ -195,11 +199,15 @@ const ClientRepayments = () => {
                                 : "bg-red-100 text-red-800"
                             }`}
                         >
-                          {repayment.status.charAt(0).toUpperCase() + repayment.status.slice(1)}
+                          {repayment.status 
+                            ? repayment.status.charAt(0).toUpperCase() + repayment.status.slice(1)
+                            : 'Unknown'}
                         </span>
                       </TableCell>
                       <TableCell>
-                        {new Date(repayment.payment_date).toLocaleDateString()}
+                        {repayment.payment_date 
+                          ? new Date(repayment.payment_date).toLocaleDateString()
+                          : 'N/A'}
                       </TableCell>
                       <TableCell>
                         {repayment.receipt_url && (
