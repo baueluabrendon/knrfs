@@ -233,27 +233,111 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {ledger.map((entry, index) => (
-                <TableRow key={index}>
-                  <TableCell>{entry.payment_number || '-'}</TableCell>
-                  <TableCell>
-                    {entry.entry_date ? format(new Date(entry.entry_date), "dd/MM/yyyy") : "N/A"}
-                  </TableCell>
-                  <TableCell>{entry.pay_period || '-'}</TableCell>
-                  <TableCell>{entry.description}</TableCell>
-                  <TableCell className="text-right">
-                    {entry.debit !== null ? `${entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "-"}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {entry.credit !== null ? `${entry.credit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "-"}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {entry.outstanding_balance !== undefined && entry.outstanding_balance !== null
-                      ? entry.outstanding_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })
-                      : "-"}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {(() => {
+                // Group entries by payment number for hierarchical display
+                const groupedEntries = ledger.reduce((acc, entry) => {
+                  const paymentNumber = entry.payment_number || 0;
+                  if (!acc[paymentNumber]) {
+                    acc[paymentNumber] = { scheduled: null, repayments: [], defaults: [] };
+                  }
+                  
+                  if (entry.description?.includes('Scheduled')) {
+                    acc[paymentNumber].scheduled = entry;
+                  } else if (entry.description?.includes('Repayment Received')) {
+                    acc[paymentNumber].repayments.push(entry);
+                  } else if (entry.description?.includes('Default')) {
+                    acc[paymentNumber].defaults.push(entry);
+                  }
+                  
+                  return acc;
+                }, {} as Record<number, { scheduled: any; repayments: any[]; defaults: any[] }>);
+
+                // Render hierarchical structure
+                return Object.keys(groupedEntries)
+                  .sort((a, b) => Number(a) - Number(b))
+                  .map(paymentNumber => {
+                    const group = groupedEntries[Number(paymentNumber)];
+                    const rows = [];
+
+                    // 1. Scheduled payment row (main row)
+                    if (group.scheduled) {
+                      const entry = group.scheduled;
+                      rows.push(
+                        <TableRow key={`scheduled-${paymentNumber}`} className="font-medium">
+                          <TableCell>{entry.payment_number || '-'}</TableCell>
+                          <TableCell>
+                            {entry.entry_date ? format(new Date(entry.entry_date), "dd/MM/yyyy") : "N/A"}
+                          </TableCell>
+                          <TableCell>{entry.pay_period || '-'}</TableCell>
+                          <TableCell>{entry.description}</TableCell>
+                          <TableCell className="text-right">
+                            {entry.debit !== null ? `${entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "-"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {entry.credit !== null ? `${entry.credit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "-"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {entry.outstanding_balance !== undefined && entry.outstanding_balance !== null
+                              ? entry.outstanding_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })
+                              : "-"}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    }
+
+                    // 2. Repayment received rows (indented)
+                    group.repayments.forEach((entry, repaymentIndex) => {
+                      rows.push(
+                        <TableRow key={`repayment-${paymentNumber}-${repaymentIndex}`} className="bg-green-50 text-green-800">
+                          <TableCell className="pl-8">-</TableCell>
+                          <TableCell>
+                            {entry.entry_date ? format(new Date(entry.entry_date), "dd/MM/yyyy") : "N/A"}
+                          </TableCell>
+                          <TableCell>-</TableCell>
+                          <TableCell className="pl-4">{entry.description}</TableCell>
+                          <TableCell className="text-right">
+                            {entry.debit !== null ? `${entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "-"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {entry.credit !== null ? `${entry.credit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "-"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {entry.outstanding_balance !== undefined && entry.outstanding_balance !== null
+                              ? entry.outstanding_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })
+                              : "-"}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    });
+
+                    // 3. Default rows (indented)
+                    group.defaults.forEach((entry, defaultIndex) => {
+                      rows.push(
+                        <TableRow key={`default-${paymentNumber}-${defaultIndex}`} className="bg-red-50 text-red-800">
+                          <TableCell className="pl-8">-</TableCell>
+                          <TableCell>
+                            {entry.entry_date ? format(new Date(entry.entry_date), "dd/MM/yyyy") : "N/A"}
+                          </TableCell>
+                          <TableCell>-</TableCell>
+                          <TableCell className="pl-4">{entry.description}</TableCell>
+                          <TableCell className="text-right">
+                            {entry.debit !== null ? `${entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "-"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {entry.credit !== null ? `${entry.credit.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : "-"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {entry.outstanding_balance !== undefined && entry.outstanding_balance !== null
+                              ? entry.outstanding_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })
+                              : "-"}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    });
+
+                    return rows;
+                  }).flat();
+              })()}
             </TableBody>
           </Table>
         </div>
@@ -439,27 +523,111 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {rows.map((entry, i) => (
-                      <tr key={i}>
-                        <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>{entry.payment_number ?? "-"}</td>
-                        <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>
-                          {entry.entry_date ? format(new Date(entry.entry_date), "dd/MM/yyyy") : "N/A"}
-                        </td>
-                        <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>{entry.pay_period || "-"}</td>
-                        <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>{entry.description}</td>
-                        <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
-                          {entry.debit !== null ? entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : "-"}
-                        </td>
-                        <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
-                          {entry.credit !== null ? entry.credit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : "-"}
-                        </td>
-                        <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
-                          {entry.outstanding_balance !== undefined && entry.outstanding_balance !== null
-                            ? entry.outstanding_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })
-                            : "-"}
-                        </td>
-                      </tr>
-                    ))}
+                    {(() => {
+                      // Group entries by payment number for hierarchical display in PDF
+                      const groupedEntries = rows.reduce((acc, entry) => {
+                        const paymentNumber = entry.payment_number || 0;
+                        if (!acc[paymentNumber]) {
+                          acc[paymentNumber] = { scheduled: null, repayments: [], defaults: [] };
+                        }
+                        
+                        if (entry.description?.includes('Scheduled')) {
+                          acc[paymentNumber].scheduled = entry;
+                        } else if (entry.description?.includes('Repayment Received')) {
+                          acc[paymentNumber].repayments.push(entry);
+                        } else if (entry.description?.includes('Default')) {
+                          acc[paymentNumber].defaults.push(entry);
+                        }
+                        
+                        return acc;
+                      }, {} as Record<number, { scheduled: any; repayments: any[]; defaults: any[] }>);
+
+                      // Render hierarchical structure for PDF
+                      return Object.keys(groupedEntries)
+                        .sort((a, b) => Number(a) - Number(b))
+                        .map(paymentNumber => {
+                          const group = groupedEntries[Number(paymentNumber)];
+                          const pdfRows = [];
+
+                          // 1. Scheduled payment row (main row)
+                          if (group.scheduled) {
+                            const entry = group.scheduled;
+                            pdfRows.push(
+                              <tr key={`pdf-scheduled-${paymentNumber}`} style={{ fontWeight: "500" }}>
+                                <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>{entry.payment_number ?? "-"}</td>
+                                <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>
+                                  {entry.entry_date ? format(new Date(entry.entry_date), "dd/MM/yyyy") : "N/A"}
+                                </td>
+                                <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>{entry.pay_period || "-"}</td>
+                                <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>{entry.description}</td>
+                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                                  {entry.debit !== null ? entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : "-"}
+                                </td>
+                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                                  {entry.credit !== null ? entry.credit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : "-"}
+                                </td>
+                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                                  {entry.outstanding_balance !== undefined && entry.outstanding_balance !== null
+                                    ? entry.outstanding_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })
+                                    : "-"}
+                                </td>
+                              </tr>
+                            );
+                          }
+
+                          // 2. Repayment received rows (with visual distinction)
+                          group.repayments.forEach((entry, repaymentIndex) => {
+                            pdfRows.push(
+                              <tr key={`pdf-repayment-${paymentNumber}-${repaymentIndex}`} style={{ backgroundColor: "#f0f9ff", color: "#166534" }}>
+                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", paddingLeft: "12px" }}>-</td>
+                                <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>
+                                  {entry.entry_date ? format(new Date(entry.entry_date), "dd/MM/yyyy") : "N/A"}
+                                </td>
+                                <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>-</td>
+                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", paddingLeft: "8px" }}>{entry.description}</td>
+                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                                  {entry.debit !== null ? entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : "-"}
+                                </td>
+                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                                  {entry.credit !== null ? entry.credit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : "-"}
+                                </td>
+                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                                  {entry.outstanding_balance !== undefined && entry.outstanding_balance !== null
+                                    ? entry.outstanding_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })
+                                    : "-"}
+                                </td>
+                              </tr>
+                            );
+                          });
+
+                          // 3. Default rows (with visual distinction)
+                          group.defaults.forEach((entry, defaultIndex) => {
+                            pdfRows.push(
+                              <tr key={`pdf-default-${paymentNumber}-${defaultIndex}`} style={{ backgroundColor: "#fef2f2", color: "#991b1b" }}>
+                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", paddingLeft: "12px" }}>-</td>
+                                <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>
+                                  {entry.entry_date ? format(new Date(entry.entry_date), "dd/MM/yyyy") : "N/A"}
+                                </td>
+                                <td style={{ padding: "4px", border: "1px solid #e5e7eb" }}>-</td>
+                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", paddingLeft: "8px" }}>{entry.description}</td>
+                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                                  {entry.debit !== null ? entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : "-"}
+                                </td>
+                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                                  {entry.credit !== null ? entry.credit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : "-"}
+                                </td>
+                                <td style={{ padding: "4px", border: "1px solid #e5e7eb", textAlign: "right" }}>
+                                  {entry.outstanding_balance !== undefined && entry.outstanding_balance !== null
+                                    ? entry.outstanding_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })
+                                    : "-"}
+                                </td>
+                              </tr>
+                            );
+                          });
+
+                          return pdfRows;
+                        }).flat();
+                    })()}
                   </tbody>
                 </table>
                 
