@@ -9,13 +9,85 @@ const Dashboard = () => {
   const { data: metrics, isLoading: loadingMetrics } = useQuery({
     queryKey: ["dashboard-metrics"],
     queryFn: async () => {
+      // Get aggregated metrics from the new comprehensive view
       const { data, error } = await supabase
-        .from('dashboard_metrics_view')
-        .select('*')
-        .single();
+        .from('dashboard_analytics_with_branches')
+        .select(`
+          active_loans_count,
+          settled_loans_count,
+          at_risk_loans_count,
+          pending_applications_count,
+          principal_released,
+          total_outstanding,
+          total_collections,
+          avg_loan_duration_days,
+          total_arrears,
+          total_default_fees,
+          total_missed_payments,
+          total_partial_payments,
+          collection_efficiency_percentage,
+          branch_name,
+          branch_code
+        `)
+        .order('analysis_date', { ascending: false })
+        .limit(30); // Get recent data for aggregation
       
       if (error) throw error;
-      return data;
+      
+      // Aggregate the metrics across all recent records
+      if (!data || data.length === 0) {
+        return {
+          active_loans_count: 0,
+          active_borrowers_count: 0,
+          at_risk_loans_count: 0,
+          pending_applications_count: 0,
+          total_principal_amount: 0,
+          total_outstanding_balance: 0,
+          total_repayments_amount: 0,
+          avg_loan_duration_days: 0,
+          settled_loans_count: 0,
+          total_arrears_amount: 0,
+          total_default_fees: 0,
+          loans_with_missed_payments: 0,
+          loans_with_partial_payments: 0,
+          collection_efficiency_percentage: 0
+        };
+      }
+
+      // Sum up metrics from recent records
+      const aggregated = data.reduce((acc, record) => ({
+        active_loans_count: Math.max(acc.active_loans_count, record.active_loans_count || 0),
+        active_borrowers_count: Math.max(acc.active_borrowers_count, record.active_loans_count || 0), // Using loans as proxy
+        at_risk_loans_count: Math.max(acc.at_risk_loans_count, record.at_risk_loans_count || 0),
+        pending_applications_count: Math.max(acc.pending_applications_count, record.pending_applications_count || 0),
+        total_principal_amount: acc.total_principal_amount + (record.principal_released || 0),
+        total_outstanding_balance: Math.max(acc.total_outstanding_balance, record.total_outstanding || 0),
+        total_repayments_amount: acc.total_repayments_amount + (record.total_collections || 0),
+        avg_loan_duration_days: Math.max(acc.avg_loan_duration_days, record.avg_loan_duration_days || 0),
+        settled_loans_count: Math.max(acc.settled_loans_count, record.settled_loans_count || 0),
+        total_arrears_amount: Math.max(acc.total_arrears_amount, record.total_arrears || 0),
+        total_default_fees: Math.max(acc.total_default_fees, record.total_default_fees || 0),
+        loans_with_missed_payments: Math.max(acc.loans_with_missed_payments, record.total_missed_payments || 0),
+        loans_with_partial_payments: Math.max(acc.loans_with_partial_payments, record.total_partial_payments || 0),
+        collection_efficiency_percentage: Math.max(acc.collection_efficiency_percentage, record.collection_efficiency_percentage || 0)
+      }), {
+        active_loans_count: 0,
+        active_borrowers_count: 0,
+        at_risk_loans_count: 0,
+        pending_applications_count: 0,
+        total_principal_amount: 0,
+        total_outstanding_balance: 0,
+        total_repayments_amount: 0,
+        avg_loan_duration_days: 0,
+        settled_loans_count: 0,
+        total_arrears_amount: 0,
+        total_default_fees: 0,
+        loans_with_missed_payments: 0,
+        loans_with_partial_payments: 0,
+        collection_efficiency_percentage: 0
+      });
+
+      return aggregated;
     }
   });
 

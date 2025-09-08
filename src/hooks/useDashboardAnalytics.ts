@@ -4,11 +4,13 @@ import { analyticsApi, type AnalyticsData, type PieChartData } from '@/lib/api/a
 export const useDashboardAnalytics = (
   period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' = 'monthly',
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  branchId?: string,
+  clientType?: string
 ) => {
   return useQuery({
-    queryKey: ['dashboard-analytics', period, startDate, endDate],
-    queryFn: () => analyticsApi.getAnalyticsData(period, startDate, endDate),
+    queryKey: ['dashboard-analytics', period, startDate, endDate, branchId, clientType],
+    queryFn: () => analyticsApi.getAggregatedAnalyticsData(period, startDate, endDate, branchId, clientType),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
@@ -49,9 +51,11 @@ export const useDefaultsPerCompany = () => {
 export const useFormattedAnalyticsData = (
   period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' = 'monthly',
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  branchId?: string,
+  clientType?: string
 ) => {
-  const { data, isLoading, error } = useDashboardAnalytics(period, startDate, endDate);
+  const { data, isLoading, error } = useDashboardAnalytics(period, startDate, endDate, branchId, clientType);
 
   const getTimeKey = () => {
     switch (period) {
@@ -64,7 +68,7 @@ export const useFormattedAnalyticsData = (
     }
   };
 
-  const formatDataForCharts = (analyticsData: AnalyticsData[]) => {
+  const formatDataForCharts = (analyticsData: any[]) => {
     const timeKey = getTimeKey();
 
     return {
@@ -97,7 +101,7 @@ export const useFormattedAnalyticsData = (
       
       feesComparison: analyticsData.map(item => ({
         [timeKey]: item.period_label,
-        defaultFees: Number(item.default_fees_collected),
+        defaultFees: Number(item.total_default_amount || 0),
         riskInsurance: Number(item.risk_insurance_collected),
         docFees: Number(item.doc_fees_collected)
       })),

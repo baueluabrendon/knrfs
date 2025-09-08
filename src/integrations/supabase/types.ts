@@ -936,57 +936,75 @@ export type Database = {
       }
     }
     Views: {
-      dashboard_analytics_view: {
+      dashboard_analytics_with_branches: {
         Row: {
           active_loans_count: number | null
           analysis_date: string | null
+          approved_applications_count: number | null
+          at_risk_loans_count: number | null
+          avg_completion_percentage: number | null
+          avg_loan_duration_days: number | null
+          branch_code: string | null
+          branch_id: string | null
+          branch_name: string | null
+          client_type: string | null
+          collection_efficiency_percentage: number | null
           day: number | null
-          default_fees_collected: number | null
+          declined_applications_count: number | null
+          defaulted_schedules: number | null
           defaults_count: number | null
           doc_fees_collected: number | null
+          doc_fees_due: number | null
           female_count: number | null
+          gst_collected: number | null
+          gst_due: number | null
+          interest_collected: number | null
+          interest_due: number | null
           loans_released_count: number | null
           male_count: number | null
           month: number | null
           new_borrowers_count: number | null
+          new_female_borrowers: number | null
+          new_male_borrowers: number | null
+          new_private_company: number | null
+          new_public_service: number | null
+          new_statutory_body: number | null
+          overdue_loans_count: number | null
+          paid_schedules: number | null
+          partial_schedules: number | null
+          payroll_type: string | null
+          pending_applications_count: number | null
+          pending_collections: number | null
+          pending_schedules: number | null
+          principal_due: number | null
           principal_released: number | null
           private_company_count: number | null
+          private_default_amount: number | null
           private_defaults: number | null
+          public_default_amount: number | null
           public_defaults: number | null
           public_service_count: number | null
           quarter: number | null
           repayments_collected_count: number | null
           repayments_due_count: number | null
           risk_insurance_collected: number | null
+          risk_insurance_due: number | null
           settled_loans_count: number | null
           statutory_body_count: number | null
+          statutory_default_amount: number | null
           statutory_defaults: number | null
+          total_applications: number | null
+          total_arrears: number | null
           total_collections: number | null
           total_default_amount: number | null
+          total_default_fees: number | null
           total_due_amount: number | null
           total_loan_amount: number | null
+          total_missed_payments: number | null
           total_outstanding: number | null
+          total_partial_payments: number | null
           week: number | null
           year: number | null
-        }
-        Relationships: []
-      }
-      dashboard_metrics_view: {
-        Row: {
-          active_borrowers_count: number | null
-          active_loans_count: number | null
-          at_risk_loans_count: number | null
-          avg_loan_duration_days: number | null
-          collection_efficiency_percentage: number | null
-          loans_with_missed_payments: number | null
-          loans_with_partial_payments: number | null
-          pending_applications_count: number | null
-          settled_loans_count: number | null
-          total_arrears_amount: number | null
-          total_default_fees: number | null
-          total_outstanding_balance: number | null
-          total_principal_amount: number | null
-          total_repayments_amount: number | null
         }
         Relationships: []
       }
