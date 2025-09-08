@@ -9,10 +9,14 @@ import {
   useClientsPerCompany, 
   useDefaultsPerCompany 
 } from '@/hooks/useDashboardAnalytics';
+import { useAuth } from '@/contexts/AuthContext';
+import { BranchSelector } from './BranchSelector';
 import './DashboardCharts.css';
 
 const DashboardCharts = () => {
+  const { user } = useAuth();
   const [timeFilter, setTimeFilter] = useState('monthly');
+  const [selectedBranchId, setSelectedBranchId] = useState<string>('all');
 
   const filterOptions = [
     { value: 'daily', label: 'Daily' },
@@ -54,6 +58,11 @@ const DashboardCharts = () => {
     };
   }, [timeFilter]);
 
+  // Determine which branch to filter by
+  const effectiveBranchId = user?.role && ['administrator', 'super user'].includes(user.role) 
+    ? (selectedBranchId === 'all' ? undefined : selectedBranchId)
+    : user?.branch_id;
+
   // Fetch real analytics data
   const { 
     chartData, 
@@ -62,7 +71,10 @@ const DashboardCharts = () => {
   } = useFormattedAnalyticsData(
     timeFilter as 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly',
     dateRange.start,
-    dateRange.end
+    dateRange.end,
+    effectiveBranchId,
+    undefined,
+    user?.role
   );
 
   // Fetch pie chart data
@@ -186,7 +198,11 @@ const DashboardCharts = () => {
       <div className="dashboard-header">
         <h2 className="dashboard-title">Analytics Dashboard</h2>
         <div className="filter-container">
-          <span className="filter-label">Filter:</span>
+          <BranchSelector 
+            selectedBranchId={selectedBranchId}
+            onBranchChange={setSelectedBranchId}
+          />
+          <span className="filter-label">Period:</span>
           <Select value={timeFilter} onValueChange={setTimeFilter}>
             <SelectTrigger className="w-40 border-gray-300 focus:border-blue-500 focus:ring-blue-500">
               <SelectValue />

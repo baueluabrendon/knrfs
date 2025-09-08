@@ -6,11 +6,12 @@ export const useDashboardAnalytics = (
   startDate?: string,
   endDate?: string,
   branchId?: string,
-  clientType?: string
+  clientType?: string,
+  userRole?: string
 ) => {
   return useQuery({
-    queryKey: ['dashboard-analytics', period, startDate, endDate, branchId, clientType],
-    queryFn: () => analyticsApi.getAggregatedAnalyticsData(period, startDate, endDate, branchId, clientType),
+    queryKey: ['dashboard-analytics', period, startDate, endDate, branchId, clientType, userRole],
+    queryFn: () => analyticsApi.getAggregatedAnalyticsData(period, startDate, endDate, branchId, clientType, userRole),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
@@ -53,9 +54,10 @@ export const useFormattedAnalyticsData = (
   startDate?: string,
   endDate?: string,
   branchId?: string,
-  clientType?: string
+  clientType?: string,
+  userRole?: string
 ) => {
-  const { data, isLoading, error } = useDashboardAnalytics(period, startDate, endDate, branchId, clientType);
+  const { data, isLoading, error } = useDashboardAnalytics(period, startDate, endDate, branchId, clientType, userRole);
 
   const getTimeKey = () => {
     switch (period) {

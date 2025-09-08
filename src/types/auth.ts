@@ -6,6 +6,7 @@ export interface UserProfile {
   role: "client" | "sales officer" | "accounts officer" | "recoveries officer" | "administrator" | "super user" | "administration officer";
   first_name: string | null;
   last_name: string | null;
+  branch_id: string | null; // Added branch_id field
   created_at: string;
   is_password_changed: boolean | null;
 }

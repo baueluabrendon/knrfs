@@ -100,7 +100,8 @@ export const analyticsApi = {
     startDate?: string,
     endDate?: string,
     branchId?: string,
-    clientType?: string
+    clientType?: string,
+    userRole?: string
   ): Promise<AnalyticsData[]> {
     const start = startDate || '2024-01-01';
     const end = endDate || new Date().toISOString().split('T')[0];
@@ -112,8 +113,17 @@ export const analyticsApi = {
       .lte('analysis_date', end)
       .order('analysis_date', { ascending: false });
 
-    // Apply branch filter if provided
+    // Apply branch filter based on user role
     if (branchId && branchId !== 'all') {
+      // If user is not admin/super user, filter by their branch
+      if (userRole && !['administrator', 'super user'].includes(userRole)) {
+        query = query.eq('branch_id', branchId);
+      } else if (branchId) {
+        // Admin can filter by specific branch if provided
+        query = query.eq('branch_id', branchId);
+      }
+    } else if (userRole && !['administrator', 'super user'].includes(userRole) && branchId) {
+      // Non-admin users always see only their branch data
       query = query.eq('branch_id', branchId);
     }
 
@@ -134,9 +144,10 @@ export const analyticsApi = {
     startDate?: string,
     endDate?: string,
     branchId?: string,
-    clientType?: string
+    clientType?: string,
+    userRole?: string
   ): Promise<any[]> {
-    const rawData = await this.getAnalyticsData(period, startDate, endDate, branchId, clientType);
+    const rawData = await this.getAnalyticsData(period, startDate, endDate, branchId, clientType, userRole);
     
     // Group by time period and aggregate
     const groupedData = rawData.reduce((acc: any, row) => {
