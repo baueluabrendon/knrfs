@@ -1,0 +1,93 @@
+.dashboard-charts {
+  @apply bg-card text-card-foreground rounded-xl shadow-lg border p-8;
+}
+
+.dashboard-header {
+  @apply flex justify-between items-center mb-8;
+}
+
+.dashboard-title {
+  @apply text-2xl font-bold text-foreground;
+}
+
+.filter-container {
+  @apply flex items-center gap-3;
+}
+
+.filter-label {
+  @apply text-sm font-medium text-muted-foreground;
+}
+
+.chart-card {
+  @apply p-6 shadow-md bg-card text-card-foreground border rounded-lg;
+}
+
+.chart-title {
+  @apply text-xl font-bold mb-6 text-foreground;
+}
+
+.chart-title-small {
+  @apply text-lg font-bold mb-4 text-foreground text-center;
+}
+
+.custom-tooltip {
+  @apply bg-background p-4 border border-border rounded-lg shadow-lg;
+}
+
+.tooltip-label {
+  @apply font-semibold text-foreground mb-2;
+}
+
+.tooltip-entry {
+  @apply font-medium;
+  color: var(--entry-color);
+}
+
+.pie-chart-legend {
+  @apply flex flex-wrap justify-center gap-4 mt-6 text-sm;
+}
+
+.legend-item {
+  @apply flex items-center gap-2;
+}
+
+.legend-color-box {
+  @apply w-4 h-4 rounded-sm;
+  background-color: var(--legend-color);
+}
+
+.legend-text {
+  @apply text-muted-foreground font-medium;
+}
+
+.loading-container {
+  @apply flex items-center justify-center h-96;
+}
+
+.loading-text {
+  @apply text-lg text-muted-foreground;
+}
+
+.error-text {
+  @apply text-lg text-destructive;
+}
+
+.pie-chart-loading {
+  @apply flex justify-center items-center h-64;
+}
+
+.pie-loading-text {
+  @apply text-muted-foreground;
+}
+
+.charts-grid-half {
+  @apply grid grid-cols-1 lg:grid-cols-2 gap-8;
+}
+
+.charts-grid-pie {
+  @apply grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-8;
+}
+
+.charts-space {
+  @apply space-y-8;
+}

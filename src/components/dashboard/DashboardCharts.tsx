@@ -9,6 +9,7 @@ import {
   useClientsPerCompany, 
   useDefaultsPerCompany 
 } from '@/hooks/useDashboardAnalytics';
+import './DashboardCharts.css';
 
 const DashboardCharts = () => {
   const [timeFilter, setTimeFilter] = useState('monthly');
@@ -89,10 +90,14 @@ const DashboardCharts = () => {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-semibold text-gray-800 mb-2">{`${label}`}</p>
+        <div className="custom-tooltip">
+          <p className="tooltip-label">{`${label}`}</p>
           {payload.map((entry: any, index: number) => (
-            <p key={index} style={{ color: entry.color }} className="font-medium">
+            <p 
+              key={index} 
+              className="tooltip-entry"
+              style={{ '--entry-color': entry.color } as React.CSSProperties}
+            >
               {`${entry.dataKey}: ${new Intl.NumberFormat('en-US', {
                 style: 'currency',
                 currency: 'USD'
@@ -108,10 +113,14 @@ const DashboardCharts = () => {
   const CustomCountTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-semibold text-gray-800 mb-2">{`${label}`}</p>
+        <div className="custom-tooltip">
+          <p className="tooltip-label">{`${label}`}</p>
           {payload.map((entry: any, index: number) => (
-            <p key={index} style={{ color: entry.color }} className="font-medium">
+            <p 
+              key={index} 
+              className="tooltip-entry"
+              style={{ '--entry-color': entry.color } as React.CSSProperties}
+            >
               {`${entry.dataKey}: ${entry.value.toLocaleString()}`}
             </p>
           ))}
@@ -123,14 +132,14 @@ const DashboardCharts = () => {
 
   // Legend component for pie charts
   const PieChartLegend = ({ data }: { data: any[] }) => (
-    <div className="flex flex-wrap justify-center gap-4 mt-6 text-sm">
+    <div className="pie-chart-legend">
       {data.map((entry, index) => (
-        <div key={index} className="flex items-center gap-2">
+        <div key={index} className="legend-item">
           <div 
-            className="w-4 h-4 rounded-sm" 
-            style={{ backgroundColor: entry.color }}
+            className="legend-color-box"
+            style={{ '--legend-color': entry.color } as React.CSSProperties}
           ></div>
-          <span className="text-gray-700 font-medium">
+          <span className="legend-text">
             {entry.name}: {entry.value}%
           </span>
         </div>
@@ -141,9 +150,9 @@ const DashboardCharts = () => {
   // Loading state
   if (analyticsLoading) {
     return (
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8">
-        <div className="flex items-center justify-center h-96">
-          <div className="text-lg text-gray-600">Loading analytics data...</div>
+      <div className="dashboard-charts">
+        <div className="loading-container">
+          <div className="loading-text">Loading analytics data...</div>
         </div>
       </div>
     );
@@ -152,9 +161,9 @@ const DashboardCharts = () => {
   // Error state
   if (analyticsError) {
     return (
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8">
-        <div className="flex items-center justify-center h-96">
-          <div className="text-lg text-red-600">Error loading analytics data</div>
+      <div className="dashboard-charts">
+        <div className="loading-container">
+          <div className="error-text">Error loading analytics data</div>
         </div>
       </div>
     );
@@ -163,21 +172,21 @@ const DashboardCharts = () => {
   // No data state
   if (!chartData) {
     return (
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8">
-        <div className="flex items-center justify-center h-96">
-          <div className="text-lg text-gray-600">No analytics data available</div>
+      <div className="dashboard-charts">
+        <div className="loading-container">
+          <div className="loading-text">No analytics data available</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8">
+    <div className="dashboard-charts">
       {/* Filter Header */}
-      <div className="flex justify-between items-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h2>
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-gray-600">Filter:</span>
+      <div className="dashboard-header">
+        <h2 className="dashboard-title">Analytics Dashboard</h2>
+        <div className="filter-container">
+          <span className="filter-label">Filter:</span>
           <Select value={timeFilter} onValueChange={setTimeFilter}>
             <SelectTrigger className="w-40 border-gray-300 focus:border-blue-500 focus:ring-blue-500">
               <SelectValue />
@@ -193,12 +202,12 @@ const DashboardCharts = () => {
         </div>
       </div>
 
-      <div className="space-y-8">
+      <div className="charts-space">{/* ... keep existing charts code */}
         {/* Full Width Charts */}
-        <div className="space-y-8">
+        <div className="charts-space">
           {/* Loan Released - Line Chart */}
-          <Card className="p-6 shadow-md">
-            <h3 className="text-xl font-bold mb-6 text-gray-800">Loan Released - {getFilterLabel()}</h3>
+          <Card className="chart-card">
+            <h3 className="chart-title">Loan Released - {getFilterLabel()}</h3>
             <ResponsiveContainer width="100%" height={350}>
               <LineChart data={chartData.loanReleased} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -217,8 +226,8 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Loan Collections - Line Chart */}
-          <Card className="p-6 shadow-md">
-            <h3 className="text-xl font-bold mb-6 text-gray-800">Loan Collections - {getFilterLabel()}</h3>
+          <Card className="chart-card">
+            <h3 className="chart-title">Loan Collections - {getFilterLabel()}</h3>
             <ResponsiveContainer width="100%" height={350}>
               <LineChart data={chartData.collections} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -237,8 +246,8 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Collections vs Repayments Due - Line Chart */}
-          <Card className="p-6 shadow-md">
-            <h3 className="text-xl font-bold mb-6 text-gray-800">Loan Collections vs Repayments Due - {getFilterLabel()}</h3>
+          <Card className="chart-card">
+            <h3 className="chart-title">Loan Collections vs Repayments Due - {getFilterLabel()}</h3>
             <ResponsiveContainer width="100%" height={350}>
               <LineChart data={chartData.collectionsVsRepayments} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -259,8 +268,8 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Collections vs Loans Released - Bar Chart */}
-          <Card className="p-6 shadow-md">
-            <h3 className="text-xl font-bold mb-6 text-gray-800">Loan Collections vs Loans Released - {getFilterLabel()}</h3>
+          <Card className="chart-card">
+            <h3 className="chart-title">Loan Collections vs Loans Released - {getFilterLabel()}</h3>
             <ResponsiveContainer width="100%" height={350}>
               <BarChart data={chartData.collectionsVsReleased} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -281,8 +290,8 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Total Outstanding Open Loans - Line Chart */}
-          <Card className="p-6 shadow-md">
-            <h3 className="text-xl font-bold mb-6 text-gray-800">Total Outstanding Open Loans - {getFilterLabel()}</h3>
+          <Card className="chart-card">
+            <h3 className="chart-title">Total Outstanding Open Loans - {getFilterLabel()}</h3>
             <ResponsiveContainer width="100%" height={350}>
               <LineChart data={chartData.outstandingLoans} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -301,8 +310,8 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Default Fees vs Loan Risk Insurance vs Doc Fee Collections - Line Chart */}
-          <Card className="p-6 shadow-md">
-            <h3 className="text-xl font-bold mb-6 text-gray-800">Default Fees vs Loan Risk Insurance Fee vs Doc Fee Collections - {getFilterLabel()}</h3>
+          <Card className="chart-card">
+            <h3 className="chart-title">Default Fees vs Loan Risk Insurance Fee vs Doc Fee Collections - {getFilterLabel()}</h3>
             <ResponsiveContainer width="100%" height={350}>
               <LineChart data={chartData.feesComparison} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -324,8 +333,8 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Number of Open Loans - Line Chart */}
-          <Card className="p-6 shadow-md">
-            <h3 className="text-xl font-bold mb-6 text-gray-800">Number of Open Loans - {getFilterLabel()}</h3>
+          <Card className="chart-card">
+            <h3 className="chart-title">Number of Open Loans - {getFilterLabel()}</h3>
             <ResponsiveContainer width="100%" height={350}>
               <LineChart data={chartData.numberOfOpenLoans} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -345,10 +354,10 @@ const DashboardCharts = () => {
         </div>
 
         {/* Half Width Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="charts-grid-half">
           {/* Number of Loans Released - Bar Chart */}
-          <Card className="p-6 shadow-md">
-            <h3 className="text-lg font-bold mb-4 text-gray-800">Number of Loans Released - {getFilterLabel()}</h3>
+          <Card className="chart-card">
+            <h3 className="chart-title-small">Number of Loans Released - {getFilterLabel()}</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={chartData.loansReleased} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -367,8 +376,8 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Number of Repayments Collected - Bar Chart */}
-          <Card className="p-6 shadow-md">
-            <h3 className="text-lg font-bold mb-4 text-gray-800">Number of Repayments Collected - {getFilterLabel()}</h3>
+          <Card className="chart-card">
+            <h3 className="chart-title-small">Number of Repayments Collected - {getFilterLabel()}</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={chartData.repaymentsCollected} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -387,8 +396,8 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Number of Fully Paid Loans - Bar Chart */}
-          <Card className="p-6 shadow-md">
-            <h3 className="text-lg font-bold mb-4 text-gray-800">Number of Fully Paid Loans - {getFilterLabel()}</h3>
+          <Card className="chart-card">
+            <h3 className="chart-title-small">Number of Fully Paid Loans - {getFilterLabel()}</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={chartData.fullyPaidLoans} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -407,8 +416,8 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Borrowers with First Loans - Bar Chart */}
-          <Card className="p-6 shadow-md">
-            <h3 className="text-lg font-bold mb-4 text-gray-800">Borrowers with First Loans - {getFilterLabel()}</h3>
+          <Card className="chart-card">
+            <h3 className="chart-title-small">Borrowers with First Loans - {getFilterLabel()}</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={chartData.newClients} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -428,13 +437,13 @@ const DashboardCharts = () => {
         </div>
 
         {/* Pie Charts - 4 columns */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-8">
+        <div className="charts-grid-pie">
           {/* Open Loans Status */}
-          <Card className="p-6 shadow-md">
-            <h3 className="text-lg font-bold mb-4 text-gray-800 text-center">Open Loans Status</h3>
+          <Card className="chart-card">
+            <h3 className="chart-title-small">Open Loans Status</h3>
             {loanStatusLoading ? (
-              <div className="flex justify-center items-center h-64">
-                <span className="text-gray-500">Loading...</span>
+              <div className="pie-chart-loading">
+                <span className="pie-loading-text">Loading...</span>
               </div>
             ) : (
               <>
@@ -461,11 +470,11 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Gender Distribution */}
-          <Card className="p-6 shadow-md">
-            <h3 className="text-lg font-bold mb-4 text-gray-800 text-center">Gender Distribution</h3>
+          <Card className="chart-card">
+            <h3 className="chart-title-small">Gender Distribution</h3>
             {genderLoading ? (
-              <div className="flex justify-center items-center h-64">
-                <span className="text-gray-500">Loading...</span>
+              <div className="pie-chart-loading">
+                <span className="pie-loading-text">Loading...</span>
               </div>
             ) : (
               <>
@@ -492,11 +501,11 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Total Clients Per Company */}
-          <Card className="p-6 shadow-md">
-            <h3 className="text-lg font-bold mb-4 text-gray-800 text-center">Total Clients Per Company</h3>
+          <Card className="chart-card">
+            <h3 className="chart-title-small">Total Clients Per Company</h3>
             {clientsLoading ? (
-              <div className="flex justify-center items-center h-64">
-                <span className="text-gray-500">Loading...</span>
+              <div className="pie-chart-loading">
+                <span className="pie-loading-text">Loading...</span>
               </div>
             ) : (
               <>
@@ -523,11 +532,11 @@ const DashboardCharts = () => {
           </Card>
 
           {/* Defaults Per Company */}
-          <Card className="p-6 shadow-md">
-            <h3 className="text-lg font-bold mb-4 text-gray-800 text-center">Defaults Per Company</h3>
+          <Card className="chart-card">
+            <h3 className="chart-title-small">Defaults Per Company</h3>
             {defaultsLoading ? (
-              <div className="flex justify-center items-center h-64">
-                <span className="text-gray-500">Loading...</span>
+              <div className="pie-chart-loading">
+                <span className="pie-loading-text">Loading...</span>
               </div>
             ) : (
               <>
