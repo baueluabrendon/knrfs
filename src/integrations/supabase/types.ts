@@ -354,6 +354,112 @@ export type Database = {
         }
         Relationships: []
       }
+      deduction_request_clients: {
+        Row: {
+          borrower_name: string
+          created_at: string
+          current_outstanding: number | null
+          deduction_request_id: string
+          default_amount: number | null
+          file_number: string | null
+          gross_amount: number | null
+          id: string
+          interest_amount: number | null
+          loan_amount: number | null
+          loan_id: string
+        }
+        Insert: {
+          borrower_name: string
+          created_at?: string
+          current_outstanding?: number | null
+          deduction_request_id: string
+          default_amount?: number | null
+          file_number?: string | null
+          gross_amount?: number | null
+          id?: string
+          interest_amount?: number | null
+          loan_amount?: number | null
+          loan_id: string
+        }
+        Update: {
+          borrower_name?: string
+          created_at?: string
+          current_outstanding?: number | null
+          deduction_request_id?: string
+          default_amount?: number | null
+          file_number?: string | null
+          gross_amount?: number | null
+          id?: string
+          interest_amount?: number | null
+          loan_amount?: number | null
+          loan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deduction_request_clients_deduction_request_id_fkey"
+            columns: ["deduction_request_id"]
+            isOneToOne: false
+            referencedRelation: "deduction_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deduction_requests: {
+        Row: {
+          created_at: string
+          email_sent_at: string | null
+          email_sent_by: string | null
+          id: string
+          notes: string | null
+          organization_name: string
+          pay_period: string | null
+          payroll_officer_id: string
+          request_date: string
+          status: string | null
+          total_amount: number
+          total_clients: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email_sent_at?: string | null
+          email_sent_by?: string | null
+          id?: string
+          notes?: string | null
+          organization_name: string
+          pay_period?: string | null
+          payroll_officer_id: string
+          request_date?: string
+          status?: string | null
+          total_amount?: number
+          total_clients?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email_sent_at?: string | null
+          email_sent_by?: string | null
+          id?: string
+          notes?: string | null
+          organization_name?: string
+          pay_period?: string | null
+          payroll_officer_id?: string
+          request_date?: string
+          status?: string | null
+          total_amount?: number
+          total_clients?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deduction_requests_payroll_officer_id_fkey"
+            columns: ["payroll_officer_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_officers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       defaults: {
         Row: {
           arrear_id: string
@@ -666,6 +772,45 @@ export type Database = {
             referencedColumns: ["borrower_id"]
           },
         ]
+      }
+      payroll_officers: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean | null
+          officer_name: string
+          organization_name: string
+          phone: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          is_active?: boolean | null
+          officer_name: string
+          organization_name: string
+          phone?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          officer_name?: string
+          organization_name?: string
+          phone?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       repayment_document_group: {
         Row: {
