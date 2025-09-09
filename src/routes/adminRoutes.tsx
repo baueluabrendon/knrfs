@@ -1,6 +1,7 @@
 
 import { RouteObject } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
+import ActivityLogs from "@/pages/ActivityLogs";
 import { menuItems } from "@/config/menuItems";
 
 import Loans from "@/pages/Loans";
@@ -163,6 +164,10 @@ export const adminRoutes: RouteObject[] = [
       {
         path: "ai-reporting",
         element: <AIReporting />
+      },
+      {
+        path: "activity-logs",
+        element: <ActivityLogs />
       }
     ]
   }

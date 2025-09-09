@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { UserProfile } from "@/types/auth";
+import { activityLogsApi } from "@/lib/api/activity-logs";
 
 /**
  * Centralized user profile fetching
@@ -63,6 +64,15 @@ export async function signIn(email: string, password: string): Promise<UserProfi
       throw new Error("Failed to fetch user profile");
     }
     
+    // Log the login activity
+    await activityLogsApi.logActivity(
+      'LOGIN',
+      'user_profiles',
+      profile.id,
+      `User logged in`,
+      { email: profile.email, role: profile.role }
+    );
+    
     toast.success("Successfully signed in");
     return profile;
   } catch (error) {
@@ -76,8 +86,27 @@ export async function signIn(email: string, password: string): Promise<UserProfi
  */
 export async function signOut(): Promise<boolean> {
   try {
+    // Get current user profile before signing out to log the activity
+    const { data: { user } } = await supabase.auth.getUser();
+    let userProfile = null;
+    
+    if (user) {
+      userProfile = await fetchUserProfile(user.id);
+    }
+
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
+    
+    // Log the logout activity
+    if (userProfile) {
+      await activityLogsApi.logActivity(
+        'LOGOUT',
+        'user_profiles',
+        userProfile.id,
+        `User logged out`,
+        { email: userProfile.email, role: userProfile.role }
+      );
+    }
     
     toast.success("Successfully signed out");
     return true;

@@ -18,6 +18,7 @@ import {
   ArrowUpDown, // Changed from ArrowDownUp
   Check,
   Building2,
+  Activity,
 } from "lucide-react";
 
 export const menuItems = [
@@ -98,6 +99,12 @@ export const menuItems = [
     icon: MoneyIcon, 
     label: "Promotions", 
     path: "/admin/promotions",
+    subItems: [] 
+  },
+  { 
+    icon: Activity, 
+    label: "Activity Logs", 
+    path: "/admin/activity-logs",
     subItems: [] 
   },
 ];
