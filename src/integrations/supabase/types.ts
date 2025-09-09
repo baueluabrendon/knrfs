@@ -47,6 +47,62 @@ export type Database = {
         }
         Relationships: []
       }
+      activity_logs: {
+        Row: {
+          activity_type: string
+          branch_id: string | null
+          created_at: string
+          description: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          record_id: string | null
+          table_name: string
+          user_agent: string | null
+          user_id: string
+          user_name: string
+          user_role: string
+        }
+        Insert: {
+          activity_type: string
+          branch_id?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          record_id?: string | null
+          table_name: string
+          user_agent?: string | null
+          user_id: string
+          user_name: string
+          user_role: string
+        }
+        Update: {
+          activity_type?: string
+          branch_id?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          record_id?: string | null
+          table_name?: string
+          user_agent?: string | null
+          user_id?: string
+          user_name?: string
+          user_role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_logs_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       applications: {
         Row: {
           application_document_url: string | null
@@ -1166,6 +1222,16 @@ export type Database = {
           total_due_amount: number
           total_outstanding: number
         }[]
+      }
+      log_activity: {
+        Args: {
+          p_activity_type: string
+          p_description?: string
+          p_metadata?: Json
+          p_record_id?: string
+          p_table_name: string
+        }
+        Returns: undefined
       }
     }
     Enums: {
