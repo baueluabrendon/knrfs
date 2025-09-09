@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ChevronDown, Building2, FileText, Users } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   DropdownMenu,
@@ -12,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { recoveriesApi } from "@/lib/api/recoveries";
+import { PayrollManagementTab } from "@/components/recoveries/PayrollManagementTab";
 
 interface LoanInArrears {
   id: string;
@@ -76,7 +78,12 @@ const Recoveries = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Recoveries Management</h1>
+        <div>
+          <h1 className="text-2xl font-bold">Recoveries Management</h1>
+          <p className="text-muted-foreground">
+            Manage loan recoveries, payroll officers, and deduction requests
+          </p>
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline">
@@ -97,57 +104,76 @@ const Recoveries = () => {
         </DropdownMenu>
       </div>
 
-      <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-4">Loans in Arrears</h2>
-        <p className="mb-4">
-          Select a specific recovery view from the dropdown menu or use these quick links:
-        </p>
-        <div className="flex flex-wrap gap-3 mb-6">
-          <Button variant="outline" asChild>
-            <Link to="/admin/recoveries/loans-in-arrears">Loans in Arrears</Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link to="/admin/recoveries/missed-payments">Missed Payments</Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link to="/admin/recoveries/partial-payments">Partial Payments</Link>
-          </Button>
-        </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Loan ID</TableHead>
-              <TableHead>Borrower Name</TableHead>
-              <TableHead>Loan Amount</TableHead>
-              <TableHead>Days Overdue</TableHead>
-              <TableHead>Amount Overdue</TableHead>
-              <TableHead>Last Payment Date</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">Loading...</TableCell>
-              </TableRow>
-            ) : loansInArrears.length > 0 ? (
-              loansInArrears.map((loan) => (
-                <TableRow key={loan.id}>
-                  <TableCell>{loan.id}</TableCell>
-                  <TableCell>{loan.borrowerName}</TableCell>
-                  <TableCell>K{loan.loanAmount.toFixed(2)}</TableCell>
-                  <TableCell>{loan.daysOverdue}</TableCell>
-                  <TableCell>K{loan.amountOverdue.toFixed(2)}</TableCell>
-                  <TableCell>{loan.lastPaymentDate}</TableCell>
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Recovery Overview
+          </TabsTrigger>
+          <TabsTrigger value="payroll" className="flex items-center gap-2">
+            <Building2 className="h-4 w-4" />
+            Payroll Management
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview">
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Loans in Arrears</h2>
+            <p className="mb-4">
+              Select a specific recovery view from the dropdown menu or use these quick links:
+            </p>
+            <div className="flex flex-wrap gap-3 mb-6">
+              <Button variant="outline" asChild>
+                <Link to="/admin/recoveries/loans-in-arrears">Loans in Arrears</Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link to="/admin/recoveries/missed-payments">Missed Payments</Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link to="/admin/recoveries/partial-payments">Partial Payments</Link>
+              </Button>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Loan ID</TableHead>
+                  <TableHead>Borrower Name</TableHead>
+                  <TableHead>Loan Amount</TableHead>
+                  <TableHead>Days Overdue</TableHead>
+                  <TableHead>Amount Overdue</TableHead>
+                  <TableHead>Last Payment Date</TableHead>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">No loans in arrears found.</TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8">Loading...</TableCell>
+                  </TableRow>
+                ) : loansInArrears.length > 0 ? (
+                  loansInArrears.map((loan) => (
+                    <TableRow key={loan.id}>
+                      <TableCell>{loan.id}</TableCell>
+                      <TableCell>{loan.borrowerName}</TableCell>
+                      <TableCell>K{loan.loanAmount.toFixed(2)}</TableCell>
+                      <TableCell>{loan.daysOverdue}</TableCell>
+                      <TableCell>K{loan.amountOverdue.toFixed(2)}</TableCell>
+                      <TableCell>{loan.lastPaymentDate}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8">No loans in arrears found.</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="payroll">
+          <PayrollManagementTab />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
