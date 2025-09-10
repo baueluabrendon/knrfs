@@ -108,7 +108,7 @@ const DashboardCharts = () => {
             <p 
               key={index} 
               className="tooltip-entry"
-              style={{ '--entry-color': entry.color } as React.CSSProperties}
+              style={{ '--tooltip-color': entry.color } as React.CSSProperties}
             >
               {`${entry.dataKey}: ${new Intl.NumberFormat('en-US', {
                 style: 'currency',
@@ -131,7 +131,7 @@ const DashboardCharts = () => {
             <p 
               key={index} 
               className="tooltip-entry"
-              style={{ '--entry-color': entry.color } as React.CSSProperties}
+              style={{ '--tooltip-color': entry.color } as React.CSSProperties}
             >
               {`${entry.dataKey}: ${entry.value.toLocaleString()}`}
             </p>

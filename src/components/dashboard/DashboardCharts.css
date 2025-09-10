@@ -40,7 +40,7 @@
 
 .tooltip-entry {
   @apply font-medium;
-  color: var(--entry-color);
+  color: var(--tooltip-color, hsl(var(--foreground)));
 }
 
 .pie-chart-legend {
@@ -53,7 +53,7 @@
 
 .legend-color-box {
   @apply w-4 h-4 rounded-sm;
-  background-color: var(--legend-color);
+  background-color: var(--legend-color, hsl(var(--muted-foreground)));
 }
 
 .legend-text {
