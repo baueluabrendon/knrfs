@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -43,23 +43,16 @@ export const DeductionRequestDialog = ({ onRequestCreated, children }: Deduction
     notes: "",
   });
 
-  useEffect(() => {
-    if (open) {
-      loadPayrollOfficers();
-      loadClientsInDefault();
-    }
-  }, [open]);
-
-  const loadPayrollOfficers = async () => {
+  const loadPayrollOfficers = useCallback(async () => {
     try {
       const officers = await payrollOfficersApi.getPayrollOfficers();
       setPayrollOfficers(officers);
     } catch (error) {
       console.error("Error loading payroll officers:", error);
     }
-  };
+  }, []);
 
-  const loadClientsInDefault = async () => {
+  const loadClientsInDefault = useCallback(async () => {
     setLoadingClients(true);
     try {
       const data = await recoveriesApi.getLoansInArrears();
@@ -91,7 +84,14 @@ export const DeductionRequestDialog = ({ onRequestCreated, children }: Deduction
     } finally {
       setLoadingClients(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    if (open) {
+      loadPayrollOfficers();
+      loadClientsInDefault();
+    }
+  }, [open, loadPayrollOfficers, loadClientsInDefault]);
 
   const handleOfficerChange = (officerId: string) => {
     const officer = payrollOfficers.find(o => o.id === officerId);
