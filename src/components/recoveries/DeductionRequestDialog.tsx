@@ -64,16 +64,21 @@ export const DeductionRequestDialog = ({ onRequestCreated, children }: Deduction
     try {
       const data = await recoveriesApi.getLoansInArrears();
       const clientsWithDefaults = data
-        .filter(loan => loan.organization && loan.arrears > 0)
+        .filter(loan => 
+          loan.organization && 
+          loan.arrears > 0 && 
+          loan.loan_id && 
+          loan.borrower_name
+        )
         .map(loan => ({
-          loan_id: loan.loan_id,
-          borrower_name: loan.borrower_name,
-          file_number: loan.file_number,
-          organization: loan.organization,
-          loan_amount: loan.loan_amount,
-          arrears: loan.arrears,
-          days_late: loan.days_late,
-          pay_period: loan.pay_period,
+          loan_id: loan.loan_id!,
+          borrower_name: loan.borrower_name!,
+          file_number: loan.file_number || undefined,
+          organization: loan.organization!,
+          loan_amount: loan.loan_amount || 0,
+          arrears: loan.arrears || 0,
+          days_late: loan.days_late || 0,
+          pay_period: loan.pay_period || undefined,
         }));
       setClientsInDefault(clientsWithDefaults);
     } catch (error) {
