@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Edit, Trash2, Mail, Eye, Users, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useActivityLogger, ACTIVITY_TYPES, TABLE_NAMES } from "@/hooks/useActivityLogger";
 import { payrollOfficersApi, PayrollOfficer, DeductionRequest } from "@/lib/api/payroll-officers";
 import { PayrollOfficerDialog } from "./PayrollOfficerDialog";
 import { DeductionRequestDialog } from "./DeductionRequestDialog";
@@ -17,6 +18,7 @@ export const PayrollManagementTab = () => {
   const [loading, setLoading] = useState(true);
   const [sendingEmail, setSendingEmail] = useState<string | null>(null);
   const { toast } = useToast();
+  const { logActivity } = useActivityLogger();
 
   useEffect(() => {
     loadData();
@@ -47,7 +49,19 @@ export const PayrollManagementTab = () => {
     if (!confirm("Are you sure you want to delete this payroll officer?")) return;
 
     try {
+      const officer = payrollOfficers.find(o => o.id === id);
       await payrollOfficersApi.deletePayrollOfficer(id);
+      
+      if (officer) {
+        await logActivity(
+          ACTIVITY_TYPES.DELETE,
+          TABLE_NAMES.PAYROLL_OFFICERS,
+          id,
+          `Deleted payroll officer: ${officer.officer_name} from ${officer.organization_name}`,
+          { organization: officer.organization_name, email: officer.email }
+        );
+      }
+      
       toast({
         title: "Success",
         description: "Payroll officer deleted successfully",
@@ -67,6 +81,17 @@ export const PayrollManagementTab = () => {
     try {
       await payrollOfficersApi.sendDeductionRequestEmail(requestId);
       await payrollOfficersApi.updateDeductionRequestStatus(requestId, 'sent');
+      
+      const request = deductionRequests.find(r => r.id === requestId);
+      if (request) {
+        await logActivity(
+          ACTIVITY_TYPES.EMAIL_SENT,
+          TABLE_NAMES.DEDUCTION_REQUESTS,
+          requestId,
+          `Sent deduction request email to ${request.organization_name}`,
+          { organization: request.organization_name, clients_count: request.total_clients }
+        );
+      }
       
       toast({
         title: "Success",

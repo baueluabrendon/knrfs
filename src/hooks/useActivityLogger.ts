@@ -26,7 +26,8 @@ export const ACTIVITY_TYPES = {
   LOGIN: 'LOGIN',
   LOGOUT: 'LOGOUT',
   EXPORT: 'EXPORT',
-  SEARCH: 'SEARCH'
+  SEARCH: 'SEARCH',
+  EMAIL_SENT: 'EMAIL_SENT'
 } as const;
 
 // Table name constants for consistency
@@ -37,5 +38,7 @@ export const TABLE_NAMES = {
   APPLICATIONS: 'applications',
   BRANCHES: 'branches',
   USERS: 'user_profiles',
-  DEFAULTS: 'defaults'
+  DEFAULTS: 'defaults',
+  PAYROLL_OFFICERS: 'payroll_officers',
+  DEDUCTION_REQUESTS: 'deduction_requests'
 } as const;

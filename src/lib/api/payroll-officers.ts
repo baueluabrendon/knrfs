@@ -47,7 +47,7 @@ export interface DeductionRequestClient {
 export const payrollOfficersApi = {
   async getPayrollOfficers() {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('payroll_officers')
         .select('*')
         .eq('is_active', true)
@@ -63,7 +63,7 @@ export const payrollOfficersApi = {
 
   async createPayrollOfficer(officer: Omit<PayrollOfficer, 'id' | 'created_at' | 'updated_at'>) {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('payroll_officers')
         .insert(officer)
         .select()
@@ -79,7 +79,7 @@ export const payrollOfficersApi = {
 
   async updatePayrollOfficer(id: string, updates: Partial<PayrollOfficer>) {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('payroll_officers')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
@@ -96,7 +96,7 @@ export const payrollOfficersApi = {
 
   async deletePayrollOfficer(id: string) {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('payroll_officers')
         .update({ is_active: false, updated_at: new Date().toISOString() })
         .eq('id', id);
@@ -110,7 +110,7 @@ export const payrollOfficersApi = {
 
   async getDeductionRequests() {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('deduction_requests')
         .select(`
           *,
@@ -121,7 +121,7 @@ export const payrollOfficersApi = {
       if (error) throw error;
       
       // Type cast the status field to ensure proper typing
-      return (data || []).map(request => ({
+      return (data || []).map((request: any) => ({
         ...request,
         status: request.status as DeductionRequest['status']
       }));
@@ -154,7 +154,7 @@ export const payrollOfficersApi = {
       );
 
       // Create the deduction request
-      const { data: deductionRequest, error: requestError } = await supabase
+      const { data: deductionRequest, error: requestError } = await (supabase as any)
         .from('deduction_requests')
         .insert({
           payroll_officer_id: request.payroll_officer_id,
@@ -175,7 +175,7 @@ export const payrollOfficersApi = {
         deduction_request_id: deductionRequest.id,
       }));
 
-      const { error: clientsError } = await supabase
+      const { error: clientsError } = await (supabase as any)
         .from('deduction_request_clients')
         .insert(clientsWithRequestId);
 
@@ -190,7 +190,7 @@ export const payrollOfficersApi = {
 
   async getDeductionRequestClients(requestId: string) {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('deduction_request_clients')
         .select('*')
         .eq('deduction_request_id', requestId)
@@ -233,7 +233,7 @@ export const payrollOfficersApi = {
         updates.notes = notes;
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('deduction_requests')
         .update(updates)
         .eq('id', id)
