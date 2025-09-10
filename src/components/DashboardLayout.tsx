@@ -6,19 +6,24 @@ import SidebarNav from "./SidebarNav";
 import DashboardHeader from "./DashboardHeader";
 import SidebarHeader from "./SidebarHeader";
 import BorrowerDialog from "./borrowers/BorrowerDialog";
-import { menuItems as defaultMenuItems } from "@/config/menuItems";
 import { BorrowerFormData, BorrowerInsertData } from "./borrowers/BorrowerForm";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { getRoleBasedMenuItems } from "@/utils/roleBasedAccess";
 
 interface DashboardLayoutProps {
   children?: ReactNode;
 }
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
+  const { user } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [showAddBorrower, setShowAddBorrower] = useState(false);
   const location = useLocation();
+
+  // Get role-based menu items
+  const menuItems = getRoleBasedMenuItems(user);
 
   useEffect(() => {
     console.log("Current Route:", location.pathname);
@@ -60,7 +65,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         <div className="flex flex-col h-full">
           <SidebarHeader isOpen={isSidebarOpen} />
           <SidebarNav
-            menuItems={defaultMenuItems}
+            menuItems={menuItems}
             hoveredItem={hoveredItem}
             setHoveredItem={setHoveredItem}
             onCloseSidebar={() => setIsSidebarOpen(false)}

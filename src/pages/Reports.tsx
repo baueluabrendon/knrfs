@@ -1,6 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { canAccessUserManagementReports } from "@/utils/roleBasedAccess";
 import {
   Users,
   User,
@@ -65,6 +67,15 @@ const reportCategories = [
 
 const Reports = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Filter out User Management Reports for certain roles
+  const filteredReportCategories = reportCategories.filter(category => {
+    if (category.title === "User Management Reports") {
+      return canAccessUserManagementReports(user);
+    }
+    return true;
+  });
 
   return (
     <div className="space-y-6">
@@ -76,7 +87,7 @@ const Reports = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {reportCategories.map((category) => {
+        {filteredReportCategories.map((category) => {
           const IconComponent = category.icon;
           return (
             <Card key={category.path} className={`p-6 border-2 transition-all duration-200 hover:shadow-lg ${category.color}`}>

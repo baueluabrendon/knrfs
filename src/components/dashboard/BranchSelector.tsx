@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { canViewAllBranches } from '@/utils/roleBasedAccess';
 
 interface Branch {
   id: string;
@@ -40,8 +41,8 @@ export const BranchSelector = ({ selectedBranchId, onBranchChange }: BranchSelec
     fetchBranches();
   }, []);
 
-  // Don't show branch selector for non-admin users
-  if (!user || !['administrator', 'super user'].includes(user.role)) {
+  // Don't show branch selector for users who can't view all branches
+  if (!canViewAllBranches(user)) {
     return null;
   }
 

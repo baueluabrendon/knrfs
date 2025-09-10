@@ -2,7 +2,7 @@
 import { RouteObject } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import ActivityLogs from "@/pages/ActivityLogs";
-import { menuItems } from "@/config/menuItems";
+import { ProtectedRoute } from "@/routes/ProtectedRoute";
 
 import Loans from "@/pages/Loans";
 import Borrowers from "@/pages/Borrowers";
@@ -99,7 +99,11 @@ export const adminRoutes: RouteObject[] = [
       },
       {
         path: "reports/users",
-        element: <UsersReport />
+        element: (
+          <ProtectedRoute requireUserManagementAccess={true}>
+            <UsersReport />
+          </ProtectedRoute>
+        )
       },
       {
         path: "reports/borrowers",

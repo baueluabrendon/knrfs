@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -11,12 +11,20 @@ import {
 } from '@/hooks/useDashboardAnalytics';
 import { useAuth } from '@/contexts/AuthContext';
 import { BranchSelector } from './BranchSelector';
+import { canViewAllBranches, shouldFilterByBranch } from '@/utils/roleBasedAccess';
 import './DashboardCharts.css';
 
 const DashboardCharts = () => {
   const { user } = useAuth();
   const [timeFilter, setTimeFilter] = useState('monthly');
   const [selectedBranchId, setSelectedBranchId] = useState<string>('all');
+
+  // Automatically set branch for users who should be filtered by branch
+  useEffect(() => {
+    if (shouldFilterByBranch(user) && user?.branch_id) {
+      setSelectedBranchId(user.branch_id);
+    }
+  }, [user]);
 
   const filterOptions = [
     { value: 'daily', label: 'Daily' },
@@ -59,7 +67,7 @@ const DashboardCharts = () => {
   }, [timeFilter]);
 
   // Determine which branch to filter by
-  const effectiveBranchId = user?.role && ['administrator', 'super user'].includes(user.role) 
+  const effectiveBranchId = canViewAllBranches(user)
     ? (selectedBranchId === 'all' ? undefined : selectedBranchId)
     : user?.branch_id || undefined;
 
