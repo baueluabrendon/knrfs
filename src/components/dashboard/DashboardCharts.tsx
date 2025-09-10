@@ -61,7 +61,7 @@ const DashboardCharts = () => {
   // Determine which branch to filter by
   const effectiveBranchId = user?.role && ['administrator', 'super user'].includes(user.role) 
     ? (selectedBranchId === 'all' ? undefined : selectedBranchId)
-    : user?.branch_id;
+    : user?.branch_id || undefined;
 
   // Fetch real analytics data
   const { 
