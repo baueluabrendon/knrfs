@@ -12,8 +12,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import ClientRepaymentSubmission from "@/components/client/ClientRepaymentSubmission";
-import { supabase } from "@/integrations/supabase/client";
-import { Repayment } from "@/types/repayment";
 import {
   Tooltip,
   TooltipContent,
@@ -22,82 +20,14 @@ import {
 } from "@/components/ui/tooltip";
 import { Info, Loader2 } from "lucide-react";
 import RepaymentsSearchBar from "@/components/repayments/RepaymentsSearchBar";
-import { useQuery } from "@tanstack/react-query";
+import { useClientRepayments } from "@/hooks/useClientData";
 
 const ClientRepayments = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [isSubmissionOpen, setIsSubmissionOpen] = useState(false);
 
-  const { data: repayments, isLoading, error, refetch } = useQuery({
-    queryKey: ["client-repayments", user?.user_id],
-    queryFn: async () => {
-      if (!user?.user_id) {
-        throw new Error("User not authenticated");
-      }
-
-      // Get user's borrower_id
-      const { data: userProfile, error: profileError } = await supabase
-        .from("user_profiles")
-        .select("borrower_id")
-        .eq("user_id", user.user_id)
-        .maybeSingle();
-
-      if (profileError) {
-        throw new Error("Could not fetch user profile");
-      }
-
-      if (!userProfile?.borrower_id) {
-        throw new Error("Borrower ID not found");
-      }
-
-      // Get all loans for this borrower
-      const { data: loans, error: loansError } = await supabase
-        .from("loans")
-        .select("loan_id")
-        .eq("borrower_id", userProfile.borrower_id);
-
-      if (loansError) {
-        throw new Error("Could not fetch loans");
-      }
-
-      if (!loans?.length) {
-        return [];
-      }
-
-      const loanIds = loans.map((loan) => loan.loan_id);
-
-      // Get repayments for all user's loans
-      const { data: repayments, error: repaymentsError } = await supabase
-        .from("repayments")
-        .select(`
-          *,
-          loan:loans(fortnightly_installment)
-        `)
-        .in("loan_id", loanIds)
-        .order("payment_date", { ascending: false });
-
-      if (repaymentsError) {
-        throw new Error("Could not fetch repayments");
-      }
-
-      return (repayments || []).map((item) => ({
-        repayment_id: item.repayment_id,
-        payment_date: item.payment_date,
-        amount: Number(item.amount),
-        loan_id: item.loan_id,
-        borrowerName: "Client",
-        status: item.status || "pending",
-        receipt_url: item.receipt_url,
-        notes: item.notes,
-        source: item.source,
-        verification_status: item.verification_status,
-        verified_at: item.verified_at,
-        verified_by: item.verified_by,
-      }));
-    },
-    enabled: !!user?.user_id,
-  });
+  const { data: repayments, isLoading, error, refetch } = useClientRepayments();
 
   const handleSubmissionSuccess = () => {
     // Refetch repayments after successful submission

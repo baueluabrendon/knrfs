@@ -1,8 +1,6 @@
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -22,48 +20,14 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { RepaymentSchedule } from "@/components/loans/RepaymentSchedule";
+import { useClientLoans } from "@/hooks/useClientData";
 
 const ClientLoans = () => {
   const { user } = useAuth();
   const [selectedLoan, setSelectedLoan] = useState<any | null>(null);
   const [isRepaymentScheduleOpen, setIsRepaymentScheduleOpen] = useState(false);
-
-  const { data: loans, isLoading } = useQuery({
-    queryKey: ['client-loans', user?.user_id],
-    queryFn: async () => {
-      // First get the borrower_id from user_profiles
-      const { data: userProfile } = await supabase
-        .from('user_profiles')
-        .select('borrower_id')
-        .eq('user_id', user?.user_id)
-        .single();
-
-      if (!userProfile?.borrower_id) {
-        throw new Error('Borrower ID not found');
-      }
-
-      // Then get all loans for this borrower
-      const { data, error } = await supabase
-        .from('loans')
-        .select(`
-          loan_id,
-          principal,
-          loan_term,
-          fortnightly_installment,
-          disbursement_date,
-          maturity_date,
-          start_repayment_date,
-          loan_status,
-          outstanding_balance,
-          interest_rate
-        `)
-        .eq('borrower_id', userProfile.borrower_id);
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user?.user_id
-  });
+  
+  const { data: loans, isLoading } = useClientLoans();
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
