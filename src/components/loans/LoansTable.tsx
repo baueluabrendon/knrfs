@@ -160,7 +160,17 @@ const LoansTable = ({
                     <TableCell className="font-medium text-blue-600 hover:underline">
                       {loan.loan_id}
                     </TableCell>
-                    <TableCell>{getBorrowerFullName(loan)}</TableCell>
+                    <TableCell>
+                      <button 
+                        className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.location.href = `/admin/loans/${loan.loan_id}`;
+                        }}
+                      >
+                        {getBorrowerFullName(loan)}
+                      </button>
+                    </TableCell>
                     <TableCell>{formatCurrency(loan.principal)}</TableCell>
                     <TableCell>{formatCurrency(loan.interest)}</TableCell>
                     <TableCell className="whitespace-nowrap">{formatCurrency(loan.gross_loan)}</TableCell>

@@ -33,6 +33,8 @@ import MissedPayments from "@/pages/MissedPayments";
 import PartialPayments from "@/pages/PartialPayments";
 import ClientRepaymentVerification from "@/pages/ClientRepaymentVerification";
 import AILoanAssistant from "@/components/ai-assistant/AILoanAssistant";
+import ApplicationDetails from "@/pages/ApplicationDetails";
+import LoanDetails from "@/pages/LoanDetails";
 import AIReporting from "@/pages/AIReporting";
 import BranchManagement from "@/pages/BranchManagement";
 
@@ -48,6 +50,10 @@ export const adminRoutes: RouteObject[] = [
       {
         path: "loans",
         element: <Loans />
+      },
+      {
+        path: "loans/:loanId",
+        element: <LoanDetails />
       },
       {
         path: "loans/add",
@@ -68,6 +74,10 @@ export const adminRoutes: RouteObject[] = [
       {
         path: "applications",
         element: <Applications />
+      },
+      {
+        path: "applications/:applicationId",
+        element: <ApplicationDetails />
       },
       {
         path: "repayments",

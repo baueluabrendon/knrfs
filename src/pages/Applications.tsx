@@ -1,15 +1,23 @@
 import { useState } from "react";
+import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { LoanApplicationType } from "@/types/loan";
 import ApplicationsList from "@/components/applications/ApplicationsList";
 import ApplicationDetailsDialog from "@/components/applications/ApplicationDetailsDialog";
+import ApplicationDetails from "./ApplicationDetails";
 
 const Applications = () => {
+  const { applicationId } = useParams();
   const [selectedApplication, setSelectedApplication] = useState<LoanApplicationType | null>(null);
   const [showApplicationDetails, setShowApplicationDetails] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // If we have an applicationId parameter, show the detailed view
+  if (applicationId) {
+    return <ApplicationDetails />;
+  }
 
   const handleViewApplication = (application: LoanApplicationType) => {
     setSelectedApplication(application);

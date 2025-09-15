@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useParams } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +14,7 @@ import LoansHeader from "@/components/loans/LoansHeader";
 import LoansTable from "@/components/loans/LoansTable";
 import { useLoansList } from "@/hooks/useLoansList";
 import { RepaymentSchedule } from "@/components/loans/RepaymentSchedule";
+import LoanDetails from "./LoanDetails";
 
 interface Loan {
   loan_id: string;
@@ -47,6 +49,7 @@ interface Loan {
 }
 
 const Loans = () => {
+  const { loanId } = useParams();
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const { 
@@ -56,6 +59,11 @@ const Loans = () => {
     setSearchQuery, 
     loans 
   } = useLoansList();
+
+  // If we have a loanId parameter, show the detailed view
+  if (loanId) {
+    return <LoanDetails />;
+  }
 
   const handleSelectLoan = (loan: Loan) => {
     setSelectedLoan(loan);

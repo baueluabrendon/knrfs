@@ -157,7 +157,17 @@ const ApplicationsList = ({ onViewApplication }: ApplicationsListProps) => {
     return applications.map((application) => (
       <TableRow key={application.application_id}>
         <TableCell>{application.application_id}</TableCell>
-        <TableCell>{getBorrowerFullName(application)}</TableCell>
+        <TableCell>
+          <button 
+            className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
+            onClick={(e) => {
+              e.stopPropagation();
+              window.location.href = `/admin/applications/${application.application_id}`;
+            }}
+          >
+            {getBorrowerFullName(application)}
+          </button>
+        </TableCell>
         <TableCell>{getPhoneNumber(application)}</TableCell>
         <TableCell>{getEmail(application)}</TableCell>
         <TableCell>{getCompany(application)}</TableCell>
