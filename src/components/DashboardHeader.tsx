@@ -1,7 +1,8 @@
 
-import { LogOut, Menu } from "lucide-react";
+import { LogOut, Menu, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBranchInfo } from "@/hooks/useBranchInfo";
 import { toast } from "sonner";
 
 interface DashboardHeaderProps {
@@ -10,6 +11,7 @@ interface DashboardHeaderProps {
 
 const DashboardHeader = ({ onToggleSidebar }: DashboardHeaderProps) => {
   const { signOut, user } = useAuth();
+  const { branch } = useBranchInfo(user?.branch_id || null);
 
   const handleLogout = async () => {
     try {
@@ -41,6 +43,12 @@ const DashboardHeader = ({ onToggleSidebar }: DashboardHeaderProps) => {
           <div className="hidden sm:block text-right">
             <p className="text-sm font-medium text-gray-700">{user?.first_name} {user?.last_name}</p>
             <p className="text-xs text-gray-500">{user?.email}</p>
+            {branch && (
+              <div className="flex items-center justify-end gap-1 mt-1">
+                <Building2 className="w-3 h-3 text-gray-400" />
+                <p className="text-xs text-gray-500">{branch.branch_name} ({branch.branch_code})</p>
+              </div>
+            )}
           </div>
           <Button
             variant="outline"

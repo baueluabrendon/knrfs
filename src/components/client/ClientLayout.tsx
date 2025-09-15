@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBranchInfo } from "@/hooks/useBranchInfo";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -15,11 +16,13 @@ import {
   Wallet,
   User,
   HelpCircle,
+  Building2,
 } from "lucide-react";
 
 const ClientLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { signOut, user } = useAuth();
+  const { branch } = useBranchInfo(user?.branch_id || null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -138,7 +141,15 @@ const ClientLayout = () => {
         <div className="bg-white border-b border-gray-200 shadow-sm">
           <div className="px-6 py-4">
             <h1 className="text-xl font-bold text-gray-800">Welcome to K&R Financial Services</h1>
-            <p className="text-sm text-gray-600 mt-1">Hello, {user?.first_name || "Client"} - Manage your loans and applications</p>
+            <div className="flex items-center justify-between mt-1">
+              <p className="text-sm text-gray-600">Hello, {user?.first_name || "Client"} - Manage your loans and applications</p>
+              {branch && (
+                <div className="flex items-center gap-1 text-sm text-gray-600">
+                  <Building2 className="w-4 h-4 text-gray-400" />
+                  <span>{branch.branch_name} ({branch.branch_code})</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <div className="p-6 bg-gray-50 min-h-full">
