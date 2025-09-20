@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Upload, X, Download } from "lucide-react";
 import Papa from "papaparse";
 import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -53,43 +54,8 @@ interface CSVBorrower {
   account_type: string;
 }
 
-interface BorrowerInsert {
-  surname: string;
-  given_name: string;
-  email: string;
-  branch_id: string | null;
-  mobile_number: string | null;
-  date_of_birth: string | null;
-  gender: string | null;
-  nationality: string | null;
-  village: string | null;
-  district: string | null;
-  province: string | null;
-  postal_address: string | null;
-  lot: string | null;
-  section: string | null;
-  suburb: string | null;
-  street_name: string | null;
-  department_company: string | null;
-  position: string | null;
-  date_employed: string | null;
-  work_phone_number: string | null;
-  file_number: string | null;
-  paymaster: string | null;
-  branch_name: string | null;
-  fax: string | null;
-  marital_status: string | null;
-  spouse_last_name: string | null;
-  spouse_first_name: string | null;
-  spouse_employer_name: string | null;
-  spouse_contact_details: string | null;
-  bank: string | null;
-  bank_branch: string | null;
-  bsb_code: string | null;
-  account_name: string | null;
-  account_number: string | null;
-  account_type: string | null;
-}
+// Use the official Supabase type for database inserts
+type BorrowerInsert = Database['public']['Tables']['borrowers']['Insert'];
 
 const BulkBorrowers = () => {
   const [csvData, setCSVData] = useState<CSVBorrower[]>([]);
