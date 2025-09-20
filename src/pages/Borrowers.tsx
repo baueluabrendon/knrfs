@@ -30,39 +30,39 @@ interface Borrower {
   fileNumber: string | null;
   branchName?: string;
   branchCode?: string;
-  // Additional fields from borrowers table
-  givenName?: string;
-  surname?: string;
-  dateOfBirth?: string;
-  gender?: string;
-  mobileNumber?: string;
-  village?: string;
-  district?: string;
-  province?: string;
-  nationality?: string;
-  departmentCompany?: string;
-  position?: string;
-  postalAddress?: string;
-  workPhoneNumber?: string;
-  fax?: string;
-  dateEmployed?: string;
-  paymaster?: string;
-  lot?: string;
-  section?: string;
-  suburb?: string;
-  streetName?: string;
-  maritalStatus?: string;
-  spouseLastName?: string;
-  spouseFirstName?: string;
-  spouseEmployerName?: string;
-  spouseContactDetails?: string;
-  employerBranch?: string;
-  bank?: string;
-  bankBranch?: string;
-  bsbCode?: string;
-  accountName?: string;
-  accountNumber?: string;
-  accountType?: string;
+  // Additional fields from borrowers table - allowing null values
+  givenName?: string | null;
+  surname?: string | null;
+  dateOfBirth?: string | null;
+  gender?: string | null;
+  mobileNumber?: string | null;
+  village?: string | null;
+  district?: string | null;
+  province?: string | null;
+  nationality?: string | null;
+  departmentCompany?: string | null;
+  position?: string | null;
+  postalAddress?: string | null;
+  workPhoneNumber?: string | null;
+  fax?: string | null;
+  dateEmployed?: string | null;
+  paymaster?: string | null;
+  lot?: string | null;
+  section?: string | null;
+  suburb?: string | null;
+  streetName?: string | null;
+  maritalStatus?: string | null;
+  spouseLastName?: string | null;
+  spouseFirstName?: string | null;
+  spouseEmployerName?: string | null;
+  spouseContactDetails?: string | null;
+  employerBranch?: string | null;
+  bank?: string | null;
+  bankBranch?: string | null;
+  bsbCode?: string | null;
+  accountName?: string | null;
+  accountNumber?: string | null;
+  accountType?: string | null;
 }
 
 interface Loan {
@@ -180,7 +180,7 @@ const Borrowers = () => {
         spouseFirstName: b.spouse_first_name,
         spouseEmployerName: b.spouse_employer_name,
         spouseContactDetails: b.spouse_contact_details,
-        employerBranch: b.branch_name,
+        employerBranch: b.branches?.branch_name,
         bank: b.bank,
         bankBranch: b.bank_branch,
         bsbCode: b.bsb_code,
@@ -228,9 +228,46 @@ const Borrowers = () => {
     try {
       setIsLoading(true);
       
+      const insertData: BorrowerInsertData = {
+        given_name: formData.given_name,
+        surname: formData.surname,
+        email: formData.email,
+        branch_id: formData.branch_id || null,
+        mobile_number: formData.mobile_number || null,
+        date_of_birth: formData.date_of_birth || null,
+        gender: formData.gender || null,
+        nationality: formData.nationality || null,
+        village: formData.village || null,
+        district: formData.district || null,
+        province: formData.province || null,
+        postal_address: formData.postal_address || null,
+        lot: formData.lot || null,
+        section: formData.section || null,
+        suburb: formData.suburb || null,
+        street_name: formData.street_name || null,
+        department_company: formData.department_company || null,
+        position: formData.position || null,
+        date_employed: formData.date_employed || null,
+        work_phone_number: formData.work_phone_number || null,
+        file_number: formData.file_number || null,
+        paymaster: formData.paymaster || null,
+        fax: formData.fax || null,
+        marital_status: formData.marital_status || null,
+        spouse_last_name: formData.spouse_last_name || null,
+        spouse_first_name: formData.spouse_first_name || null,
+        spouse_employer_name: formData.spouse_employer_name || null,
+        spouse_contact_details: formData.spouse_contact_details || null,
+        bank: formData.bank || null,
+        bank_branch: formData.bank_branch || null,
+        bsb_code: formData.bsb_code || null,
+        account_name: formData.account_name || null,
+        account_number: formData.account_number || null,
+        account_type: formData.account_type || null
+      };
+      
       const { data, error } = await supabase
         .from('borrowers')
-        .insert([formData as unknown as BorrowerInsertData])
+        .insert([insertData])
         .select();
       
       if (error) {

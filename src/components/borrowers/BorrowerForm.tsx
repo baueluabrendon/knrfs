@@ -98,7 +98,7 @@ interface Branch {
   id: string;
   branch_name: string;
   branch_code: string;
-  is_active: boolean;
+  is_active: boolean | null;
 }
 
 interface BorrowerFormProps {
