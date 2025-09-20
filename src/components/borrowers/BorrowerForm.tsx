@@ -36,7 +36,7 @@ const borrowerFormSchema = z.object({
   work_phone_number: z.string().optional(),
   file_number: z.string().optional(),
   paymaster: z.string().optional(),
-  company_branch: z.string().optional(),
+  
   fax: z.string().optional(),
   marital_status: z.string().optional(),
   spouse_last_name: z.string().optional(),
@@ -79,7 +79,7 @@ export type BorrowerInsertData = {
   work_phone_number?: string | null;
   file_number?: string | null;
   paymaster?: string | null;
-  company_branch?: string | null;
+  
   fax?: string | null;
   marital_status?: string | null;
   spouse_last_name?: string | null;
@@ -131,7 +131,7 @@ const BorrowerForm = ({ onSubmit, onCancel }: BorrowerFormProps) => {
       work_phone_number: "",
       file_number: "",
       paymaster: "",
-      company_branch: "",
+      
       fax: "",
       lot: "",
       section: "",
@@ -407,19 +407,6 @@ const BorrowerForm = ({ onSubmit, onCancel }: BorrowerFormProps) => {
               )}
             />
             
-            <FormField
-              control={form.control}
-              name="company_branch"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Company Branch</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             
             <FormField
               control={form.control}

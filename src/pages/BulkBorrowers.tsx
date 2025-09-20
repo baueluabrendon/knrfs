@@ -38,7 +38,7 @@ interface CSVBorrower {
   work_phone_number: string;
   file_number: string;
   paymaster: string;
-  company_branch: string;
+  
   fax: string;
   marital_status: string;
   spouse_last_name: string;
@@ -76,7 +76,7 @@ interface BorrowerInsert {
   work_phone_number: string | null;
   file_number: string | null;
   paymaster: string | null;
-  company_branch: string | null;
+  branch_name: string | null;
   fax: string | null;
   marital_status: string | null;
   spouse_last_name: string | null;
@@ -174,7 +174,7 @@ const BulkBorrowers = () => {
             spouse_first_name: row.spouse_first_name || "",
             spouse_employer_name: row.spouse_employer_name || "",
             spouse_contact_details: row.spouse_contact_details || "",
-            company_branch: row.company_branch || "",
+            
             bank: row.bank || "",
             bank_branch: row.bank_branch || "",
             bsb_code: row.bsb_code || "",
@@ -237,7 +237,7 @@ const BulkBorrowers = () => {
           work_phone_number: borrower.work_phone_number || null,
           file_number: borrower.file_number || null,
           paymaster: borrower.paymaster || null,
-          company_branch: borrower.company_branch || null,
+          branch_name: borrower.branch_name || null,
           fax: borrower.fax || null,
           marital_status: borrower.marital_status || null,
           spouse_last_name: borrower.spouse_last_name || null,
@@ -295,7 +295,7 @@ const BulkBorrowers = () => {
   };
 
   const downloadTemplateCSV = () => {
-    const headers = "surname,given_name,date_of_birth,gender,mobile_number,email,branch_name,village,district,province,nationality,department_company,file_number,position,postal_address,work_phone_number,fax,date_employed,paymaster,lot,section,suburb,street_name,marital_status,spouse_last_name,spouse_first_name,spouse_employer_name,spouse_contact_details,company_branch,bank,bank_branch,bsb_code,account_name,account_number,account_type";
+    const headers = "surname,given_name,date_of_birth,gender,mobile_number,email,branch_name,village,district,province,nationality,department_company,file_number,position,postal_address,work_phone_number,fax,date_employed,paymaster,lot,section,suburb,street_name,marital_status,spouse_last_name,spouse_first_name,spouse_employer_name,spouse_contact_details,bank,bank_branch,bsb_code,account_name,account_number,account_type";
     const csvContent = `${headers}\n`;
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -320,7 +320,7 @@ const BulkBorrowers = () => {
         <div className="space-y-4">
           <div className="flex flex-col space-y-2">
             <p className="text-muted-foreground mb-2">
-              Upload a CSV file with the following columns: Surname, Given Name, Date of Birth, Gender, Mobile Number, Email, Branch Name, Village, District, Province, Nationality, Department/Company, File Number, Position, Postal Address, Work Phone Number, Fax, Date Employed, Paymaster, Lot, Section, Suburb, Street Name, Marital Status, Spouse Last Name, Spouse First Name, Spouse Employer Name, Spouse Contact Details, Company Branch, Bank, Bank Branch, BSB Code, Account Name, Account Number, Account Type
+              Upload a CSV file with the following columns: Surname, Given Name, Date of Birth, Gender, Mobile Number, Email, Branch Name, Village, District, Province, Nationality, Department/Company, File Number, Position, Postal Address, Work Phone Number, Fax, Date Employed, Paymaster, Lot, Section, Suburb, Street Name, Marital Status, Spouse Last Name, Spouse First Name, Spouse Employer Name, Spouse Contact Details, Bank, Bank Branch, BSB Code, Account Name, Account Number, Account Type
             </p>
             <div className="flex items-center space-x-4">
               <div className="relative">
@@ -392,7 +392,7 @@ const BulkBorrowers = () => {
                       <TableHead>Spouse First Name</TableHead>
                       <TableHead>Spouse Employer Name</TableHead>
                       <TableHead>Spouse Contact Details</TableHead>
-                      <TableHead>Company Branch</TableHead>
+                      
                       <TableHead>Bank</TableHead>
                       <TableHead>Bank Branch</TableHead>
                       <TableHead>BSB Code</TableHead>
@@ -432,7 +432,7 @@ const BulkBorrowers = () => {
                         <TableCell>{borrower.spouse_first_name}</TableCell>
                         <TableCell>{borrower.spouse_employer_name}</TableCell>
                         <TableCell>{borrower.spouse_contact_details}</TableCell>
-                        <TableCell>{borrower.company_branch}</TableCell>
+                        
                         <TableCell>{borrower.bank}</TableCell>
                         <TableCell>{borrower.bank_branch}</TableCell>
                         <TableCell>{borrower.bsb_code}</TableCell>

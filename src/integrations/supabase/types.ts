@@ -142,8 +142,8 @@ export type Database = {
           bank_branch: string | null
           borrower_id: string
           branch_id: string | null
+          branch_name: string | null
           bsb_code: string | null
-          company_branch: string | null
           date_employed: string | null
           date_of_birth: string | null
           department_company: string | null
@@ -180,8 +180,8 @@ export type Database = {
           bank_branch?: string | null
           borrower_id?: string
           branch_id?: string | null
+          branch_name?: string | null
           bsb_code?: string | null
-          company_branch?: string | null
           date_employed?: string | null
           date_of_birth?: string | null
           department_company?: string | null
@@ -218,8 +218,8 @@ export type Database = {
           bank_branch?: string | null
           borrower_id?: string
           branch_id?: string | null
+          branch_name?: string | null
           bsb_code?: string | null
-          company_branch?: string | null
           date_employed?: string | null
           date_of_birth?: string | null
           department_company?: string | null

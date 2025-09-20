@@ -56,7 +56,7 @@ interface Borrower {
   spouseFirstName?: string;
   spouseEmployerName?: string;
   spouseContactDetails?: string;
-  companyBranch?: string;
+  employerBranch?: string;
   bank?: string;
   bankBranch?: string;
   bsbCode?: string;
@@ -180,7 +180,7 @@ const Borrowers = () => {
         spouseFirstName: b.spouse_first_name,
         spouseEmployerName: b.spouse_employer_name,
         spouseContactDetails: b.spouse_contact_details,
-        companyBranch: b.company_branch,
+        employerBranch: b.branch_name,
         bank: b.bank,
         bankBranch: b.bank_branch,
         bsbCode: b.bsb_code,
