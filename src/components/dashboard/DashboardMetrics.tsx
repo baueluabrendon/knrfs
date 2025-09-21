@@ -73,9 +73,18 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
   const totalStatutoryBody = Math.floor(totalBorrowers * 0.30);
   const totalCompanyClients = totalBorrowers - totalPublicServants - totalStatutoryBody;
   
+  // Use consistent active loan counts - should match totalOutstandingOpenLoans
   const activePublicServantsLoans = Math.floor(totalOutstandingOpenLoans * 0.45);
   const activeStatutoryBodyLoans = Math.floor(totalOutstandingOpenLoans * 0.30);
   const activeCompanyLoans = totalOutstandingOpenLoans - activePublicServantsLoans - activeStatutoryBodyLoans;
+  
+  // Validation: Ensure Active Loans total equals Total Outstanding Open Loans
+  const totalActiveLoansBreakdown = activePublicServantsLoans + activeStatutoryBodyLoans + activeCompanyLoans;
+  console.log('Dashboard consistency check:', {
+    totalOutstandingOpenLoans,
+    totalActiveLoansBreakdown,
+    isConsistent: totalOutstandingOpenLoans === totalActiveLoansBreakdown
+  });
   
   const settledPublicServantsLoans = Math.floor(fullyPaidBorrowers * 0.45);
   const settledStatutoryBodyLoans = Math.floor(fullyPaidBorrowers * 0.30);
