@@ -94,7 +94,7 @@ export interface LoanStatusData {
 }
 
 export const analyticsApi = {
-  // Get analytics data from the comprehensive view with branch filtering
+  // Get real-time analytics data directly from source tables
   async getAnalyticsData(
     period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' = 'monthly',
     startDate?: string,
@@ -102,43 +102,93 @@ export const analyticsApi = {
     branchId?: string,
     clientType?: string,
     userRole?: string
-  ): Promise<AnalyticsData[]> {
+  ): Promise<any[]> {
     const start = startDate || '2024-01-01';
     const end = endDate || new Date().toISOString().split('T')[0];
     
-    let query = supabase
-      .from('dashboard_analytics_with_branches')
-      .select('*')
-      .gte('analysis_date', start)
-      .lte('analysis_date', end)
-      .order('analysis_date', { ascending: false });
-
-    // Apply branch filter based on user role
-    if (branchId && branchId !== 'all') {
-      // If user is not admin/super user, filter by their branch
-      if (userRole && !['administrator', 'super user'].includes(userRole)) {
-        query = query.eq('branch_id', branchId);
-      } else if (branchId) {
-        // Admin can filter by specific branch if provided
-        query = query.eq('branch_id', branchId);
-      }
-    } else if (userRole && !['administrator', 'super user'].includes(userRole) && branchId) {
-      // Non-admin users always see only their branch data
-      query = query.eq('branch_id', branchId);
+    // Build branch filter condition for joins
+    const isAdmin = userRole && ['administrator', 'super user'].includes(userRole);
+    let branchCondition = '';
+    
+    if (!isAdmin && branchId) {
+      branchCondition = `AND borrowers.branch_id = '${branchId}'`;
+    } else if (branchId && branchId !== 'all') {
+      branchCondition = `AND borrowers.branch_id = '${branchId}'`;
     }
 
-    // Apply client type filter if provided
-    if (clientType && clientType !== 'all') {
-      query = query.eq('client_type', clientType);
+    // Get loan disbursements (loans released) by period
+    const { data: loanData, error: loanError } = await supabase.rpc('get_dashboard_analytics', {
+      p_start_date: start,
+      p_end_date: end,
+      p_period_type: period
+    });
+
+    if (loanError) throw loanError;
+
+    // Get real-time outstanding balances
+    let outstandingQuery = supabase
+      .from('loans')
+      .select('outstanding_balance, disbursement_date, borrower_id, borrowers!inner(branch_id)')
+      .eq('loan_status', 'active');
+
+    if (!isAdmin && branchId) {
+      outstandingQuery = outstandingQuery.eq('borrowers.branch_id', branchId);
+    } else if (branchId && branchId !== 'all') {
+      outstandingQuery = outstandingQuery.eq('borrowers.branch_id', branchId);
     }
 
-    const { data, error } = await query;
+    const { data: outstandingData, error: outstandingError } = await outstandingQuery;
+    if (outstandingError) throw outstandingError;
 
-    if (error) throw error;
-    return data || [];
+    // Get fee collections from repayment_schedule
+    let feeCollectionsQuery = supabase
+      .from('repayment_schedule')
+      .select(`
+        settled_date,
+        received_documentation_fee,
+        received_loan_risk_insurance,
+        received_gst_amount,
+        default_charged,
+        loans!inner(borrower_id, borrowers!inner(branch_id))
+      `)
+      .not('settled_date', 'is', null)
+      .gte('settled_date', start)
+      .lte('settled_date', end);
+
+    if (!isAdmin && branchId) {
+      feeCollectionsQuery = feeCollectionsQuery.eq('loans.borrowers.branch_id', branchId);
+    } else if (branchId && branchId !== 'all') {
+      feeCollectionsQuery = feeCollectionsQuery.eq('loans.borrowers.branch_id', branchId);
+    }
+
+    const { data: feeData, error: feeError } = await feeCollectionsQuery;
+    if (feeError) throw feeError;
+
+    // Get repayment collections
+    let repaymentsQuery = supabase
+      .from('repayments')
+      .select(`
+        payment_date,
+        amount,
+        loan_id,
+        loans!inner(borrower_id, borrowers!inner(branch_id))
+      `)
+      .gte('payment_date', start)
+      .lte('payment_date', end);
+
+    if (!isAdmin && branchId) {
+      repaymentsQuery = repaymentsQuery.eq('loans.borrowers.branch_id', branchId);
+    } else if (branchId && branchId !== 'all') {
+      repaymentsQuery = repaymentsQuery.eq('loans.borrowers.branch_id', branchId);
+    }
+
+    const { data: repaymentData, error: repaymentError } = await repaymentsQuery;
+    if (repaymentError) throw repaymentError;
+
+    return loanData || [];
   },
 
-  // Get aggregated analytics data grouped by time period
+  // Get aggregated analytics data with real-time calculations
   async getAggregatedAnalyticsData(
     period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' = 'monthly',
     startDate?: string,
@@ -147,93 +197,144 @@ export const analyticsApi = {
     clientType?: string,
     userRole?: string
   ): Promise<any[]> {
-    const rawData = await this.getAnalyticsData(period, startDate, endDate, branchId, clientType, userRole);
-    
-    // Group by time period and aggregate
-    const groupedData = rawData.reduce((acc: any, row) => {
-      let periodKey: string;
-      
-      switch (period) {
-        case 'daily':
-          periodKey = `${row.year}-${String(row.month).padStart(2, '0')}-${String(row.day).padStart(2, '0')}`;
-          break;
-        case 'weekly':
-          periodKey = `${row.year}-W${String(row.week).padStart(2, '0')}`;
-          break;
-        case 'monthly':
-          periodKey = `${row.year}-${String(row.month).padStart(2, '0')}`;
-          break;
-        case 'quarterly':
-          periodKey = `${row.year}-Q${row.quarter}`;
-          break;
-        case 'yearly':
-          periodKey = String(row.year);
-          break;
-        default:
-          periodKey = `${row.year}-${String(row.month).padStart(2, '0')}`;
-      }
+    const start = startDate || '2024-01-01';
+    const end = endDate || new Date().toISOString().split('T')[0];
+    const isAdmin = userRole && ['administrator', 'super user'].includes(userRole);
 
-      if (!acc[periodKey]) {
-        acc[periodKey] = {
-          period_label: periodKey,
-          principal_released: 0,
-          total_collections: 0,
-          total_due_amount: 0,
-          total_outstanding: 0,
-          doc_fees_collected: 0,
-          risk_insurance_collected: 0,
-          loans_released_count: 0,
-          active_loans_count: 0,
-          repayments_collected_count: 0,
-          settled_loans_count: 0,
-          new_borrowers_count: 0,
-          male_count: 0,
-          female_count: 0,
-          public_service_count: 0,
-          statutory_body_count: 0,
-          private_company_count: 0,
-          defaults_count: 0,
-          public_defaults: 0,
-          statutory_defaults: 0,
-          private_defaults: 0
-        };
-      }
+    // Get data from database function (handles period aggregation)
+    const { data: analyticsData, error: analyticsError } = await supabase.rpc('get_dashboard_analytics', {
+      p_start_date: start,
+      p_end_date: end,
+      p_period_type: period
+    });
 
-      // Aggregate the metrics
-      acc[periodKey].principal_released += row.principal_released || 0;
-      acc[periodKey].total_collections += row.total_collections || 0;
-      acc[periodKey].total_due_amount += row.total_due_amount || 0;
-      acc[periodKey].total_outstanding += row.total_outstanding || 0;
-      acc[periodKey].doc_fees_collected += row.doc_fees_collected || 0;
-      acc[periodKey].risk_insurance_collected += row.risk_insurance_collected || 0;
-      acc[periodKey].loans_released_count += row.loans_released_count || 0;
-      acc[periodKey].active_loans_count += row.active_loans_count || 0;
-      acc[periodKey].repayments_collected_count += row.repayments_collected_count || 0;
-      acc[periodKey].settled_loans_count += row.settled_loans_count || 0;
-      acc[periodKey].new_borrowers_count += row.new_borrowers_count || 0;
-      acc[periodKey].male_count += row.male_count || 0;
-      acc[periodKey].female_count += row.female_count || 0;
-      acc[periodKey].public_service_count += row.public_service_count || 0;
-      acc[periodKey].statutory_body_count += row.statutory_body_count || 0;
-      acc[periodKey].private_company_count += row.private_company_count || 0;
-      acc[periodKey].defaults_count += row.defaults_count || 0;
-      acc[periodKey].public_defaults += row.public_defaults || 0;
-      acc[periodKey].statutory_defaults += row.statutory_defaults || 0;
-      acc[periodKey].private_defaults += row.private_defaults || 0;
+    if (analyticsError) throw analyticsError;
 
-      return acc;
-    }, {});
-
-    return Object.values(groupedData);
-  },
-
-  // Get loan status breakdown for pie chart
-  async getLoanStatusBreakdown(): Promise<LoanStatusData[]> {
-    const { data, error } = await supabase
+    // Get real-time outstanding balances for active loans
+    let outstandingQuery = supabase
       .from('loans')
-      .select('loan_status, loan_repayment_status')
+      .select('outstanding_balance, disbursement_date, borrower_id, borrowers!inner(branch_id)')
       .eq('loan_status', 'active');
 
+    if (!isAdmin && branchId) {
+      outstandingQuery = outstandingQuery.eq('borrowers.branch_id', branchId);
+    } else if (branchId && branchId !== 'all') {
+      outstandingQuery = outstandingQuery.eq('borrowers.branch_id', branchId);
+    }
+
+    const { data: outstandingData } = await outstandingQuery;
+    const totalOutstanding = outstandingData?.reduce((sum, loan) => sum + (loan.outstanding_balance || 0), 0) || 0;
+
+    // Get real-time fee collections from repayment_schedule
+    let feeQuery = supabase
+      .from('repayment_schedule')
+      .select(`
+        settled_date,
+        received_documentation_fee,
+        received_loan_risk_insurance,
+        received_gst_amount,
+        default_charged,
+        loans!inner(borrower_id, borrowers!inner(branch_id))
+      `)
+      .not('settled_date', 'is', null)
+      .gte('settled_date', start)
+      .lte('settled_date', end);
+
+    if (!isAdmin && branchId) {
+      feeQuery = feeQuery.eq('loans.borrowers.branch_id', branchId);
+    } else if (branchId && branchId !== 'all') {
+      feeQuery = feeQuery.eq('loans.borrowers.branch_id', branchId);
+    }
+
+    const { data: feeData } = await feeQuery;
+
+    // Get real-time repayment collections
+    let repaymentQuery = supabase
+      .from('repayments')
+      .select(`
+        payment_date,
+        amount,
+        loans!inner(borrower_id, borrowers!inner(branch_id))
+      `)
+      .gte('payment_date', start)
+      .lte('payment_date', end);
+
+    if (!isAdmin && branchId) {
+      repaymentQuery = repaymentQuery.eq('loans.borrowers.branch_id', branchId);
+    } else if (branchId && branchId !== 'all') {
+      repaymentQuery = repaymentQuery.eq('loans.borrowers.branch_id', branchId);
+    }
+
+    const { data: repaymentData } = await repaymentQuery;
+
+    // Process analytics data and add real-time calculations
+    const processedData = (analyticsData || []).map((row: any) => {
+      // Calculate period-specific outstanding balance (for chart display)
+      const periodOutstanding = period === 'monthly' ? totalOutstanding : row.total_outstanding;
+      
+      // Get fee collections for this period from repayment_schedule
+      const periodFeeData = feeData?.filter(fee => {
+        const feeDate = new Date(fee.settled_date);
+        const rowPeriod = row.period_label;
+        
+        if (period === 'monthly') {
+          const feeMonth = `${feeDate.getFullYear()}-${String(feeDate.getMonth() + 1).padStart(2, '0')}`;
+          return rowPeriod.includes(feeMonth);
+        }
+        return true; // For other periods, include all
+      }) || [];
+
+      const docFeesCollected = periodFeeData.reduce((sum, fee) => sum + (fee.received_documentation_fee || 0), 0);
+      const riskInsuranceCollected = periodFeeData.reduce((sum, fee) => sum + (fee.received_loan_risk_insurance || 0), 0);
+      const defaultFeesCollected = periodFeeData.reduce((sum, fee) => sum + (fee.default_charged || 0), 0);
+
+      // Get repayment collections for this period
+      const periodRepayments = repaymentData?.filter(rep => {
+        const repDate = new Date(rep.payment_date);
+        const rowPeriod = row.period_label;
+        
+        if (period === 'monthly') {
+          const repMonth = `${repDate.getFullYear()}-${String(repDate.getMonth() + 1).padStart(2, '0')}`;
+          return rowPeriod.includes(repMonth);
+        }
+        return true;
+      }) || [];
+
+      const totalCollections = periodRepayments.reduce((sum, rep) => sum + (rep.amount || 0), 0);
+      const repaymentsCollectedCount = periodRepayments.length;
+
+      return {
+        ...row,
+        total_outstanding: periodOutstanding,
+        doc_fees_collected: docFeesCollected,
+        risk_insurance_collected: riskInsuranceCollected,
+        default_fees_collected: defaultFeesCollected,
+        total_collections: totalCollections,
+        repayments_collected_count: repaymentsCollectedCount
+      };
+    });
+
+    // Sort by period (oldest first for 12-month display)
+    return processedData.sort((a, b) => a.period_label.localeCompare(b.period_label));
+  },
+
+  // Get loan status breakdown for pie chart with branch filtering
+  async getLoanStatusBreakdown(branchId?: string, userRole?: string): Promise<LoanStatusData[]> {
+    const isAdmin = userRole && ['administrator', 'super user'].includes(userRole);
+    
+    let query = supabase
+      .from('loans')
+      .select('loan_status, loan_repayment_status, borrower_id, borrowers!inner(branch_id)')
+      .eq('loan_status', 'active');
+
+    // Apply branch filtering
+    if (!isAdmin && branchId) {
+      query = query.eq('borrowers.branch_id', branchId);
+    } else if (branchId && branchId !== 'all') {
+      query = query.eq('borrowers.branch_id', branchId);
+    }
+
+    const { data, error } = await query;
     if (error) throw error;
 
     // Group by repayment status
@@ -250,13 +351,23 @@ export const analyticsApi = {
     }));
   },
 
-  // Get gender distribution for pie chart
-  async getGenderDistribution(): Promise<PieChartData[]> {
-    const { data, error } = await supabase
+  // Get gender distribution for pie chart with branch filtering
+  async getGenderDistribution(branchId?: string, userRole?: string): Promise<PieChartData[]> {
+    const isAdmin = userRole && ['administrator', 'super user'].includes(userRole);
+    
+    let query = supabase
       .from('borrowers')
-      .select('gender')
+      .select('gender, branch_id')
       .not('gender', 'is', null);
 
+    // Apply branch filtering
+    if (!isAdmin && branchId) {
+      query = query.eq('branch_id', branchId);
+    } else if (branchId && branchId !== 'all') {
+      query = query.eq('branch_id', branchId);
+    }
+
+    const { data, error } = await query;
     if (error) throw error;
 
     const genderCounts = (data || []).reduce((acc: Record<string, number>, borrower) => {
@@ -274,13 +385,23 @@ export const analyticsApi = {
     }));
   },
 
-  // Get clients per company breakdown
-  async getClientsPerCompany(): Promise<PieChartData[]> {
-    const { data, error } = await supabase
+  // Get clients per company breakdown with branch filtering
+  async getClientsPerCompany(branchId?: string, userRole?: string): Promise<PieChartData[]> {
+    const isAdmin = userRole && ['administrator', 'super user'].includes(userRole);
+    
+    let query = supabase
       .from('borrowers')
-      .select('department_company')
+      .select('department_company, branch_id')
       .not('department_company', 'is', null);
 
+    // Apply branch filtering
+    if (!isAdmin && branchId) {
+      query = query.eq('branch_id', branchId);
+    } else if (branchId && branchId !== 'all') {
+      query = query.eq('branch_id', branchId);
+    }
+
+    const { data, error } = await query;
     if (error) throw error;
 
     const companyCounts = (data || []).reduce((acc: Record<string, number>, borrower) => {
@@ -312,9 +433,11 @@ export const analyticsApi = {
     }));
   },
 
-  // Get defaults per company breakdown
-  async getDefaultsPerCompany(): Promise<PieChartData[]> {
-    const { data, error } = await supabase
+  // Get defaults per company breakdown with branch filtering
+  async getDefaultsPerCompany(branchId?: string, userRole?: string): Promise<PieChartData[]> {
+    const isAdmin = userRole && ['administrator', 'super user'].includes(userRole);
+    
+    let query = supabase
       .from('defaults')
       .select(`
         *,
@@ -322,14 +445,27 @@ export const analyticsApi = {
           loan_id,
           loans!inner(
             borrower_id,
-            borrowers!inner(department_company)
+            borrowers!inner(department_company, branch_id)
           )
         )
       `);
 
+    const { data, error } = await query;
     if (error) throw error;
 
-    const defaultCounts = (data || []).reduce((acc: Record<string, number>, defaultRecord) => {
+    // Filter by branch if needed
+    const filteredData = (data || []).filter(defaultRecord => {
+      const branchIdFromRecord = defaultRecord.repayment_schedule?.loans?.borrowers?.branch_id;
+      
+      if (!isAdmin && branchId) {
+        return branchIdFromRecord === branchId;
+      } else if (branchId && branchId !== 'all') {
+        return branchIdFromRecord === branchId;
+      }
+      return true;
+    });
+
+    const defaultCounts = filteredData.reduce((acc: Record<string, number>, defaultRecord) => {
       const company = defaultRecord.repayment_schedule?.loans?.borrowers?.department_company?.toLowerCase() || '';
       
       let category = 'Private Companies';
@@ -358,9 +494,9 @@ export const analyticsApi = {
     }));
   },
 
-  // Get loan status pie chart data
-  async getLoanStatusPieChart(): Promise<PieChartData[]> {
-    const statusData = await this.getLoanStatusBreakdown();
+  // Get loan status pie chart data with branch filtering
+  async getLoanStatusPieChart(branchId?: string, userRole?: string): Promise<PieChartData[]> {
+    const statusData = await this.getLoanStatusBreakdown(branchId, userRole);
     
     const statusColors = {
       'on time': '#22C55E',

@@ -85,11 +85,11 @@ const DashboardCharts = () => {
     user?.role
   );
 
-  // Fetch pie chart data
-  const { data: loanStatusData, isLoading: loanStatusLoading } = useLoanStatusPieChart();
-  const { data: genderData, isLoading: genderLoading } = useGenderDistribution();
-  const { data: clientsPerCompanyData, isLoading: clientsLoading } = useClientsPerCompany();
-  const { data: defaultsPerCompanyData, isLoading: defaultsLoading } = useDefaultsPerCompany();
+  // Fetch pie chart data with branch filtering
+  const { data: loanStatusData, isLoading: loanStatusLoading } = useLoanStatusPieChart(effectiveBranchId, user?.role);
+  const { data: genderData, isLoading: genderLoading } = useGenderDistribution(effectiveBranchId, user?.role);
+  const { data: clientsPerCompanyData, isLoading: clientsLoading } = useClientsPerCompany(effectiveBranchId, user?.role);
+  const { data: defaultsPerCompanyData, isLoading: defaultsLoading } = useDefaultsPerCompany(effectiveBranchId, user?.role);
 
   const getFilterLabel = () => {
     return filterOptions.find(option => option.value === timeFilter)?.label || 'Monthly';

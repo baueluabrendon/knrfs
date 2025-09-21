@@ -16,34 +16,35 @@ export const useDashboardAnalytics = (
   });
 };
 
-export const useLoanStatusPieChart = () => {
+// Helper hooks with branch filtering support
+export const useLoanStatusPieChart = (branchId?: string, userRole?: string) => {
   return useQuery({
-    queryKey: ['loan-status-pie-chart'],
-    queryFn: () => analyticsApi.getLoanStatusPieChart(),
+    queryKey: ['loan-status-pie-chart', branchId, userRole],
+    queryFn: () => analyticsApi.getLoanStatusPieChart(branchId, userRole),
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 };
 
-export const useGenderDistribution = () => {
+export const useGenderDistribution = (branchId?: string, userRole?: string) => {
   return useQuery({
-    queryKey: ['gender-distribution'],
-    queryFn: () => analyticsApi.getGenderDistribution(),
+    queryKey: ['gender-distribution', branchId, userRole],
+    queryFn: () => analyticsApi.getGenderDistribution(branchId, userRole),
     staleTime: 30 * 60 * 1000, // 30 minutes
   });
 };
 
-export const useClientsPerCompany = () => {
+export const useClientsPerCompany = (branchId?: string, userRole?: string) => {
   return useQuery({
-    queryKey: ['clients-per-company'],
-    queryFn: () => analyticsApi.getClientsPerCompany(),
+    queryKey: ['clients-per-company', branchId, userRole],
+    queryFn: () => analyticsApi.getClientsPerCompany(branchId, userRole),
     staleTime: 30 * 60 * 1000, // 30 minutes
   });
 };
 
-export const useDefaultsPerCompany = () => {
+export const useDefaultsPerCompany = (branchId?: string, userRole?: string) => {
   return useQuery({
-    queryKey: ['defaults-per-company'],
-    queryFn: () => analyticsApi.getDefaultsPerCompany(),
+    queryKey: ['defaults-per-company', branchId, userRole],
+    queryFn: () => analyticsApi.getDefaultsPerCompany(branchId, userRole),
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 };
@@ -73,64 +74,69 @@ export const useFormattedAnalyticsData = (
   const formatDataForCharts = (analyticsData: any[]) => {
     const timeKey = getTimeKey();
 
+    // Sort data chronologically (oldest first) for proper 12-month display
+    const sortedData = [...analyticsData].sort((a, b) => a.period_label.localeCompare(b.period_label));
+
     return {
-      loanReleased: analyticsData.map(item => ({
+      loanReleased: sortedData.map(item => ({
         [timeKey]: item.period_label,
-        amount: Number(item.principal_released)
+        amount: Number(item.principal_released || 0)
       })),
       
-      collections: analyticsData.map(item => ({
+      collections: sortedData.map(item => ({
         [timeKey]: item.period_label,
-        amount: Number(item.total_collections)
+        amount: Number(item.total_collections || 0)
       })),
       
-      collectionsVsRepayments: analyticsData.map(item => ({
+      collectionsVsRepayments: sortedData.map(item => ({
         [timeKey]: item.period_label,
-        collections: Number(item.total_collections),
-        repaymentsDue: Number(item.total_due_amount)
+        collections: Number(item.total_collections || 0),
+        repaymentsDue: Number(item.total_due_amount || 0)
       })),
       
-      collectionsVsReleased: analyticsData.map(item => ({
+      collectionsVsReleased: sortedData.map(item => ({
         [timeKey]: item.period_label,
-        collections: Number(item.total_collections),
-        loansReleased: Number(item.principal_released)
+        collections: Number(item.total_collections || 0),
+        loansReleased: Number(item.principal_released || 0)
       })),
       
-      outstandingLoans: analyticsData.map(item => ({
+      // Real-time outstanding balances for active loans
+      outstandingLoans: sortedData.map(item => ({
         [timeKey]: item.period_label,
-        amount: Number(item.total_outstanding)
+        amount: Number(item.total_outstanding || 0)
       })),
       
-      feesComparison: analyticsData.map(item => ({
+      // Fee collections from repayment_schedule data
+      feesComparison: sortedData.map(item => ({
         [timeKey]: item.period_label,
-        defaultFees: Number(item.total_default_amount || 0),
-        riskInsurance: Number(item.risk_insurance_collected),
-        docFees: Number(item.doc_fees_collected)
+        defaultFees: Number(item.default_fees_collected || 0),
+        riskInsurance: Number(item.risk_insurance_collected || 0),
+        docFees: Number(item.doc_fees_collected || 0)
       })),
       
-      numberOfOpenLoans: analyticsData.map(item => ({
+      numberOfOpenLoans: sortedData.map(item => ({
         [timeKey]: item.period_label,
-        count: Number(item.active_loans_count)
+        count: Number(item.active_loans_count || 0)
       })),
       
-      loansReleased: analyticsData.map(item => ({
+      loansReleased: sortedData.map(item => ({
         [timeKey]: item.period_label,
-        count: Number(item.loans_released_count)
+        count: Number(item.loans_released_count || 0)
       })),
       
-      repaymentsCollected: analyticsData.map(item => ({
+      repaymentsCollected: sortedData.map(item => ({
         [timeKey]: item.period_label,
-        count: Number(item.repayments_collected_count)
+        count: Number(item.repayments_collected_count || 0)
       })),
       
-      fullyPaidLoans: analyticsData.map(item => ({
+      fullyPaidLoans: sortedData.map(item => ({
         [timeKey]: item.period_label,
-        count: Number(item.settled_loans_count)
+        count: Number(item.settled_loans_count || 0)
       })),
       
-      newClients: analyticsData.map(item => ({
+      newClients: sortedData.map(item => ({
         [timeKey]: item.period_label,
-        count: Number(item.new_borrowers_count)
+        count: Number(item.new_borrowers_count || 0)
       }))
     };
   };
