@@ -107,8 +107,10 @@ export type Database = {
         Row: {
           application_document_url: string | null
           application_id: string
+          application_type: string | null
           jsonb_data: Json | null
           jsonb_loans: Json | null
+          refinanced_from_loan_id: string | null
           status: Database["public"]["Enums"]["application_status_enum"] | null
           updated_at: string | null
           uploaded_at: string | null
@@ -116,8 +118,10 @@ export type Database = {
         Insert: {
           application_document_url?: string | null
           application_id?: string
+          application_type?: string | null
           jsonb_data?: Json | null
           jsonb_loans?: Json | null
+          refinanced_from_loan_id?: string | null
           status?: Database["public"]["Enums"]["application_status_enum"] | null
           updated_at?: string | null
           uploaded_at?: string | null
@@ -125,13 +129,30 @@ export type Database = {
         Update: {
           application_document_url?: string | null
           application_id?: string
+          application_type?: string | null
           jsonb_data?: Json | null
           jsonb_loans?: Json | null
+          refinanced_from_loan_id?: string | null
           status?: Database["public"]["Enums"]["application_status_enum"] | null
           updated_at?: string | null
           uploaded_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_applications_refinanced_from_loan"
+            columns: ["refinanced_from_loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans"
+            referencedColumns: ["loan_id"]
+          },
+          {
+            foreignKeyName: "fk_applications_refinanced_from_loan"
+            columns: ["refinanced_from_loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans_in_arrears_view"
+            referencedColumns: ["loan_id"]
+          },
+        ]
       }
       borrowers: {
         Row: {

@@ -10,9 +10,14 @@ import { FormDataType } from "@/types/loan";
  * 
  * @param formData The final form data after review
  * @param applicationUuid The UUID of the application being processed
+ * @param refinanceContext Optional context for refinance applications
  * @returns A boolean indicating success or failure
  */
-export async function submitApplication(formData: FormDataType, applicationUuid: string): Promise<boolean> {
+export async function submitApplication(
+  formData: FormDataType, 
+  applicationUuid: string, 
+  refinanceContext?: any
+): Promise<boolean> {
   try {
     // Check if application already exists
     const { data: existingApp, error: fetchError } = await supabase
@@ -36,7 +41,9 @@ export async function submitApplication(formData: FormDataType, applicationUuid:
         .update({
           jsonb_data: formData as any,  // Save the reviewed form data
           updated_at: new Date().toISOString(),
-          status: 'pending'
+          status: 'pending',
+          application_type: refinanceContext ? 'refinance' : 'new_loan',
+          refinanced_from_loan_id: refinanceContext?.originalLoanId || null,
         })
         .eq('application_id', applicationUuid);
       
@@ -51,7 +58,9 @@ export async function submitApplication(formData: FormDataType, applicationUuid:
           application_id: applicationUuid,
           jsonb_data: formData as any,  // Save the reviewed form data
           uploaded_at: new Date().toISOString(),
-          status: 'pending'
+          status: 'pending',
+          application_type: refinanceContext ? 'refinance' : 'new_loan',
+          refinanced_from_loan_id: refinanceContext?.originalLoanId || null,
         });
       
       if (insertError) {
@@ -59,7 +68,8 @@ export async function submitApplication(formData: FormDataType, applicationUuid:
       }
     }
 
-    toast.success("Application submitted successfully");
+    const applicationType = refinanceContext ? 'refinance' : 'new loan';
+    toast.success(`${applicationType.charAt(0).toUpperCase() + applicationType.slice(1)} application submitted successfully`);
     return true;
   } catch (error) {
     console.error('Error submitting application:', error);

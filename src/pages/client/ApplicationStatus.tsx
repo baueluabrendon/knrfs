@@ -9,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { RefinanceApplicationsList } from "@/components/client/RefinanceApplicationsList";
 
 // Define a simple type for applications
 interface Application {
@@ -81,6 +82,9 @@ const ApplicationStatus = () => {
           </TableBody>
         </Table>
       </Card>
+
+      {/* Refinance Applications Section */}
+      <RefinanceApplicationsList />
     </div>
   );
 };

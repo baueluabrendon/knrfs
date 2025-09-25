@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FormDataType } from "@/types/loan";
 import { defaultFormData } from "../default-values";
 import { submitApplication } from "../submit-application";
@@ -9,6 +9,26 @@ type ExtractedDataType = Partial<FormDataType>;
 
 export function useFormData(applicationUuid: string) {
   const [formData, setFormData] = useState<FormDataType>({ ...defaultFormData });
+  const [refinanceContext, setRefinanceContext] = useState<any>(null);
+
+  useEffect(() => {
+    // Check for refinance context from sessionStorage
+    const storedContext = sessionStorage.getItem('refinanceContext');
+    if (storedContext) {
+      try {
+        const context = JSON.parse(storedContext);
+        if (context.type === 'refinance') {
+          setRefinanceContext(context);
+          
+          // Pre-populate form data for refinance if needed
+          // You can set default values based on original loan here
+          console.log('Refinance context loaded:', context);
+        }
+      } catch (error) {
+        console.error('Error parsing refinance context:', error);
+      }
+    }
+  }, []);
 
   const updateFormData = (section: keyof FormDataType, data: any) => {
     setFormData(prev => ({
@@ -50,11 +70,14 @@ export function useFormData(applicationUuid: string) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const success = await submitApplication(formData, applicationUuid);
+    const success = await submitApplication(formData, applicationUuid, refinanceContext);
     
     if (success) {
+      // Clear refinance context after successful submission
+      sessionStorage.removeItem('refinanceContext');
+      
       setTimeout(() => {
-        window.location.href = '/';
+        window.location.href = refinanceContext ? '/client' : '/';
       }, 2000);
     }
   };
@@ -63,6 +86,7 @@ export function useFormData(applicationUuid: string) {
     formData,
     updateFormData,
     updateExtractedData,
-    handleSubmit
+    handleSubmit,
+    refinanceContext
   };
 }

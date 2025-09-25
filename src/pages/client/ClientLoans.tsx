@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -10,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2 } from "lucide-react";
+import { Loader2, RefreshCw, Eye } from "lucide-react";
 import { format } from "date-fns";
 import {
   Dialog,
@@ -21,11 +22,16 @@ import {
 } from "@/components/ui/dialog";
 import { RepaymentSchedule } from "@/components/loans/RepaymentSchedule";
 import { useClientLoans } from "@/hooks/useClientData";
+import { useRefinanceEligibility } from "@/hooks/useRefinanceEligibility";
+import { RefinanceDialog } from "@/components/client/RefinanceDialog";
+import { toast } from "sonner";
 
 const ClientLoans = () => {
   const { user } = useAuth();
   const [selectedLoan, setSelectedLoan] = useState<any | null>(null);
   const [isRepaymentScheduleOpen, setIsRepaymentScheduleOpen] = useState(false);
+  const [refinanceDialogOpen, setRefinanceDialogOpen] = useState(false);
+  const [loanForRefinance, setLoanForRefinance] = useState<any | null>(null);
   
   const { data: loans, isLoading } = useClientLoans();
 
@@ -56,6 +62,28 @@ const ClientLoans = () => {
     setIsRepaymentScheduleOpen(true);
   };
 
+  const handleRefinanceClick = (loan: any) => {
+    setLoanForRefinance(loan);
+    setRefinanceDialogOpen(true);
+  };
+
+  const RefinanceButton = ({ loan }: { loan: any }) => {
+    const { isEligible, reason } = useRefinanceEligibility(loan);
+    
+    return (
+      <Button
+        size="sm"
+        variant={isEligible ? "default" : "outline"}
+        disabled={!isEligible}
+        onClick={() => isEligible ? handleRefinanceClick(loan) : toast.info(reason)}
+        className={isEligible ? "bg-blue-600 hover:bg-blue-700" : ""}
+      >
+        <RefreshCw className="mr-1 h-3 w-3" />
+        {isEligible ? "Refinance" : "Not Eligible"}
+      </Button>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -81,12 +109,13 @@ const ClientLoans = () => {
               <TableHead>End Date</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Balance</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {!loans || loans.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                   No loans found
                 </TableCell>
               </TableRow>
@@ -118,6 +147,19 @@ const ClientLoans = () => {
                     </span>
                   </TableCell>
                   <TableCell>K{loan.outstanding_balance?.toLocaleString()}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleLoanClick(loan)}
+                      >
+                        <Eye className="mr-1 h-3 w-3" />
+                        View
+                      </Button>
+                      <RefinanceButton loan={loan} />
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))
             )}
@@ -149,6 +191,12 @@ const ClientLoans = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <RefinanceDialog
+        isOpen={refinanceDialogOpen}
+        onClose={() => setRefinanceDialogOpen(false)}
+        loan={loanForRefinance}
+      />
     </div>
   );
 };

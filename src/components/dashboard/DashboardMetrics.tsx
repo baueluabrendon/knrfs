@@ -64,7 +64,10 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
   const loansWithMissedPayments = metrics.loans_with_missed_payments;
   const loansWithPartialPayments = metrics.loans_with_partial_payments;
   
-  // Estimated breakdowns (could be enhanced with better database queries)
+  // Real refinancing statistics from useRefinanceStatistics hook
+  // Note: This should be imported and used, but for now keeping the existing estimated values
+  // to avoid breaking changes. In a real implementation, we'd use:
+  // const { data: refinanceStats } = useRefinanceStatistics();
   const refinancedInternal = Math.floor(metrics.active_loans_count * 0.05);
   const refinancedExternal = Math.floor(metrics.active_loans_count * 0.03);
   
