@@ -84,7 +84,7 @@ export const LoanApplicationProvider: React.FC<{ children: React.ReactNode }> = 
         handleNext,
         handlePrevious,
         handleExit,
-        handleSubmit,
+        handleSubmit: (e: React.FormEvent) => handleSubmit(e, selectedEmployerType || undefined),
         processApplicationForm,
         updateFormData,
         updateExtractedData,

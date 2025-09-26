@@ -16,7 +16,8 @@ import { FormDataType } from "@/types/loan";
 export async function submitApplication(
   formData: FormDataType, 
   applicationUuid: string, 
-  refinanceContext?: any
+  refinanceContext?: any,
+  employerType?: string
 ): Promise<boolean> {
   try {
     // Check if application already exists
@@ -44,6 +45,7 @@ export async function submitApplication(
           status: 'pending',
           application_type: refinanceContext ? 'refinance' : 'new_loan',
           refinanced_from_loan_id: refinanceContext?.originalLoanId || null,
+          employer_type: employerType || null,
         })
         .eq('application_id', applicationUuid);
       
@@ -61,6 +63,7 @@ export async function submitApplication(
           status: 'pending',
           application_type: refinanceContext ? 'refinance' : 'new_loan',
           refinanced_from_loan_id: refinanceContext?.originalLoanId || null,
+          employer_type: employerType || null,
         });
       
       if (insertError) {

@@ -108,6 +108,7 @@ export type Database = {
           application_document_url: string | null
           application_id: string
           application_type: string | null
+          employer_type: string | null
           jsonb_data: Json | null
           jsonb_loans: Json | null
           refinanced_from_loan_id: string | null
@@ -119,6 +120,7 @@ export type Database = {
           application_document_url?: string | null
           application_id?: string
           application_type?: string | null
+          employer_type?: string | null
           jsonb_data?: Json | null
           jsonb_loans?: Json | null
           refinanced_from_loan_id?: string | null
@@ -130,6 +132,7 @@ export type Database = {
           application_document_url?: string | null
           application_id?: string
           application_type?: string | null
+          employer_type?: string | null
           jsonb_data?: Json | null
           jsonb_loans?: Json | null
           refinanced_from_loan_id?: string | null
@@ -165,6 +168,7 @@ export type Database = {
           branch_id: string | null
           branch_name: string | null
           bsb_code: string | null
+          client_type: string | null
           date_employed: string | null
           date_of_birth: string | null
           department_company: string | null
@@ -203,6 +207,7 @@ export type Database = {
           branch_id?: string | null
           branch_name?: string | null
           bsb_code?: string | null
+          client_type?: string | null
           date_employed?: string | null
           date_of_birth?: string | null
           department_company?: string | null
@@ -241,6 +246,7 @@ export type Database = {
           branch_id?: string | null
           branch_name?: string | null
           bsb_code?: string | null
+          client_type?: string | null
           date_employed?: string | null
           date_of_birth?: string | null
           department_company?: string | null

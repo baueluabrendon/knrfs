@@ -4,6 +4,7 @@ import { dashboardApi } from '@/lib/api/dashboard';
 import { useAuth } from '@/contexts/AuthContext';
 import DashboardMetrics from '@/components/dashboard/DashboardMetrics';
 import DashboardCharts from '@/components/dashboard/DashboardCharts';
+import { ClientTypeBreakdown } from '@/components/dashboard/ClientTypeBreakdown';
 import { Loader2, TrendingUp, Users, DollarSign } from "lucide-react";
 
 const Dashboard = () => {
@@ -67,6 +68,13 @@ const Dashboard = () => {
 
       {/* Dashboard Metrics */}
       {dashboardMetrics && <DashboardMetrics metrics={dashboardMetrics} />}
+
+      {/* Client Type Classification */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ClientTypeBreakdown />
+        {/* Placeholder for future components */}
+        <div></div>
+      </div>
 
       {/* Dashboard Charts */}
       <DashboardCharts />

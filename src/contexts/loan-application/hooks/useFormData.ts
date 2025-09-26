@@ -67,10 +67,10 @@ export function useFormData(applicationUuid: string) {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, employerType?: string) => {
     e.preventDefault();
     
-    const success = await submitApplication(formData, applicationUuid, refinanceContext);
+    const success = await submitApplication(formData, applicationUuid, refinanceContext, employerType);
     
     if (success) {
       // Clear refinance context after successful submission
