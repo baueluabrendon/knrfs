@@ -1179,6 +1179,7 @@ export type Database = {
           collection_efficiency_percentage: number | null
           day: number | null
           declined_applications_count: number | null
+          default_fees_collected: number | null
           defaulted_schedules: number | null
           defaults_count: number | null
           doc_fees_collected: number | null
@@ -1186,7 +1187,6 @@ export type Database = {
           female_count: number | null
           gst_collected: number | null
           gst_due: number | null
-          interest_collected: number | null
           interest_due: number | null
           loans_released_count: number | null
           male_count: number | null
