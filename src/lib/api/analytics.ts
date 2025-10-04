@@ -204,7 +204,8 @@ export const analyticsApi = {
     const { data: analyticsData, error: analyticsError } = await supabase.rpc('get_dashboard_analytics', {
       p_start_date: start,
       p_end_date: end,
-      p_period_type: period
+      p_period_type: period,
+      p_branch_id: branchId === 'all' ? null : branchId,
     });
 
     if (analyticsError) throw analyticsError;

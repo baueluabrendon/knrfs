@@ -101,13 +101,6 @@ export type Database = {
             referencedRelation: "branches"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "activity_logs_branch_id_fkey"
-            columns: ["branch_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_analytics_with_branches"
-            referencedColumns: ["branch_id"]
-          },
         ]
       }
       applications: {
@@ -289,13 +282,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "branches"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "borrowers_branch_id_fkey"
-            columns: ["branch_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_analytics_with_branches"
-            referencedColumns: ["branch_id"]
           },
         ]
       }
@@ -1174,13 +1160,6 @@ export type Database = {
             referencedRelation: "branches"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "user_profiles_branch_id_fkey"
-            columns: ["branch_id"]
-            isOneToOne: false
-            referencedRelation: "dashboard_analytics_with_branches"
-            referencedColumns: ["branch_id"]
-          },
         ]
       }
     }
@@ -1386,11 +1365,18 @@ export type Database = {
         Returns: string
       }
       get_dashboard_analytics: {
-        Args: {
-          p_end_date?: string
-          p_period_type?: string
-          p_start_date?: string
-        }
+        Args:
+          | {
+              p_branch_id?: string
+              p_end_date?: string
+              p_period_type?: string
+              p_start_date?: string
+            }
+          | {
+              p_end_date?: string
+              p_period_type?: string
+              p_start_date?: string
+            }
         Returns: {
           active_loans_count: number
           default_fees_collected: number
