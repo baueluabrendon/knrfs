@@ -32,30 +32,36 @@ interface DashboardMetricsProps {
     loans_with_missed_payments: number;
     loans_with_partial_payments: number;
     collection_efficiency_percentage: number;
+    total_collections_this_year: number;
+    total_new_borrowers_this_year: number;
+    total_public_servants: number;
+    total_statutory_body: number;
+    total_private_company: number;
+    refinanced_internal: number;
+    refinanced_external: number;
   };
 }
 
 const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
-  // Use actual metrics from the enhanced database view
+  // Use actual metrics - NO ESTIMATES
   const totalBorrowers = metrics.active_borrowers_count;
-  const activeBorrowers = metrics.active_borrowers_count;
   const fullyPaidBorrowers = metrics.settled_loans_count;
   
-  // Sales metrics - use actual data
+  // Sales metrics - actual data
   const totalPrincipalReleased = metrics.total_principal_amount;
   const totalCollections = metrics.total_repayments_amount;
   const collectionEfficiency = metrics.collection_efficiency_percentage;
   
-  // Collections breakdown (estimate from total - could be enhanced with time-based queries)
-  const collectionsThisYear = totalCollections * 0.70; // Estimated
-  const collectionsThisMonth = totalCollections * 0.08; // Estimated
+  // Collections - actual from analytics view
+  const collectionsThisYear = metrics.total_collections_this_year;
+  const collectionsThisMonth = totalCollections * 0.08; // Estimated (monthly breakdown not in view yet)
   
-  // New borrowers breakdown (estimated - could be enhanced with date-based queries)
-  const newBorrowersThisYear = Math.floor(totalBorrowers * 0.25);
-  const newBorrowersLast3Months = Math.floor(totalBorrowers * 0.12);
-  const newBorrowersThisMonth = Math.floor(totalBorrowers * 0.04);
+  // New borrowers - actual from analytics view
+  const newBorrowersThisYear = metrics.total_new_borrowers_this_year;
+  const newBorrowersLast3Months = Math.floor(newBorrowersThisYear * 0.48); // Estimated quarterly
+  const newBorrowersThisMonth = Math.floor(newBorrowersThisYear / 12); // Estimated monthly
   
-  // Use actual loan portfolio metrics
+  // Loan portfolio metrics - actual data
   const totalOutstandingOpenLoans = metrics.active_loans_count;
   const principalOutstandingOpenLoans = metrics.total_outstanding_balance;
   const totalArrearsOutstanding = metrics.total_arrears_amount;
@@ -64,33 +70,31 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
   const loansWithMissedPayments = metrics.loans_with_missed_payments;
   const loansWithPartialPayments = metrics.loans_with_partial_payments;
   
-  // Real refinancing statistics from useRefinanceStatistics hook
-  // Note: This should be imported and used, but for now keeping the existing estimated values
-  // to avoid breaking changes. In a real implementation, we'd use:
-  // const { data: refinanceStats } = useRefinanceStatistics();
-  const refinancedInternal = Math.floor(metrics.active_loans_count * 0.05);
-  const refinancedExternal = Math.floor(metrics.active_loans_count * 0.03);
+  // Refinancing statistics - actual data
+  const refinancedInternal = metrics.refinanced_internal;
+  const refinancedExternal = metrics.refinanced_external;
   
-  // Client segmentation metrics (estimated - could be enhanced with borrower type data)
-  const totalPublicServants = Math.floor(totalBorrowers * 0.45);
-  const totalStatutoryBody = Math.floor(totalBorrowers * 0.30);
-  const totalCompanyClients = totalBorrowers - totalPublicServants - totalStatutoryBody;
+  // Client segmentation - actual data from borrowers table
+  const totalPublicServants = metrics.total_public_servants;
+  const totalStatutoryBody = metrics.total_statutory_body;
+  const totalCompanyClients = metrics.total_private_company;
   
-  // Use consistent active loan counts - should match totalOutstandingOpenLoans
-  const activePublicServantsLoans = Math.floor(totalOutstandingOpenLoans * 0.45);
-  const activeStatutoryBodyLoans = Math.floor(totalOutstandingOpenLoans * 0.30);
+  // Active loans by client type (proportional distribution based on actual client counts)
+  const totalClientCount = totalPublicServants + totalStatutoryBody + totalCompanyClients;
+  const activePublicServantsLoans = totalClientCount > 0 
+    ? Math.round((totalPublicServants / totalClientCount) * totalOutstandingOpenLoans)
+    : 0;
+  const activeStatutoryBodyLoans = totalClientCount > 0
+    ? Math.round((totalStatutoryBody / totalClientCount) * totalOutstandingOpenLoans)
+    : 0;
   const activeCompanyLoans = totalOutstandingOpenLoans - activePublicServantsLoans - activeStatutoryBodyLoans;
   
-  // Validation: Ensure Active Loans total equals Total Outstanding Open Loans
-  const totalActiveLoansBreakdown = activePublicServantsLoans + activeStatutoryBodyLoans + activeCompanyLoans;
-  console.log('Dashboard consistency check:', {
-    totalOutstandingOpenLoans,
-    totalActiveLoansBreakdown,
-    isConsistent: totalOutstandingOpenLoans === totalActiveLoansBreakdown
-  });
-  
-  const settledPublicServantsLoans = Math.floor(fullyPaidBorrowers * 0.45);
-  const settledStatutoryBodyLoans = Math.floor(fullyPaidBorrowers * 0.30);
+  const settledPublicServantsLoans = totalClientCount > 0
+    ? Math.round((totalPublicServants / totalClientCount) * fullyPaidBorrowers)
+    : 0;
+  const settledStatutoryBodyLoans = totalClientCount > 0
+    ? Math.round((totalStatutoryBody / totalClientCount) * fullyPaidBorrowers)
+    : 0;
   const settledCompanyLoans = fullyPaidBorrowers - settledPublicServantsLoans - settledStatutoryBodyLoans;
 
   // Main KPI Cards
@@ -98,8 +102,7 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
     {
       title: "Borrowers",
       stats: [
-        { label: "Total", value: totalBorrowers.toString() },
-        { label: "Active", value: activeBorrowers.toString() },
+        { label: "Total Active", value: totalBorrowers.toString() },
         { label: "Fully Paid", value: fullyPaidBorrowers.toString() }
       ],
       icon: Users,
@@ -127,7 +130,7 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
       stats: [
         { label: "Total", value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(totalCollections) },
         { label: "This Year", value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(collectionsThisYear) },
-        { label: "This Month", value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(collectionsThisMonth) }
+        { label: "This Month (Est.)", value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact' }).format(collectionsThisMonth) }
       ],
       icon: TrendingUp,
       color: "text-orange-600",
@@ -139,8 +142,8 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
       title: "New Borrowers",
       stats: [
         { label: "This Year", value: newBorrowersThisYear.toString() },
-        { label: "Last 3 Months", value: newBorrowersLast3Months.toString() },
-        { label: "This Month", value: newBorrowersThisMonth.toString() }
+        { label: "Last 3 Months (Est.)", value: newBorrowersLast3Months.toString() },
+        { label: "This Month (Est.)", value: newBorrowersThisMonth.toString() }
       ],
       icon: UserPlus,
       color: "text-purple-600",
@@ -150,7 +153,7 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
     }
   ];
 
-  // Updated Loan Portfolio Breakdown
+  // Loan Portfolio Breakdown
   const loanPortfolio = [
     {
       title: "Total Outstanding Open Loans",
@@ -260,9 +263,9 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
     {
       title: "Internal Refinanced",
       stats: [
-        { label: "Public Servants", value: Math.floor(refinancedInternal * 0.45).toString() },
-        { label: "Statutory Body", value: Math.floor(refinancedInternal * 0.30).toString() },
-        { label: "Company", value: Math.floor(refinancedInternal * 0.25).toString() }
+        { label: "Public Servants", value: Math.round((totalPublicServants / (totalClientCount || 1)) * refinancedInternal).toString() },
+        { label: "Statutory Body", value: Math.round((totalStatutoryBody / (totalClientCount || 1)) * refinancedInternal).toString() },
+        { label: "Company", value: Math.round((totalCompanyClients / (totalClientCount || 1)) * refinancedInternal).toString() }
       ],
       icon: RefreshCw,
       color: "text-blue-600",
@@ -273,9 +276,9 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
     {
       title: "External Refinanced",
       stats: [
-        { label: "Public Servants", value: Math.floor(refinancedExternal * 0.45).toString() },
-        { label: "Statutory Body", value: Math.floor(refinancedExternal * 0.30).toString() },
-        { label: "Company", value: Math.floor(refinancedExternal * 0.25).toString() }
+        { label: "Public Servants", value: Math.round((totalPublicServants / (totalClientCount || 1)) * refinancedExternal).toString() },
+        { label: "Statutory Body", value: Math.round((totalStatutoryBody / (totalClientCount || 1)) * refinancedExternal).toString() },
+        { label: "Company", value: Math.round((totalCompanyClients / (totalClientCount || 1)) * refinancedExternal).toString() }
       ],
       icon: Building2,
       color: "text-purple-600",
