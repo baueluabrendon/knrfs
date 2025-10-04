@@ -188,7 +188,7 @@ export const analyticsApi = {
     return loanData || [];
   },
 
-  // Get aggregated analytics data with real-time calculations
+  // Get aggregated analytics data - now trusts database view calculations
   async getAggregatedAnalyticsData(
     period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' = 'monthly',
     startDate?: string,
@@ -199,9 +199,8 @@ export const analyticsApi = {
   ): Promise<any[]> {
     const start = startDate || '2024-01-01';
     const end = endDate || new Date().toISOString().split('T')[0];
-    const isAdmin = userRole && ['administrator', 'super user'].includes(userRole);
 
-    // Get data from database function (handles period aggregation)
+    // Get data from database function (handles all calculations correctly now)
     const { data: analyticsData, error: analyticsError } = await supabase.rpc('get_dashboard_analytics', {
       p_start_date: start,
       p_end_date: end,
@@ -210,112 +209,8 @@ export const analyticsApi = {
 
     if (analyticsError) throw analyticsError;
 
-    // Get real-time outstanding balances for active loans
-    let outstandingQuery = supabase
-      .from('loans')
-      .select('outstanding_balance, disbursement_date, borrower_id, borrowers!inner(branch_id)')
-      .eq('loan_status', 'active');
-
-    if (!isAdmin && branchId) {
-      outstandingQuery = outstandingQuery.eq('borrowers.branch_id', branchId);
-    } else if (branchId && branchId !== 'all') {
-      outstandingQuery = outstandingQuery.eq('borrowers.branch_id', branchId);
-    }
-
-    const { data: outstandingData } = await outstandingQuery;
-    const totalOutstanding = outstandingData?.reduce((sum, loan) => sum + (loan.outstanding_balance || 0), 0) || 0;
-
-    // Get real-time fee collections from repayment_schedule
-    let feeQuery = supabase
-      .from('repayment_schedule')
-      .select(`
-        settled_date,
-        received_documentation_fee,
-        received_loan_risk_insurance,
-        received_gst_amount,
-        default_charged,
-        loans!inner(borrower_id, borrowers!inner(branch_id))
-      `)
-      .not('settled_date', 'is', null)
-      .gte('settled_date', start)
-      .lte('settled_date', end);
-
-    if (!isAdmin && branchId) {
-      feeQuery = feeQuery.eq('loans.borrowers.branch_id', branchId);
-    } else if (branchId && branchId !== 'all') {
-      feeQuery = feeQuery.eq('loans.borrowers.branch_id', branchId);
-    }
-
-    const { data: feeData } = await feeQuery;
-
-    // Get real-time repayment collections
-    let repaymentQuery = supabase
-      .from('repayments')
-      .select(`
-        payment_date,
-        amount,
-        loans!inner(borrower_id, borrowers!inner(branch_id))
-      `)
-      .gte('payment_date', start)
-      .lte('payment_date', end);
-
-    if (!isAdmin && branchId) {
-      repaymentQuery = repaymentQuery.eq('loans.borrowers.branch_id', branchId);
-    } else if (branchId && branchId !== 'all') {
-      repaymentQuery = repaymentQuery.eq('loans.borrowers.branch_id', branchId);
-    }
-
-    const { data: repaymentData } = await repaymentQuery;
-
-    // Process analytics data and add real-time calculations
-    const processedData = (analyticsData || []).map((row: any) => {
-      // Calculate period-specific outstanding balance (for chart display)
-      const periodOutstanding = period === 'monthly' ? totalOutstanding : row.total_outstanding;
-      
-      // Get fee collections for this period from repayment_schedule
-      const periodFeeData = feeData?.filter(fee => {
-        const feeDate = new Date(fee.settled_date);
-        const rowPeriod = row.period_label;
-        
-        if (period === 'monthly') {
-          const feeMonth = `${feeDate.getFullYear()}-${String(feeDate.getMonth() + 1).padStart(2, '0')}`;
-          return rowPeriod.includes(feeMonth);
-        }
-        return true; // For other periods, include all
-      }) || [];
-
-      const docFeesCollected = periodFeeData.reduce((sum, fee) => sum + (fee.received_documentation_fee || 0), 0);
-      const riskInsuranceCollected = periodFeeData.reduce((sum, fee) => sum + (fee.received_loan_risk_insurance || 0), 0);
-      const defaultFeesCollected = periodFeeData.reduce((sum, fee) => sum + (fee.default_charged || 0), 0);
-
-      // Get repayment collections for this period
-      const periodRepayments = repaymentData?.filter(rep => {
-        const repDate = new Date(rep.payment_date);
-        const rowPeriod = row.period_label;
-        
-        if (period === 'monthly') {
-          const repMonth = `${repDate.getFullYear()}-${String(repDate.getMonth() + 1).padStart(2, '0')}`;
-          return rowPeriod.includes(repMonth);
-        }
-        return true;
-      }) || [];
-
-      const totalCollections = periodRepayments.reduce((sum, rep) => sum + (rep.amount || 0), 0);
-      const repaymentsCollectedCount = periodRepayments.length;
-
-      return {
-        ...row,
-        total_outstanding: periodOutstanding,
-        doc_fees_collected: docFeesCollected,
-        risk_insurance_collected: riskInsuranceCollected,
-        default_fees_collected: defaultFeesCollected,
-        total_collections: totalCollections,
-        repayments_collected_count: repaymentsCollectedCount
-      };
-    });
-
     // Sort by period (oldest first for 12-month display)
-    return processedData.sort((a, b) => a.period_label.localeCompare(b.period_label));
+    return (analyticsData || []).sort((a, b) => a.period_label.localeCompare(b.period_label));
   },
 
   // Get loan status breakdown for pie chart with branch filtering
