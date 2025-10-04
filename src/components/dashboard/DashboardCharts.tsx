@@ -35,29 +35,46 @@ const DashboardCharts = () => {
     { value: 'yearly', label: 'Yearly' }
   ];
 
-  // Calculate date range based on filter
+  // Calculate date range based on filter (current year/month focus)
   const dateRange = useMemo(() => {
+    const now = new Date();
     const end = new Date();
     const start = new Date();
     
     switch (timeFilter) {
       case 'daily':
-        start.setDate(end.getDate() - 30);
+        // Show current month only
+        start.setFullYear(now.getFullYear(), now.getMonth(), 1);
+        end.setFullYear(now.getFullYear(), now.getMonth() + 1, 0);
         break;
       case 'weekly':
-        start.setDate(end.getDate() - 28 * 7);
+        // Show all weeks in current year
+        start.setFullYear(now.getFullYear(), 0, 1);
+        end.setFullYear(now.getFullYear(), 11, 31);
         break;
       case 'monthly':
-        start.setMonth(end.getMonth() - 12);
+        // Show all months in current year
+        start.setFullYear(now.getFullYear(), 0, 1);
+        end.setFullYear(now.getFullYear(), 11, 31);
         break;
       case 'quarterly':
-        start.setMonth(end.getMonth() - 12);
+        // Show all quarters in current year
+        start.setFullYear(now.getFullYear(), 0, 1);
+        end.setFullYear(now.getFullYear(), 11, 31);
+        break;
+      case 'half-yearly':
+        // Show both halves of current year
+        start.setFullYear(now.getFullYear(), 0, 1);
+        end.setFullYear(now.getFullYear(), 11, 31);
         break;
       case 'yearly':
-        start.setFullYear(end.getFullYear() - 5);
+        // Show current year only
+        start.setFullYear(now.getFullYear(), 0, 1);
+        end.setFullYear(now.getFullYear(), 11, 31);
         break;
       default:
-        start.setMonth(end.getMonth() - 12);
+        start.setFullYear(now.getFullYear(), 0, 1);
+        end.setFullYear(now.getFullYear(), 11, 31);
     }
     
     return {
@@ -77,7 +94,7 @@ const DashboardCharts = () => {
     isLoading: analyticsLoading, 
     error: analyticsError 
   } = useFormattedAnalyticsData(
-    timeFilter as 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly',
+    timeFilter as 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'half-yearly',
     dateRange.start,
     dateRange.end,
     effectiveBranchId,

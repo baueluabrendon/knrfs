@@ -96,7 +96,7 @@ export interface LoanStatusData {
 export const analyticsApi = {
   // Get real-time analytics data directly from source tables
   async getAnalyticsData(
-    period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' = 'monthly',
+    period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'half-yearly' = 'monthly',
     startDate?: string,
     endDate?: string,
     branchId?: string,
@@ -190,7 +190,7 @@ export const analyticsApi = {
 
   // Get aggregated analytics data - now trusts database view calculations
   async getAggregatedAnalyticsData(
-    period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' = 'monthly',
+    period: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'half-yearly' = 'monthly',
     startDate?: string,
     endDate?: string,
     branchId?: string,
