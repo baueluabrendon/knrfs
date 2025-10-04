@@ -1365,18 +1365,12 @@ export type Database = {
         Returns: string
       }
       get_dashboard_analytics: {
-        Args:
-          | {
-              p_branch_id?: string
-              p_end_date?: string
-              p_period_type?: string
-              p_start_date?: string
-            }
-          | {
-              p_end_date?: string
-              p_period_type?: string
-              p_start_date?: string
-            }
+        Args: {
+          p_branch_id?: string
+          p_end_date?: string
+          p_period_type?: string
+          p_start_date?: string
+        }
         Returns: {
           active_loans_count: number
           default_fees_collected: number
