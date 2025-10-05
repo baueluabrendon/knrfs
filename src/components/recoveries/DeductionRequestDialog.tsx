@@ -12,14 +12,18 @@ import { payrollOfficersApi, PayrollOfficer } from "@/lib/api/payroll-officers";
 import { recoveriesApi } from "@/lib/api/recoveries";
 
 interface ClientInDefault {
+  schedule_id: string;
   loan_id: string;
   borrower_name: string;
   file_number?: string;
   organization: string;
-  loan_amount: number;
   arrears: number;
-  days_late: number;
-  pay_period?: string;
+  outstanding_balance: number;
+  fortnightly_installment: number;
+  pay_period: string;
+  payroll_type?: string;
+  scheduled_repayment_amount: number;
+  missed_payment_date: string;
 }
 
 interface DeductionRequestDialogProps {
@@ -55,24 +59,26 @@ export const DeductionRequestDialog = ({ onRequestCreated, children }: Deduction
   const loadClientsInDefault = useCallback(async () => {
     setLoadingClients(true);
     try {
-      const data = await recoveriesApi.getLoansInArrears();
-      const clientsWithDefaults = data
-        .filter(loan => 
-          loan.organization && 
-          loan.arrears > 0 && 
-          loan.loan_id && 
-          loan.borrower_name
-        )
-        .map(loan => ({
-          loan_id: loan.loan_id!,
-          borrower_name: loan.borrower_name!,
-          file_number: loan.file_number || undefined,
-          organization: loan.organization!,
-          loan_amount: loan.loan_amount || 0,
-          arrears: loan.arrears || 0,
-          days_late: loan.days_late || 0,
-          pay_period: loan.pay_period || undefined,
-        }));
+      const data = await recoveriesApi.getClientsForDeductionRequest(
+        formData.organization_name || undefined,
+        formData.pay_period || undefined
+      );
+      
+      const clientsWithDefaults = data.map(client => ({
+        schedule_id: client.schedule_id,
+        loan_id: client.loan_id,
+        borrower_name: client.borrower_name,
+        file_number: client.file_number || undefined,
+        organization: client.organization || 'Unknown',
+        arrears: client.arrears,
+        outstanding_balance: client.outstanding_balance,
+        fortnightly_installment: client.fortnightly_installment,
+        pay_period: client.pay_period,
+        payroll_type: client.payroll_type,
+        scheduled_repayment_amount: client.scheduled_repayment_amount,
+        missed_payment_date: client.missed_payment_date,
+      }));
+      
       setClientsInDefault(clientsWithDefaults);
     } catch (error) {
       console.error("Error loading clients in default:", error);
@@ -84,7 +90,7 @@ export const DeductionRequestDialog = ({ onRequestCreated, children }: Deduction
     } finally {
       setLoadingClients(false);
     }
-  }, [toast]);
+  }, [formData.organization_name, formData.pay_period, toast]);
 
   useEffect(() => {
     if (open) {
@@ -136,11 +142,15 @@ export const DeductionRequestDialog = ({ onRequestCreated, children }: Deduction
           loan_id: client.loan_id,
           borrower_name: client.borrower_name,
           file_number: client.file_number,
-          loan_amount: client.loan_amount,
-          interest_amount: 0, // Calculate from loan data if needed
-          gross_amount: client.loan_amount,
+          loan_amount: client.outstanding_balance,
+          interest_amount: 0,
+          gross_amount: client.outstanding_balance,
           default_amount: client.arrears,
-          current_outstanding: client.arrears,
+          current_outstanding: client.outstanding_balance,
+          fortnightly_installment: client.fortnightly_installment,
+          pay_period: client.pay_period,
+          scheduled_repayment_amount: client.scheduled_repayment_amount,
+          missed_payment_date: client.missed_payment_date,
         }));
 
       await payrollOfficersApi.createDeductionRequest({
@@ -257,7 +267,7 @@ export const DeductionRequestDialog = ({ onRequestCreated, children }: Deduction
               <div className="text-sm text-muted-foreground">
                 Total Outstanding: K{clientsInDefault
                   .filter(client => selectedClients.has(client.loan_id))
-                  .reduce((sum, client) => sum + client.arrears, 0)
+                  .reduce((sum, client) => sum + client.outstanding_balance, 0)
                   .toFixed(2)}
               </div>
             </div>
@@ -273,8 +283,9 @@ export const DeductionRequestDialog = ({ onRequestCreated, children }: Deduction
                       <TableHead>Organization</TableHead>
                       <TableHead>Client Name</TableHead>
                       <TableHead>File Number</TableHead>
-                      <TableHead>Amount Outstanding</TableHead>
-                      <TableHead>Days Late</TableHead>
+                      <TableHead>Pay Period</TableHead>
+                      <TableHead>F/N Install</TableHead>
+                      <TableHead>Outstanding</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -290,8 +301,9 @@ export const DeductionRequestDialog = ({ onRequestCreated, children }: Deduction
                           <TableCell className="font-medium">{organization}</TableCell>
                           <TableCell>{client.borrower_name}</TableCell>
                           <TableCell>{client.file_number || 'N/A'}</TableCell>
-                          <TableCell>K{client.arrears.toFixed(2)}</TableCell>
-                          <TableCell>{client.days_late}</TableCell>
+                          <TableCell>{client.pay_period}</TableCell>
+                          <TableCell>K{client.fortnightly_installment.toFixed(2)}</TableCell>
+                          <TableCell>K{client.outstanding_balance.toFixed(2)}</TableCell>
                         </TableRow>
                       ))
                     )}

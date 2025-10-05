@@ -41,6 +41,10 @@ export interface DeductionRequestClient {
   gross_amount?: number;
   default_amount?: number;
   current_outstanding?: number;
+  fortnightly_installment?: number;
+  pay_period?: string;
+  scheduled_repayment_amount?: number;
+  missed_payment_date?: string;
   created_at: string;
 }
 
@@ -144,6 +148,10 @@ export const payrollOfficersApi = {
       gross_amount?: number;
       default_amount?: number;
       current_outstanding?: number;
+      fortnightly_installment?: number;
+      pay_period?: string;
+      scheduled_repayment_amount?: number;
+      missed_payment_date?: string;
     }>;
     notes?: string;
   }) {
@@ -204,16 +212,51 @@ export const payrollOfficersApi = {
     }
   },
 
-  async sendDeductionRequestEmail(requestId: string) {
+  async sendDeductionRequestEmail(requestId: string, microserviceEndpoint: string) {
     try {
-      const { data, error } = await supabase.functions.invoke('send-deduction-request', {
-        body: { deduction_request_id: requestId }
+      // Fetch deduction request with all related data
+      const { data: request, error: requestError } = await supabase
+        .from('deduction_requests')
+        .select(`
+          *,
+          payroll_officer:payroll_officers(*),
+          clients:deduction_request_clients(*)
+        `)
+        .eq('id', requestId)
+        .single();
+
+      if (requestError) throw requestError;
+
+      // Call Python FastAPI microservice
+      const response = await fetch(microserviceEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          request_id: requestId,
+          payroll_officer: request.payroll_officer,
+          organization: request.organization_name,
+          pay_period: request.pay_period,
+          request_date: request.request_date,
+          clients: request.clients,
+          notes: request.notes,
+        }),
       });
 
-      if (error) throw error;
-      return data;
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Microservice error: ${response.statusText} - ${errorText}`);
+      }
+
+      const result = await response.json();
+
+      // Update deduction request status
+      await this.updateDeductionRequestStatus(requestId, 'sent');
+
+      return result;
     } catch (error) {
-      console.error('Error sending deduction request email:', error);
+      console.error('Error sending deduction request via microservice:', error);
       throw error;
     }
   },

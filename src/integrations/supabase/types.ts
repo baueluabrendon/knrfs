@@ -389,11 +389,15 @@ export type Database = {
           deduction_request_id: string
           default_amount: number | null
           file_number: string | null
+          fortnightly_installment: number | null
           gross_amount: number | null
           id: string
           interest_amount: number | null
           loan_amount: number | null
           loan_id: string
+          missed_payment_date: string | null
+          pay_period: string | null
+          scheduled_repayment_amount: number | null
         }
         Insert: {
           borrower_name: string
@@ -402,11 +406,15 @@ export type Database = {
           deduction_request_id: string
           default_amount?: number | null
           file_number?: string | null
+          fortnightly_installment?: number | null
           gross_amount?: number | null
           id?: string
           interest_amount?: number | null
           loan_amount?: number | null
           loan_id: string
+          missed_payment_date?: string | null
+          pay_period?: string | null
+          scheduled_repayment_amount?: number | null
         }
         Update: {
           borrower_name?: string
@@ -415,11 +423,15 @@ export type Database = {
           deduction_request_id?: string
           default_amount?: number | null
           file_number?: string | null
+          fortnightly_installment?: number | null
           gross_amount?: number | null
           id?: string
           interest_amount?: number | null
           loan_amount?: number | null
           loan_id?: string
+          missed_payment_date?: string | null
+          pay_period?: string | null
+          scheduled_repayment_amount?: number | null
         }
         Relationships: [
           {

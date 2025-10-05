@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { payrollOfficersApi, PayrollOfficer } from "@/lib/api/payroll-officers";
@@ -17,6 +18,7 @@ interface PayrollOfficerDialogProps {
 export const PayrollOfficerDialog = ({ onOfficerCreated, officer, children }: PayrollOfficerDialogProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [organizations, setOrganizations] = useState<string[]>([]);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -27,6 +29,22 @@ export const PayrollOfficerDialog = ({ onOfficerCreated, officer, children }: Pa
     phone: officer?.phone || "",
     address: officer?.address || "",
   });
+
+  // Load organizations from borrowers
+  useEffect(() => {
+    const loadOrganizations = async () => {
+      try {
+        const { recoveriesApi } = await import("@/lib/api/recoveries");
+        const orgs = await recoveriesApi.getOrganizations();
+        setOrganizations(orgs);
+      } catch (error) {
+        console.error("Error loading organizations:", error);
+      }
+    };
+    if (open) {
+      loadOrganizations();
+    }
+  }, [open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,12 +114,22 @@ export const PayrollOfficerDialog = ({ onOfficerCreated, officer, children }: Pa
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="organization_name">Organization Name</Label>
-            <Input
-              id="organization_name"
+            <Select
               value={formData.organization_name}
-              onChange={(e) => setFormData({ ...formData, organization_name: e.target.value })}
+              onValueChange={(value) => setFormData({ ...formData, organization_name: value })}
               required
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select organization" />
+              </SelectTrigger>
+              <SelectContent>
+                {organizations.map((org) => (
+                  <SelectItem key={org} value={org}>
+                    {org}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="officer_name">Officer Name</Label>

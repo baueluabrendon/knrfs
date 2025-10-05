@@ -79,8 +79,10 @@ export const PayrollManagementTab = () => {
   const handleSendEmail = async (requestId: string) => {
     setSendingEmail(requestId);
     try {
-      await payrollOfficersApi.sendDeductionRequestEmail(requestId);
-      await payrollOfficersApi.updateDeductionRequestStatus(requestId, 'sent');
+      // TODO: Configure this endpoint based on your Python FastAPI microservice deployment
+      const MICROSERVICE_ENDPOINT = 'https://your-fastapi-service.com/api/deduction-request/send';
+      
+      await payrollOfficersApi.sendDeductionRequestEmail(requestId, MICROSERVICE_ENDPOINT);
       
       const request = deductionRequests.find(r => r.id === requestId);
       if (request) {
