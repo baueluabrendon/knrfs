@@ -391,12 +391,15 @@ export type Database = {
           file_number: string | null
           fortnightly_installment: number | null
           gross_amount: number | null
+          gross_loan_amount: number | null
           id: string
           interest_amount: number | null
           loan_amount: number | null
           loan_id: string
           missed_payment_date: string | null
           pay_period: string | null
+          principal_amount: number | null
+          pva_amount: number | null
           scheduled_repayment_amount: number | null
         }
         Insert: {
@@ -408,12 +411,15 @@ export type Database = {
           file_number?: string | null
           fortnightly_installment?: number | null
           gross_amount?: number | null
+          gross_loan_amount?: number | null
           id?: string
           interest_amount?: number | null
           loan_amount?: number | null
           loan_id: string
           missed_payment_date?: string | null
           pay_period?: string | null
+          principal_amount?: number | null
+          pva_amount?: number | null
           scheduled_repayment_amount?: number | null
         }
         Update: {
@@ -425,12 +431,15 @@ export type Database = {
           file_number?: string | null
           fortnightly_installment?: number | null
           gross_amount?: number | null
+          gross_loan_amount?: number | null
           id?: string
           interest_amount?: number | null
           loan_amount?: number | null
           loan_id?: string
           missed_payment_date?: string | null
           pay_period?: string | null
+          principal_amount?: number | null
+          pva_amount?: number | null
           scheduled_repayment_amount?: number | null
         }
         Relationships: [
@@ -445,46 +454,67 @@ export type Database = {
       }
       deduction_requests: {
         Row: {
+          cc_emails: string[] | null
           created_at: string
+          current_pay_period: string | null
           email_sent_at: string | null
           email_sent_by: string | null
           id: string
+          include_isda_forms: boolean | null
+          next_pay_date: string | null
+          next_pay_period: string | null
           notes: string | null
+          organization_address: string | null
           organization_name: string
           pay_period: string | null
           payroll_officer_id: string
           request_date: string
           status: string | null
+          total_active_clients: number | null
           total_amount: number
           total_clients: number
           updated_at: string
         }
         Insert: {
+          cc_emails?: string[] | null
           created_at?: string
+          current_pay_period?: string | null
           email_sent_at?: string | null
           email_sent_by?: string | null
           id?: string
+          include_isda_forms?: boolean | null
+          next_pay_date?: string | null
+          next_pay_period?: string | null
           notes?: string | null
+          organization_address?: string | null
           organization_name: string
           pay_period?: string | null
           payroll_officer_id: string
           request_date?: string
           status?: string | null
+          total_active_clients?: number | null
           total_amount?: number
           total_clients?: number
           updated_at?: string
         }
         Update: {
+          cc_emails?: string[] | null
           created_at?: string
+          current_pay_period?: string | null
           email_sent_at?: string | null
           email_sent_by?: string | null
           id?: string
+          include_isda_forms?: boolean | null
+          next_pay_date?: string | null
+          next_pay_period?: string | null
           notes?: string | null
+          organization_address?: string | null
           organization_name?: string
           pay_period?: string | null
           payroll_officer_id?: string
           request_date?: string
           status?: string | null
+          total_active_clients?: number | null
           total_amount?: number
           total_clients?: number
           updated_at?: string
@@ -812,6 +842,42 @@ export type Database = {
           },
         ]
       }
+      organizations: {
+        Row: {
+          address_line1: string | null
+          address_line2: string | null
+          city: string | null
+          created_at: string | null
+          id: string
+          organization_name: string
+          postal_code: string | null
+          total_active_clients: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          created_at?: string | null
+          id?: string
+          organization_name: string
+          postal_code?: string | null
+          total_active_clients?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          created_at?: string | null
+          id?: string
+          organization_name?: string
+          postal_code?: string | null
+          total_active_clients?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       payroll_officers: {
         Row: {
           address: string | null
@@ -820,6 +886,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           officer_name: string
+          organization_id: string | null
           organization_name: string
           phone: string | null
           title: string | null
@@ -832,6 +899,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           officer_name: string
+          organization_id?: string | null
           organization_name: string
           phone?: string | null
           title?: string | null
@@ -844,12 +912,21 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           officer_name?: string
+          organization_id?: string | null
           organization_name?: string
           phone?: string | null
           title?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "payroll_officers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       repayment_document_group: {
         Row: {
