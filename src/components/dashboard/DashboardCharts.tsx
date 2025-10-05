@@ -68,9 +68,11 @@ const DashboardCharts = () => {
         end.setFullYear(now.getFullYear(), 11, 31);
         break;
       case 'yearly':
-        // Show current year only
-        start.setFullYear(now.getFullYear(), 0, 1);
-        end.setFullYear(now.getFullYear(), 11, 31);
+        // Show 5-year period ending with current year
+        // If current year is 2025: show 2020, 2021, 2022, 2023, 2024, 2025
+        const currentYear = now.getFullYear();
+        start.setFullYear(currentYear - 5, 0, 1);  // Jan 1, 5 years ago
+        end.setFullYear(currentYear, 11, 31);      // Dec 31, current year
         break;
       default:
         start.setFullYear(now.getFullYear(), 0, 1);
