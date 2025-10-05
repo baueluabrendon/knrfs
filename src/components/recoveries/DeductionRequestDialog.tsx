@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -20,10 +21,16 @@ interface ClientInDefault {
   arrears: number;
   outstanding_balance: number;
   fortnightly_installment: number;
+  pva_amount: number; // PVA AMOUNT
+  principal_amount: number;
+  interest_amount: number;
+  gross_loan_amount: number;
+  default_amount: number;
   pay_period: string;
   payroll_type?: string;
   scheduled_repayment_amount: number;
   missed_payment_date: string;
+  status: 'default' | 'partial';
 }
 
 interface DeductionRequestDialogProps {
@@ -38,12 +45,20 @@ export const DeductionRequestDialog = ({ onRequestCreated, children }: Deduction
   const [payrollOfficers, setPayrollOfficers] = useState<PayrollOfficer[]>([]);
   const [clientsInDefault, setClientsInDefault] = useState<ClientInDefault[]>([]);
   const [selectedClients, setSelectedClients] = useState<Set<string>>(new Set());
+  const [totalActiveClients, setTotalActiveClients] = useState(0);
+  const [dataSource, setDataSource] = useState<'all' | 'missed' | 'partial'>('all');
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
     payroll_officer_id: "",
     organization_name: "",
+    organization_address: "",
     pay_period: "",
+    current_pay_period: "",
+    next_pay_period: "",
+    next_pay_date: "",
+    cc_emails: "",
+    include_isda_forms: true,
     notes: "",
   });
 
@@ -61,10 +76,19 @@ export const DeductionRequestDialog = ({ onRequestCreated, children }: Deduction
     try {
       const data = await recoveriesApi.getClientsForDeductionRequest(
         formData.organization_name || undefined,
-        formData.pay_period || undefined
+        formData.current_pay_period || formData.pay_period || undefined
       );
       
-      const clientsWithDefaults = data.map(client => ({
+      let filteredData = data;
+      
+      // Apply data source filter
+      if (dataSource === 'missed') {
+        filteredData = data.filter(client => client.status === 'default');
+      } else if (dataSource === 'partial') {
+        filteredData = data.filter(client => client.status === 'partial');
+      }
+      
+      const clientsWithDefaults = filteredData.map(client => ({
         schedule_id: client.schedule_id,
         loan_id: client.loan_id,
         borrower_name: client.borrower_name,
@@ -73,11 +97,17 @@ export const DeductionRequestDialog = ({ onRequestCreated, children }: Deduction
         arrears: client.arrears,
         outstanding_balance: client.outstanding_balance,
         fortnightly_installment: client.fortnightly_installment,
+        pva_amount: client.pva_amount,
+        principal_amount: client.principal_amount,
+        interest_amount: client.interest_amount,
+        gross_loan_amount: client.gross_loan_amount,
+        default_amount: client.default_amount,
         pay_period: client.pay_period,
         payroll_type: client.payroll_type,
         scheduled_repayment_amount: client.scheduled_repayment_amount,
         missed_payment_date: client.missed_payment_date,
-      }));
+        status: (client.status === 'default' || client.status === 'partial') ? client.status : 'default',
+      } as ClientInDefault));
       
       setClientsInDefault(clientsWithDefaults);
     } catch (error) {
@@ -90,7 +120,35 @@ export const DeductionRequestDialog = ({ onRequestCreated, children }: Deduction
     } finally {
       setLoadingClients(false);
     }
-  }, [formData.organization_name, formData.pay_period, toast]);
+  }, [formData.organization_name, formData.pay_period, formData.current_pay_period, dataSource, toast]);
+
+  // Load total active clients for the organization
+  useEffect(() => {
+    const loadOrgDetails = async () => {
+      if (formData.organization_name) {
+        try {
+          const count = await recoveriesApi.getTotalActiveClientsForOrg(formData.organization_name);
+          setTotalActiveClients(count);
+          
+          const orgDetails = await recoveriesApi.getOrganizationDetails(formData.organization_name);
+          if (orgDetails) {
+            const address = [
+              orgDetails.address_line1,
+              orgDetails.address_line2,
+              orgDetails.city,
+              orgDetails.postal_code
+            ].filter(Boolean).join('\n');
+            
+            setFormData(prev => ({ ...prev, organization_address: address }));
+          }
+        } catch (error) {
+          console.error('Error loading organization details:', error);
+        }
+      }
+    };
+    
+    loadOrgDetails();
+  }, [formData.organization_name]);
 
   useEffect(() => {
     if (open) {
@@ -111,6 +169,19 @@ export const DeductionRequestDialog = ({ onRequestCreated, children }: Deduction
       .filter(client => client.organization === officer?.organization_name)
       .map(client => client.loan_id);
     setSelectedClients(new Set(orgClients));
+  };
+
+  const handlePayPeriodChange = (period: string) => {
+    // Calculate next pay period
+    const { nextPeriod, nextDate } = recoveriesApi.calculateNextPayPeriod(period);
+    
+    setFormData(prev => ({
+      ...prev,
+      current_pay_period: period,
+      pay_period: period,
+      next_pay_period: nextPeriod,
+      next_pay_date: nextDate.toISOString().split('T')[0]
+    }));
   };
 
   const handleClientToggle = (loanId: string) => {
@@ -142,12 +213,15 @@ export const DeductionRequestDialog = ({ onRequestCreated, children }: Deduction
           loan_id: client.loan_id,
           borrower_name: client.borrower_name,
           file_number: client.file_number,
-          loan_amount: client.outstanding_balance,
-          interest_amount: 0,
+          principal_amount: client.principal_amount,
+          interest_amount: client.interest_amount,
+          gross_loan_amount: client.gross_loan_amount,
+          loan_amount: client.gross_loan_amount,
           gross_amount: client.outstanding_balance,
-          default_amount: client.arrears,
+          default_amount: client.default_amount,
           current_outstanding: client.outstanding_balance,
           fortnightly_installment: client.fortnightly_installment,
+          pva_amount: client.pva_amount,
           pay_period: client.pay_period,
           scheduled_repayment_amount: client.scheduled_repayment_amount,
           missed_payment_date: client.missed_payment_date,
@@ -157,6 +231,13 @@ export const DeductionRequestDialog = ({ onRequestCreated, children }: Deduction
         payroll_officer_id: formData.payroll_officer_id,
         organization_name: formData.organization_name,
         pay_period: formData.pay_period,
+        current_pay_period: formData.current_pay_period,
+        next_pay_period: formData.next_pay_period,
+        next_pay_date: formData.next_pay_date,
+        organization_address: formData.organization_address,
+        total_active_clients: totalActiveClients,
+        cc_emails: formData.cc_emails ? formData.cc_emails.split(',').map(e => e.trim()).filter(Boolean) : [],
+        include_isda_forms: formData.include_isda_forms,
         clients: selectedClientData,
         notes: formData.notes,
       });
@@ -173,10 +254,17 @@ export const DeductionRequestDialog = ({ onRequestCreated, children }: Deduction
       setFormData({
         payroll_officer_id: "",
         organization_name: "",
+        organization_address: "",
         pay_period: "",
+        current_pay_period: "",
+        next_pay_period: "",
+        next_pay_date: "",
+        cc_emails: "",
+        include_isda_forms: true,
         notes: "",
       });
       setSelectedClients(new Set());
+      setTotalActiveClients(0);
     } catch (error) {
       toast({
         title: "Error",
@@ -231,13 +319,14 @@ export const DeductionRequestDialog = ({ onRequestCreated, children }: Deduction
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="pay_period">Pay Period</Label>
+              <Label htmlFor="current_pay_period">Current Pay Period (Defaulted)</Label>
               <Select
-                value={formData.pay_period}
-                onValueChange={(value) => setFormData({ ...formData, pay_period: value })}
+                value={formData.current_pay_period}
+                onValueChange={handlePayPeriodChange}
+                required
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select pay period" />
+                  <SelectValue placeholder="Select current pay period" />
                 </SelectTrigger>
                 <SelectContent>
                   {Array.from({ length: 26 }, (_, i) => i + 1).map(period => (
@@ -250,8 +339,60 @@ export const DeductionRequestDialog = ({ onRequestCreated, children }: Deduction
             </div>
           </div>
 
+          {formData.next_pay_period && (
+            <div className="bg-muted p-3 rounded-md text-sm">
+              <strong>Requesting deductions for:</strong> {formData.next_pay_period} (on or around {formData.next_pay_date})
+            </div>
+          )}
+
+          {formData.organization_name && (
+            <div className="text-sm text-muted-foreground">
+              Total Active Clients with {formData.organization_name}: <strong>{totalActiveClients}</strong>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="organization_address">Organization Address</Label>
+              <Textarea
+                id="organization_address"
+                value={formData.organization_address}
+                onChange={(e) => setFormData({ ...formData, organization_address: e.target.value })}
+                placeholder="Full mailing address of the organization"
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cc_emails">CC Email Addresses</Label>
+              <Input
+                id="cc_emails"
+                value={formData.cc_emails}
+                onChange={(e) => setFormData({ ...formData, cc_emails: e.target.value })}
+                placeholder="manager@example.com, hr@example.com"
+              />
+              <div className="text-xs text-muted-foreground">Separate multiple emails with commas</div>
+            </div>
+          </div>
+
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="data_source">Data Source</Label>
+            <Select
+              value={dataSource}
+              onValueChange={(value: 'all' | 'missed' | 'partial') => setDataSource(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select data source" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Defaults (Missed + Partial)</SelectItem>
+                <SelectItem value="missed">Missed Payments Only</SelectItem>
+                <SelectItem value="partial">Partial Payments Only</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="notes">Additional Notes</Label>
             <Textarea
               id="notes"
               value={formData.notes}
@@ -280,33 +421,44 @@ export const DeductionRequestDialog = ({ onRequestCreated, children }: Deduction
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-12">Select</TableHead>
-                      <TableHead>Organization</TableHead>
                       <TableHead>Client Name</TableHead>
-                      <TableHead>File Number</TableHead>
-                      <TableHead>Pay Period</TableHead>
-                      <TableHead>F/N Install</TableHead>
-                      <TableHead>Outstanding</TableHead>
+                      <TableHead>File #</TableHead>
+                      <TableHead>Principal</TableHead>
+                      <TableHead>Interest</TableHead>
+                      <TableHead>Gross Loan</TableHead>
+                      <TableHead>PVA Amount</TableHead>
+                      <TableHead>Default Fee</TableHead>
+                      <TableHead>Current Balance</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {Object.entries(groupedClients).map(([organization, clients]) =>
-                      clients.map((client) => (
-                        <TableRow key={client.loan_id}>
-                          <TableCell>
-                            <Checkbox
-                              checked={selectedClients.has(client.loan_id)}
-                              onCheckedChange={() => handleClientToggle(client.loan_id)}
-                            />
+                    {Object.entries(groupedClients).map(([organization, clients]) => (
+                      <>
+                        <TableRow key={`header-${organization}`} className="bg-muted/50">
+                          <TableCell colSpan={9} className="font-semibold">
+                            {organization}
                           </TableCell>
-                          <TableCell className="font-medium">{organization}</TableCell>
-                          <TableCell>{client.borrower_name}</TableCell>
-                          <TableCell>{client.file_number || 'N/A'}</TableCell>
-                          <TableCell>{client.pay_period}</TableCell>
-                          <TableCell>K{client.fortnightly_installment.toFixed(2)}</TableCell>
-                          <TableCell>K{client.outstanding_balance.toFixed(2)}</TableCell>
                         </TableRow>
-                      ))
-                    )}
+                        {clients.map((client) => (
+                          <TableRow key={client.loan_id}>
+                            <TableCell>
+                              <Checkbox
+                                checked={selectedClients.has(client.loan_id)}
+                                onCheckedChange={() => handleClientToggle(client.loan_id)}
+                              />
+                            </TableCell>
+                            <TableCell>{client.borrower_name}</TableCell>
+                            <TableCell>{client.file_number || 'N/A'}</TableCell>
+                            <TableCell>K{client.principal_amount.toFixed(2)}</TableCell>
+                            <TableCell>K{client.interest_amount.toFixed(2)}</TableCell>
+                            <TableCell>K{client.gross_loan_amount.toFixed(2)}</TableCell>
+                            <TableCell>K{client.pva_amount.toFixed(2)}</TableCell>
+                            <TableCell>K{client.default_amount.toFixed(2)}</TableCell>
+                            <TableCell>K{client.outstanding_balance.toFixed(2)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </>
+                    ))}
                   </TableBody>
                 </Table>
               </div>

@@ -31,21 +31,24 @@ export interface DeductionRequest {
 }
 
 export interface DeductionRequestClient {
-  id: string;
-  deduction_request_id: string;
+  id?: string;
+  deduction_request_id?: string;
   loan_id: string;
   borrower_name: string;
   file_number?: string;
   loan_amount?: number;
   interest_amount?: number;
+  principal_amount?: number;
+  gross_loan_amount?: number;
   gross_amount?: number;
   default_amount?: number;
   current_outstanding?: number;
   fortnightly_installment?: number;
+  pva_amount?: number; // PVA AMOUNT (same as fortnightly_installment)
   pay_period?: string;
   scheduled_repayment_amount?: number;
   missed_payment_date?: string;
-  created_at: string;
+  created_at?: string;
 }
 
 export const payrollOfficersApi = {
@@ -139,20 +142,14 @@ export const payrollOfficersApi = {
     payroll_officer_id: string;
     organization_name: string;
     pay_period?: string;
-    clients: Array<{
-      loan_id: string;
-      borrower_name: string;
-      file_number?: string;
-      loan_amount?: number;
-      interest_amount?: number;
-      gross_amount?: number;
-      default_amount?: number;
-      current_outstanding?: number;
-      fortnightly_installment?: number;
-      pay_period?: string;
-      scheduled_repayment_amount?: number;
-      missed_payment_date?: string;
-    }>;
+    current_pay_period?: string;
+    next_pay_period?: string;
+    next_pay_date?: string;
+    organization_address?: string;
+    total_active_clients?: number;
+    cc_emails?: string[];
+    include_isda_forms?: boolean;
+    clients: DeductionRequestClient[];
     notes?: string;
   }) {
     try {
@@ -168,6 +165,13 @@ export const payrollOfficersApi = {
           payroll_officer_id: request.payroll_officer_id,
           organization_name: request.organization_name,
           pay_period: request.pay_period,
+          current_pay_period: request.current_pay_period,
+          next_pay_period: request.next_pay_period,
+          next_pay_date: request.next_pay_date,
+          organization_address: request.organization_address,
+          total_active_clients: request.total_active_clients,
+          cc_emails: request.cc_emails,
+          include_isda_forms: request.include_isda_forms !== false,
           total_clients,
           total_amount,
           notes: request.notes,
@@ -177,10 +181,24 @@ export const payrollOfficersApi = {
 
       if (requestError) throw requestError;
 
-      // Create the client records
+      // Create the client records with all loan details
       const clientsWithRequestId = request.clients.map(client => ({
-        ...client,
         deduction_request_id: deductionRequest.id,
+        loan_id: client.loan_id,
+        borrower_name: client.borrower_name,
+        file_number: client.file_number,
+        loan_amount: client.loan_amount,
+        interest_amount: client.interest_amount,
+        principal_amount: client.principal_amount,
+        gross_loan_amount: client.gross_loan_amount,
+        gross_amount: client.gross_amount,
+        default_amount: client.default_amount,
+        current_outstanding: client.current_outstanding,
+        fortnightly_installment: client.fortnightly_installment,
+        pva_amount: client.pva_amount,
+        pay_period: client.pay_period,
+        scheduled_repayment_amount: client.scheduled_repayment_amount,
+        missed_payment_date: client.missed_payment_date,
       }));
 
       const { error: clientsError } = await (supabase as any)
@@ -227,21 +245,46 @@ export const payrollOfficersApi = {
 
       if (requestError) throw requestError;
 
+      // Prepare comprehensive payload for the FastAPI microservice
+      const emailPayload = {
+        request_id: requestId,
+        payroll_officer: {
+          officer_name: request.payroll_officer.officer_name,
+          title: request.payroll_officer.title || 'Payroll Officer',
+          email: request.payroll_officer.email
+        },
+        organization: {
+          name: request.organization_name,
+          address: request.organization_address || '',
+          total_active_clients: request.total_active_clients || 0
+        },
+        pay_periods: {
+          current: request.current_pay_period || request.pay_period,
+          next: request.next_pay_period || '',
+          next_date: request.next_pay_date || ''
+        },
+        clients: request.clients.map((client: any) => ({
+          client_name: client.borrower_name,
+          file_number: client.file_number || '',
+          principal_amount: client.principal_amount || 0,
+          interest_amount: client.interest_amount || 0,
+          gross_loan: client.gross_loan_amount || 0,
+          pva_amount: client.pva_amount || client.fortnightly_installment || 0,
+          default_fee: client.default_amount || 0,
+          current_balance: client.current_outstanding || 0
+        })),
+        cc_emails: request.cc_emails || [],
+        include_isda_forms: request.include_isda_forms !== false,
+        notes: request.notes || ''
+      };
+
       // Call Python FastAPI microservice
       const response = await fetch(microserviceEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          request_id: requestId,
-          payroll_officer: request.payroll_officer,
-          organization: request.organization_name,
-          pay_period: request.pay_period,
-          request_date: request.request_date,
-          clients: request.clients,
-          notes: request.notes,
-        }),
+        body: JSON.stringify(emailPayload),
       });
 
       if (!response.ok) {
