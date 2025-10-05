@@ -1,22 +1,37 @@
-
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { dashboardApi } from '@/lib/api/dashboard';
 import { useAuth } from '@/contexts/AuthContext';
 import DashboardMetrics from '@/components/dashboard/DashboardMetrics';
 import DashboardCharts from '@/components/dashboard/DashboardCharts';
 import { ClientTypeBreakdown } from '@/components/dashboard/ClientTypeBreakdown';
+import { BranchSelector } from '@/components/dashboard/BranchSelector';
+import { canViewAllBranches, shouldFilterByBranch } from '@/utils/roleBasedAccess';
 import { Loader2, TrendingUp, Users, DollarSign } from "lucide-react";
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const [selectedBranchId, setSelectedBranchId] = useState<string>('all');
+
+  // Auto-set branch for non-admin users
+  useEffect(() => {
+    if (user && shouldFilterByBranch(user)) {
+      setSelectedBranchId(user.branch_id || 'all');
+    }
+  }, [user]);
+
+  // Calculate effective branch ID based on user role and selection
+  const effectiveBranchId = canViewAllBranches(user) && selectedBranchId !== 'all'
+    ? selectedBranchId
+    : (shouldFilterByBranch(user) ? user?.branch_id : undefined);
   
   const { 
     data: dashboardMetrics, 
     isLoading: metricsLoading, 
     error: metricsError 
   } = useQuery({
-    queryKey: ['dashboard-metrics', user?.branch_id, user?.role],
-    queryFn: () => dashboardApi.getDashboardMetrics(user?.branch_id, user?.role),
+    queryKey: ['dashboard-metrics', effectiveBranchId, user?.role],
+    queryFn: () => dashboardApi.getDashboardMetrics(effectiveBranchId, user?.role),
     staleTime: 5 * 60 * 1000,
     enabled: !!user, // Only run query when user is available
   });
@@ -43,24 +58,30 @@ const Dashboard = () => {
               Welcome to your comprehensive loan management dashboard
             </p>
           </div>
-          <div className="hidden md:flex items-center space-x-4">
-            <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-2">
-                <TrendingUp className="h-6 w-6 text-green-600" />
+          <div className="flex items-center gap-4">
+            <BranchSelector 
+              selectedBranchId={selectedBranchId} 
+              onBranchChange={setSelectedBranchId}
+            />
+            <div className="hidden md:flex items-center space-x-4">
+              <div className="text-center">
+                <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-2">
+                  <TrendingUp className="h-6 w-6 text-green-600" />
+                </div>
+                <p className="text-sm text-gray-600">Performance</p>
               </div>
-              <p className="text-sm text-gray-600">Performance</p>
-            </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-2">
-                <Users className="h-6 w-6 text-blue-600" />
+              <div className="text-center">
+                <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-2">
+                  <Users className="h-6 w-6 text-blue-600" />
+                </div>
+                <p className="text-sm text-gray-600">Borrowers</p>
               </div>
-              <p className="text-sm text-gray-600">Borrowers</p>
-            </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-full mb-2">
-                <DollarSign className="h-6 w-6 text-purple-600" />
+              <div className="text-center">
+                <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-full mb-2">
+                  <DollarSign className="h-6 w-6 text-purple-600" />
+                </div>
+                <p className="text-sm text-gray-600">Finance</p>
               </div>
-              <p className="text-sm text-gray-600">Finance</p>
             </div>
           </div>
         </div>
