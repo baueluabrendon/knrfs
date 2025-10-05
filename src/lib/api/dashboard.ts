@@ -28,8 +28,6 @@ export interface DashboardMetrics {
 export const dashboardApi = {
   async getDashboardMetrics(branchId?: string, userRole?: string): Promise<DashboardMetrics> {
     try {
-      const isAdmin = userRole && ['administrator', 'super user'].includes(userRole);
-      
       // Fetch real-time loan data
       let loansQuery = supabase
         .from('loans')
@@ -47,7 +45,7 @@ export const dashboardApi = {
           borrowers!inner(branch_id, client_type)
         `);
 
-      if (!isAdmin && branchId) {
+      if (branchId) {
         loansQuery = loansQuery.eq('borrowers.branch_id', branchId);
       }
 
@@ -61,7 +59,7 @@ export const dashboardApi = {
         .select('*')
         .eq('year', currentYear);
 
-      if (!isAdmin && branchId) {
+      if (branchId) {
         analyticsQuery = analyticsQuery.eq('branch_id', branchId);
       }
 
@@ -102,7 +100,7 @@ export const dashboardApi = {
         .from('borrowers')
         .select('borrower_id, client_type');
 
-      if (!isAdmin && branchId) {
+      if (branchId) {
         borrowersQuery = borrowersQuery.eq('branch_id', branchId);
       }
 
