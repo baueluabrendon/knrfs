@@ -103,16 +103,74 @@ export type Database = {
           },
         ]
       }
+      application_audit_trail: {
+        Row: {
+          action_type: string
+          application_id: string | null
+          changes_made: Json | null
+          created_at: string | null
+          id: string
+          new_status: string | null
+          notes: string | null
+          performed_by: string | null
+          performed_by_name: string | null
+          performed_by_role: string | null
+          previous_status: string | null
+        }
+        Insert: {
+          action_type: string
+          application_id?: string | null
+          changes_made?: Json | null
+          created_at?: string | null
+          id?: string
+          new_status?: string | null
+          notes?: string | null
+          performed_by?: string | null
+          performed_by_name?: string | null
+          performed_by_role?: string | null
+          previous_status?: string | null
+        }
+        Update: {
+          action_type?: string
+          application_id?: string | null
+          changes_made?: Json | null
+          created_at?: string | null
+          id?: string
+          new_status?: string | null
+          notes?: string | null
+          performed_by?: string | null
+          performed_by_name?: string | null
+          performed_by_role?: string | null
+          previous_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_audit_trail_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["application_id"]
+          },
+        ]
+      }
       applications: {
         Row: {
           application_document_url: string | null
           application_id: string
           application_type: string | null
+          approved_at: string | null
+          approved_by: string | null
+          declined_at: string | null
+          declined_by: string | null
           employer_type: string | null
           jsonb_data: Json | null
           jsonb_loans: Json | null
           refinanced_from_loan_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           status: Database["public"]["Enums"]["application_status_enum"] | null
+          submission_date: string | null
+          submitted_by: string | null
           updated_at: string | null
           uploaded_at: string | null
         }
@@ -120,11 +178,19 @@ export type Database = {
           application_document_url?: string | null
           application_id?: string
           application_type?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          declined_at?: string | null
+          declined_by?: string | null
           employer_type?: string | null
           jsonb_data?: Json | null
           jsonb_loans?: Json | null
           refinanced_from_loan_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           status?: Database["public"]["Enums"]["application_status_enum"] | null
+          submission_date?: string | null
+          submitted_by?: string | null
           updated_at?: string | null
           uploaded_at?: string | null
         }
@@ -132,11 +198,19 @@ export type Database = {
           application_document_url?: string | null
           application_id?: string
           application_type?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          declined_at?: string | null
+          declined_by?: string | null
           employer_type?: string | null
           jsonb_data?: Json | null
           jsonb_loans?: Json | null
           refinanced_from_loan_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           status?: Database["public"]["Enums"]["application_status_enum"] | null
+          submission_date?: string | null
+          submitted_by?: string | null
           updated_at?: string | null
           uploaded_at?: string | null
         }
@@ -928,6 +1002,198 @@ export type Database = {
           },
         ]
       }
+      promotion_campaigns: {
+        Row: {
+          clicked_count: number | null
+          created_at: string | null
+          created_by: string | null
+          delivered_count: number | null
+          description: string | null
+          email_content: string
+          email_subject: string
+          id: string
+          opened_count: number | null
+          sent_at: string | null
+          sent_count: number | null
+          status: string | null
+          title: string
+        }
+        Insert: {
+          clicked_count?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          delivered_count?: number | null
+          description?: string | null
+          email_content: string
+          email_subject: string
+          id?: string
+          opened_count?: number | null
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: string | null
+          title: string
+        }
+        Update: {
+          clicked_count?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          delivered_count?: number | null
+          description?: string | null
+          email_content?: string
+          email_subject?: string
+          id?: string
+          opened_count?: number | null
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      promotion_recipients: {
+        Row: {
+          borrower_id: string | null
+          campaign_id: string | null
+          clicked_at: string | null
+          created_at: string | null
+          delivered_at: string | null
+          email: string
+          id: string
+          opened_at: string | null
+          sent_at: string | null
+          status: string | null
+        }
+        Insert: {
+          borrower_id?: string | null
+          campaign_id?: string | null
+          clicked_at?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          email: string
+          id?: string
+          opened_at?: string | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          borrower_id?: string | null
+          campaign_id?: string | null
+          clicked_at?: string | null
+          created_at?: string | null
+          delivered_at?: string | null
+          email?: string
+          id?: string
+          opened_at?: string | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promotion_recipients_borrower_id_fkey"
+            columns: ["borrower_id"]
+            isOneToOne: false
+            referencedRelation: "borrowers"
+            referencedColumns: ["borrower_id"]
+          },
+          {
+            foreignKeyName: "promotion_recipients_borrower_id_fkey"
+            columns: ["borrower_id"]
+            isOneToOne: false
+            referencedRelation: "loans_in_arrears_view"
+            referencedColumns: ["borrower_id"]
+          },
+          {
+            foreignKeyName: "promotion_recipients_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "promotion_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recovery_notices: {
+        Row: {
+          borrower_id: string | null
+          content: string | null
+          id: string
+          loan_id: string | null
+          notice_type: string
+          recipient_email: string | null
+          recipient_phone: string | null
+          reference_id: string | null
+          response_date: string | null
+          response_received: boolean | null
+          sent_at: string | null
+          sent_by: string | null
+          sent_by_name: string | null
+          status: string | null
+          subject: string | null
+        }
+        Insert: {
+          borrower_id?: string | null
+          content?: string | null
+          id?: string
+          loan_id?: string | null
+          notice_type: string
+          recipient_email?: string | null
+          recipient_phone?: string | null
+          reference_id?: string | null
+          response_date?: string | null
+          response_received?: boolean | null
+          sent_at?: string | null
+          sent_by?: string | null
+          sent_by_name?: string | null
+          status?: string | null
+          subject?: string | null
+        }
+        Update: {
+          borrower_id?: string | null
+          content?: string | null
+          id?: string
+          loan_id?: string | null
+          notice_type?: string
+          recipient_email?: string | null
+          recipient_phone?: string | null
+          reference_id?: string | null
+          response_date?: string | null
+          response_received?: boolean | null
+          sent_at?: string | null
+          sent_by?: string | null
+          sent_by_name?: string | null
+          status?: string | null
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recovery_notices_borrower_id_fkey"
+            columns: ["borrower_id"]
+            isOneToOne: false
+            referencedRelation: "borrowers"
+            referencedColumns: ["borrower_id"]
+          },
+          {
+            foreignKeyName: "recovery_notices_borrower_id_fkey"
+            columns: ["borrower_id"]
+            isOneToOne: false
+            referencedRelation: "loans_in_arrears_view"
+            referencedColumns: ["borrower_id"]
+          },
+          {
+            foreignKeyName: "recovery_notices_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans"
+            referencedColumns: ["loan_id"]
+          },
+          {
+            foreignKeyName: "recovery_notices_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans_in_arrears_view"
+            referencedColumns: ["loan_id"]
+          },
+        ]
+      }
       repayment_document_group: {
         Row: {
           created_at: string | null
@@ -1494,6 +1760,18 @@ export type Database = {
           p_table_name: string
         }
         Returns: undefined
+      }
+      log_recovery_notice: {
+        Args: {
+          p_borrower_id: string
+          p_content: string
+          p_loan_id: string
+          p_notice_type: string
+          p_recipient_email: string
+          p_reference_id: string
+          p_subject: string
+        }
+        Returns: string
       }
     }
     Enums: {
