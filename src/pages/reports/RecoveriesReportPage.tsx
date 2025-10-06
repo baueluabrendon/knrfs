@@ -21,12 +21,12 @@ const RecoveriesReportPage = () => {
   
   // Comprehensive filter states
   const [filters, setFilters] = useState({
-    year: "",
-    payPeriod: "",
-    clientType: "",
+    year: "all",
+    payPeriod: "all",
+    clientType: "all",
     organizationName: "",
-    payrollType: "",
-    branchId: "",
+    payrollType: "all",
+    branchId: "all",
   });
 
   const { data: branches } = useBranches();
@@ -35,12 +35,12 @@ const RecoveriesReportPage = () => {
     queryKey: ["recoveries-report", "missed", filters],
     queryFn: () => getRecoveriesReport({ 
       reportType: "missed", 
-      year: filters.year ? parseInt(filters.year) : undefined,
-      payPeriod: filters.payPeriod || undefined,
-      clientType: filters.clientType || undefined,
+      year: filters.year && filters.year !== "all" ? parseInt(filters.year) : undefined,
+      payPeriod: filters.payPeriod && filters.payPeriod !== "all" ? filters.payPeriod : undefined,
+      clientType: filters.clientType && filters.clientType !== "all" ? filters.clientType : undefined,
       organizationName: filters.organizationName || undefined,
-      payrollType: filters.payrollType || undefined,
-      branchId: filters.branchId || undefined,
+      payrollType: filters.payrollType && filters.payrollType !== "all" ? filters.payrollType : undefined,
+      branchId: filters.branchId && filters.branchId !== "all" ? filters.branchId : undefined,
     }),
   });
 
@@ -48,12 +48,12 @@ const RecoveriesReportPage = () => {
     queryKey: ["recoveries-report", "partial", filters],
     queryFn: () => getRecoveriesReport({ 
       reportType: "partial",
-      year: filters.year ? parseInt(filters.year) : undefined,
-      payPeriod: filters.payPeriod || undefined,
-      clientType: filters.clientType || undefined,
+      year: filters.year && filters.year !== "all" ? parseInt(filters.year) : undefined,
+      payPeriod: filters.payPeriod && filters.payPeriod !== "all" ? filters.payPeriod : undefined,
+      clientType: filters.clientType && filters.clientType !== "all" ? filters.clientType : undefined,
       organizationName: filters.organizationName || undefined,
-      payrollType: filters.payrollType || undefined,
-      branchId: filters.branchId || undefined,
+      payrollType: filters.payrollType && filters.payrollType !== "all" ? filters.payrollType : undefined,
+      branchId: filters.branchId && filters.branchId !== "all" ? filters.branchId : undefined,
     }),
   });
 
@@ -61,12 +61,12 @@ const RecoveriesReportPage = () => {
     queryKey: ["recoveries-report", "notices", filters],
     queryFn: () => getRecoveriesReport({ 
       reportType: "notices",
-      year: filters.year ? parseInt(filters.year) : undefined,
-      payPeriod: filters.payPeriod || undefined,
-      clientType: filters.clientType || undefined,
+      year: filters.year && filters.year !== "all" ? parseInt(filters.year) : undefined,
+      payPeriod: filters.payPeriod && filters.payPeriod !== "all" ? filters.payPeriod : undefined,
+      clientType: filters.clientType && filters.clientType !== "all" ? filters.clientType : undefined,
       organizationName: filters.organizationName || undefined,
-      payrollType: filters.payrollType || undefined,
-      branchId: filters.branchId || undefined,
+      payrollType: filters.payrollType && filters.payrollType !== "all" ? filters.payrollType : undefined,
+      branchId: filters.branchId && filters.branchId !== "all" ? filters.branchId : undefined,
     }),
   });
 
@@ -280,7 +280,7 @@ const RecoveriesReportPage = () => {
                 <SelectValue placeholder="All Branches" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Branches</SelectItem>
+                <SelectItem value="all">All Branches</SelectItem>
                 {(branches || []).map((branch: any) => (
                   <SelectItem key={branch.id} value={branch.id}>
                     {branch.branch_name}
@@ -290,8 +290,8 @@ const RecoveriesReportPage = () => {
             </Select>
           </div>
         </div>
-        {Object.values(filters).some(v => v) && (
-          <Button variant="ghost" size="sm" onClick={() => setFilters({ year: "", payPeriod: "", clientType: "", organizationName: "", payrollType: "", branchId: "" })} className="mt-4">
+        {Object.values(filters).some(v => v && v !== "all") && (
+          <Button variant="ghost" size="sm" onClick={() => setFilters({ year: "all", payPeriod: "all", clientType: "all", organizationName: "", payrollType: "all", branchId: "all" })} className="mt-4">
             Clear All Filters
           </Button>
         )}

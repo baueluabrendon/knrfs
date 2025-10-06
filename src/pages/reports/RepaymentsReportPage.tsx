@@ -19,12 +19,12 @@ const RepaymentsReportPage = () => {
   
   // Comprehensive filter states
   const [filters, setFilters] = useState({
-    year: "",
-    quarter: "",
-    month: "",
-    payPeriod: "",
-    branchId: "",
-    payrollType: "",
+    year: "all",
+    quarter: "all",
+    month: "all",
+    payPeriod: "all",
+    branchId: "all",
+    payrollType: "all",
   });
 
   const { data: branches } = useBranches();
@@ -32,12 +32,12 @@ const RepaymentsReportPage = () => {
   const { data, isLoading } = useQuery({
     queryKey: ["repayments-report", filters],
     queryFn: () => getRepaymentsReport({
-      year: filters.year ? parseInt(filters.year) : undefined,
-      quarter: filters.quarter ? parseInt(filters.quarter.replace('Q', '')) : undefined,
-      month: filters.month ? parseInt(filters.month) : undefined,
-      payPeriod: filters.payPeriod || undefined,
-      branchId: filters.branchId || undefined,
-      payrollType: filters.payrollType || undefined,
+      year: filters.year && filters.year !== "all" ? parseInt(filters.year) : undefined,
+      quarter: filters.quarter && filters.quarter !== "all" ? parseInt(filters.quarter) : undefined,
+      month: filters.month && filters.month !== "all" ? parseInt(filters.month) : undefined,
+      payPeriod: filters.payPeriod && filters.payPeriod !== "all" ? filters.payPeriod : undefined,
+      branchId: filters.branchId && filters.branchId !== "all" ? filters.branchId : undefined,
+      payrollType: filters.payrollType && filters.payrollType !== "all" ? filters.payrollType : undefined,
     }),
   });
 
@@ -162,7 +162,7 @@ const RepaymentsReportPage = () => {
                 <SelectValue placeholder="All Branches" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Branches</SelectItem>
+                <SelectItem value="all">All Branches</SelectItem>
                 {(branches || []).map((branch: any) => (
                   <SelectItem key={branch.id} value={branch.id}>
                     {branch.branch_name}
@@ -174,8 +174,8 @@ const RepaymentsReportPage = () => {
 
           <PayrollTypeFilter value={filters.payrollType} onChange={(payrollType) => setFilters({...filters, payrollType})} />
         </div>
-        {Object.values(filters).some(v => v) && (
-          <Button variant="ghost" size="sm" onClick={() => setFilters({ year: "", quarter: "", month: "", payPeriod: "", branchId: "", payrollType: "" })} className="mt-4">
+        {Object.values(filters).some(v => v && v !== "all") && (
+          <Button variant="ghost" size="sm" onClick={() => setFilters({ year: "all", quarter: "all", month: "all", payPeriod: "all", branchId: "all", payrollType: "all" })} className="mt-4">
             Clear All Filters
           </Button>
         )}

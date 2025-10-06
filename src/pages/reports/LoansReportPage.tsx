@@ -26,7 +26,7 @@ const LoansReportPage = () => {
     startDate: "",
     endDate: "",
     organizationName: "",
-    branchId: "",
+    branchId: "all",
   });
 
   const { data: branches } = useBranches();
@@ -35,14 +35,14 @@ const LoansReportPage = () => {
     queryKey: ["loans-report", filters],
     queryFn: () =>
       getLoansReport({
-        status: filters.status !== "all" ? filters.status : undefined,
-        payrollType: filters.payrollType !== "all" ? filters.payrollType : undefined,
-        clientType: filters.clientType !== "all" ? filters.clientType : undefined,
+        status: filters.status && filters.status !== "all" ? filters.status : undefined,
+        payrollType: filters.payrollType && filters.payrollType !== "all" ? filters.payrollType : undefined,
+        clientType: filters.clientType && filters.clientType !== "all" ? filters.clientType : undefined,
         includeArrears: filters.includeArrears,
         startDate: filters.startDate || undefined,
         endDate: filters.endDate || undefined,
         organizationName: filters.organizationName || undefined,
-        branchId: filters.branchId || undefined,
+        branchId: filters.branchId && filters.branchId !== "all" ? filters.branchId : undefined,
       }),
   });
 
@@ -232,7 +232,7 @@ const LoansReportPage = () => {
                 <SelectValue placeholder="All Branches" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Branches</SelectItem>
+                <SelectItem value="all">All Branches</SelectItem>
                 {(branches || []).map((branch: any) => (
                   <SelectItem key={branch.id} value={branch.id}>
                     {branch.branch_name}
@@ -279,7 +279,7 @@ const LoansReportPage = () => {
             startDate: "",
             endDate: "",
             organizationName: "",
-            branchId: "",
+            branchId: "all",
           })} className="mt-4">
             Clear All Filters
           </Button>

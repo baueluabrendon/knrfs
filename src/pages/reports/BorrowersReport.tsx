@@ -20,7 +20,7 @@ const BorrowersReport = () => {
   const [expandedOrgs, setExpandedOrgs] = useState<Record<string, boolean>>({});
   
   // Filter states
-  const [branchId, setBranchId] = useState<string>("");
+  const [branchId, setBranchId] = useState<string>("all");
   const [hasActiveLoans, setHasActiveLoans] = useState<boolean>(false);
   const [organizationName, setOrganizationName] = useState<string>("");
 
@@ -28,7 +28,11 @@ const BorrowersReport = () => {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["borrowers-report", branchId, hasActiveLoans, organizationName],
-    queryFn: () => getBorrowersReport({ branchId, hasActiveLoans, organizationName }),
+    queryFn: () => getBorrowersReport({ 
+      branchId: branchId && branchId !== "all" ? branchId : undefined,
+      hasActiveLoans, 
+      organizationName: organizationName || undefined 
+    }),
   });
 
   if (error) {
@@ -141,7 +145,7 @@ const BorrowersReport = () => {
                 <SelectValue placeholder="All Branches" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Branches</SelectItem>
+                <SelectItem value="all">All Branches</SelectItem>
                 {(branches || []).map((branch: any) => (
                   <SelectItem key={branch.id} value={branch.id}>
                     {branch.branch_name}
@@ -159,9 +163,9 @@ const BorrowersReport = () => {
             />
           </div>
         </div>
-        {(branchId || hasActiveLoans || organizationName) && (
+        {(branchId !== "all" || hasActiveLoans || organizationName) && (
           <Button variant="ghost" size="sm" onClick={() => {
-            setBranchId("");
+            setBranchId("all");
             setHasActiveLoans(false);
             setOrganizationName("");
           }} className="mt-4">
