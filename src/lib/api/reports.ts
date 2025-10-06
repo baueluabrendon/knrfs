@@ -14,6 +14,8 @@ export interface UsersReportFilters {
 export interface BorrowersReportFilters {
   year?: string;
   organizationName?: string;
+  branchId?: string;
+  hasActiveLoans?: boolean;
 }
 
 export interface ApplicationsReportFilters {
@@ -30,6 +32,7 @@ export interface LoansReportFilters {
   clientType?: string;
   payrollType?: string;
   includeArrears?: boolean;
+  branchId?: string;
 }
 
 export interface RepaymentsReportFilters {
@@ -37,6 +40,10 @@ export interface RepaymentsReportFilters {
   payrollType?: string;
   startDate?: string;
   endDate?: string;
+  year?: number;
+  quarter?: number;
+  month?: number;
+  branchId?: string;
 }
 
 export interface RecoveriesReportFilters {
@@ -44,6 +51,11 @@ export interface RecoveriesReportFilters {
   reportType?: 'missed' | 'partial' | 'notices';
   startDate?: string;
   endDate?: string;
+  year?: number;
+  clientType?: string;
+  organizationName?: string;
+  payrollType?: string;
+  branchId?: string;
 }
 
 export interface PromotionsReportFilters {
@@ -111,7 +123,11 @@ export const getBorrowersReport = async (filters: BorrowersReportFilters = {}) =
     .order('created_at', { ascending: false });
 
   if (filters.organizationName) {
-    query = query.eq('department_company', filters.organizationName);
+    query = query.ilike('department_company', `%${filters.organizationName}%`);
+  }
+
+  if (filters.branchId) {
+    query = query.eq('branch_id', filters.branchId);
   }
 
   const { data: borrowers, error } = await query;
@@ -119,7 +135,7 @@ export const getBorrowersReport = async (filters: BorrowersReportFilters = {}) =
   if (error) throw error;
 
   // Get loan counts for each borrower
-  const borrowersWithLoans = await Promise.all(
+  let borrowersWithLoans = await Promise.all(
     (borrowers || []).map(async (borrower) => {
       const { data: loans } = await supabase
         .from('loans')
@@ -133,6 +149,11 @@ export const getBorrowersReport = async (filters: BorrowersReportFilters = {}) =
       };
     })
   );
+
+  // Filter by active loans if requested
+  if (filters.hasActiveLoans) {
+    borrowersWithLoans = borrowersWithLoans.filter(b => b.active_loans > 0);
+  }
 
   // Group by department/company
   const grouped = borrowersWithLoans.reduce((acc, borrower) => {
@@ -283,7 +304,13 @@ export const getLoansReport = async (filters: LoansReportFilters = {}) => {
 
   if (filters.organizationName) {
     filteredLoans = filteredLoans.filter(
-      loan => loan.borrowers?.department_company === filters.organizationName
+      loan => loan.borrowers?.department_company?.toLowerCase().includes(filters.organizationName!.toLowerCase())
+    );
+  }
+
+  if (filters.branchId) {
+    filteredLoans = filteredLoans.filter(
+      loan => loan.borrowers?.branch_id === filters.branchId
     );
   }
 
@@ -348,11 +375,13 @@ export const getRepaymentsReport = async (filters: RepaymentsReportFilters = {})
           given_name,
           surname,
           file_number,
-          department_company
+          department_company,
+          branch_id,
+          branches:branch_id(branch_name, branch_code)
         )
       )
     `)
-    .in('statusrs', ['pending', 'paid', 'partial'])
+    .in('statusrs', ['pending', 'paid', 'partial', 'default'])
     .order('due_date', { ascending: false });
 
   if (filters.payPeriod) {
@@ -375,10 +404,40 @@ export const getRepaymentsReport = async (filters: RepaymentsReportFilters = {})
 
   if (error) throw error;
 
-  // Calculate collection ratings
-  const schedulesWithRatings = (schedules || []).map(schedule => {
+  // Apply additional date-based filters
+  let filteredSchedules = schedules || [];
+
+  if (filters.year) {
+    filteredSchedules = filteredSchedules.filter(s => 
+      new Date(s.due_date).getFullYear() === filters.year
+    );
+  }
+
+  if (filters.quarter) {
+    filteredSchedules = filteredSchedules.filter(s => {
+      const month = new Date(s.due_date).getMonth() + 1;
+      const quarter = Math.ceil(month / 3);
+      return quarter === filters.quarter;
+    });
+  }
+
+  if (filters.month) {
+    filteredSchedules = filteredSchedules.filter(s =>
+      new Date(s.due_date).getMonth() + 1 === filters.month
+    );
+  }
+
+  if (filters.branchId) {
+    filteredSchedules = filteredSchedules.filter(s =>
+      s.loans?.borrowers?.branch_id === filters.branchId
+    );
+  }
+
+  // Calculate collection ratings and variance
+  const schedulesWithRatings = filteredSchedules.map(schedule => {
     const expected = schedule.repaymentrs || 0;
     const collected = schedule.repayment_received || 0;
+    const variance = schedule.balance || 0;
     const collectionRate = expected > 0 ? (collected / expected) * 100 : 0;
 
     let rating: 'full' | 'partial' | 'missed';
@@ -388,6 +447,7 @@ export const getRepaymentsReport = async (filters: RepaymentsReportFilters = {})
 
     return {
       ...schedule,
+      variance,
       collection_rate: collectionRate,
       collection_rating: rating,
     };
@@ -403,12 +463,18 @@ export const getRepaymentsReport = async (filters: RepaymentsReportFilters = {})
     return acc;
   }, {} as Record<string, typeof schedulesWithRatings>);
 
+  const totalExpected = schedulesWithRatings.reduce((sum, s) => sum + (s.repaymentrs || 0), 0);
+  const totalCollected = schedulesWithRatings.reduce((sum, s) => sum + (s.repayment_received || 0), 0);
+  const totalVariance = schedulesWithRatings.reduce((sum, s) => sum + (s.variance || 0), 0);
+
   return {
     schedules: schedulesWithRatings,
     grouped,
     summary: {
-      total_expected: schedulesWithRatings.reduce((sum, s) => sum + (s.repaymentrs || 0), 0),
-      total_collected: schedulesWithRatings.reduce((sum, s) => sum + (s.repayment_received || 0), 0),
+      total_expected: totalExpected,
+      total_collected: totalCollected,
+      total_variance: totalVariance,
+      collection_efficiency: totalExpected > 0 ? (totalCollected / totalExpected) * 100 : 0,
       principal_collected: schedulesWithRatings.reduce((sum, s) => sum + (s.received_principal || 0), 0),
       interest_collected: schedulesWithRatings.reduce((sum, s) => sum + (s.received_interest || 0), 0),
       doc_fees_collected: schedulesWithRatings.reduce((sum, s) => sum + (s.received_documentation_fee || 0), 0),
@@ -444,7 +510,10 @@ export const getRecoveriesReport = async (filters: RecoveriesReportFilters = {})
           borrowers:borrower_id(
             given_name,
             surname,
-            department_company
+            department_company,
+            client_type,
+            branch_id,
+            branches:branch_id(branch_name, branch_code)
           )
         )
       `)
@@ -462,11 +531,31 @@ export const getRecoveriesReport = async (filters: RecoveriesReportFilters = {})
 
     if (error) throw error;
 
+    let filteredNotices = notices || [];
+
+    if (filters.year) {
+      filteredNotices = filteredNotices.filter(n =>
+        new Date(n.sent_at).getFullYear() === filters.year
+      );
+    }
+
+    if (filters.branchId) {
+      filteredNotices = filteredNotices.filter(n =>
+        n.loans?.borrowers?.branch_id === filters.branchId
+      );
+    }
+
+    if (filters.organizationName) {
+      filteredNotices = filteredNotices.filter(n =>
+        n.loans?.borrowers?.department_company?.toLowerCase().includes(filters.organizationName!.toLowerCase())
+      );
+    }
+
     return {
-      notices,
+      notices: filteredNotices,
       summary: {
-        total: notices?.length || 0,
-        by_type: groupNoticesByType(notices || []),
+        total: filteredNotices.length,
+        by_type: groupNoticesByType(filteredNotices),
       },
     };
   }
@@ -483,7 +572,10 @@ export const getRecoveriesReport = async (filters: RecoveriesReportFilters = {})
           given_name,
           surname,
           file_number,
-          department_company
+          department_company,
+          client_type,
+          branch_id,
+          branches:branch_id(branch_name, branch_code)
         )
       )
     `)
@@ -495,6 +587,10 @@ export const getRecoveriesReport = async (filters: RecoveriesReportFilters = {})
     query = query.eq('statusrs', 'partial');
   } else {
     query = query.in('statusrs', ['default', 'partial']);
+  }
+
+  if (filters.payrollType) {
+    query = query.eq('payroll_type', filters.payrollType);
   }
 
   if (filters.payPeriod) {
@@ -513,14 +609,40 @@ export const getRecoveriesReport = async (filters: RecoveriesReportFilters = {})
 
   if (error) throw error;
 
+  let filteredSchedules = schedules || [];
+
+  if (filters.year) {
+    filteredSchedules = filteredSchedules.filter(s =>
+      new Date(s.due_date).getFullYear() === filters.year
+    );
+  }
+
+  if (filters.clientType) {
+    filteredSchedules = filteredSchedules.filter(s =>
+      s.loans?.borrowers?.client_type === filters.clientType
+    );
+  }
+
+  if (filters.organizationName) {
+    filteredSchedules = filteredSchedules.filter(s =>
+      s.loans?.borrowers?.department_company?.toLowerCase().includes(filters.organizationName!.toLowerCase())
+    );
+  }
+
+  if (filters.branchId) {
+    filteredSchedules = filteredSchedules.filter(s =>
+      s.loans?.borrowers?.branch_id === filters.branchId
+    );
+  }
+
   return {
-    schedules,
+    schedules: filteredSchedules,
     summary: {
-      total: schedules?.length || 0,
-      total_expected: schedules?.reduce((sum, s) => sum + (s.repaymentrs || 0), 0) || 0,
-      total_collected: schedules?.reduce((sum, s) => sum + (s.repayment_received || 0), 0) || 0,
-      total_outstanding: schedules?.reduce((sum, s) => sum + (s.balance || 0), 0) || 0,
-      total_default_fees: schedules?.reduce((sum, s) => sum + (s.default_charged || 0), 0) || 0,
+      total: filteredSchedules.length,
+      total_expected: filteredSchedules.reduce((sum, s) => sum + (s.repaymentrs || 0), 0),
+      total_collected: filteredSchedules.reduce((sum, s) => sum + (s.repayment_received || 0), 0),
+      total_outstanding: filteredSchedules.reduce((sum, s) => sum + (s.balance || 0), 0),
+      total_default_fees: filteredSchedules.reduce((sum, s) => sum + (s.default_charged || 0), 0),
     },
   };
 };
