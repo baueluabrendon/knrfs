@@ -10,7 +10,7 @@ import { format } from "date-fns";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
-import { YearFilter, QuarterFilter, MonthFilter, PayPeriodFilter, PayrollTypeFilter } from "@/components/reports/ReportFilters";
+import { YearFilter, QuarterFilter, MonthFilter, PayPeriodFilter, PayrollTypeFilter, OrganizationFilter } from "@/components/reports/ReportFilters";
 import { useBranches } from "@/hooks/useBranches";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -25,6 +25,7 @@ const RepaymentsReportPage = () => {
     payPeriod: "all",
     branchId: "all",
     payrollType: "all",
+    organizationName: "",
   });
 
   const { data: branches } = useBranches();
@@ -38,6 +39,7 @@ const RepaymentsReportPage = () => {
       payPeriod: filters.payPeriod && filters.payPeriod !== "all" ? filters.payPeriod : undefined,
       branchId: filters.branchId && filters.branchId !== "all" ? filters.branchId : undefined,
       payrollType: filters.payrollType && filters.payrollType !== "all" ? filters.payrollType : undefined,
+      organizationName: filters.organizationName || undefined,
     }),
   });
 
@@ -155,6 +157,12 @@ const RepaymentsReportPage = () => {
           <MonthFilter value={filters.month} onChange={(month) => setFilters({...filters, month})} />
           <PayPeriodFilter value={filters.payPeriod} onChange={(payPeriod) => setFilters({...filters, payPeriod})} />
           
+          <OrganizationFilter 
+            value={filters.organizationName} 
+            onChange={(organizationName) => setFilters({...filters, organizationName})} 
+            placeholder="Filter by company/department" 
+          />
+
           <div>
             <label className="text-sm font-medium mb-2 block">Branch</label>
             <Select value={filters.branchId} onValueChange={(branchId) => setFilters({...filters, branchId})}>
@@ -175,7 +183,7 @@ const RepaymentsReportPage = () => {
           <PayrollTypeFilter value={filters.payrollType} onChange={(payrollType) => setFilters({...filters, payrollType})} />
         </div>
         {Object.values(filters).some(v => v && v !== "all") && (
-          <Button variant="ghost" size="sm" onClick={() => setFilters({ year: "all", quarter: "all", month: "all", payPeriod: "all", branchId: "all", payrollType: "all" })} className="mt-4">
+          <Button variant="ghost" size="sm" onClick={() => setFilters({ year: "all", quarter: "all", month: "all", payPeriod: "all", branchId: "all", payrollType: "all", organizationName: "" })} className="mt-4">
             Clear All Filters
           </Button>
         )}

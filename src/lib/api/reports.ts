@@ -44,6 +44,7 @@ export interface RepaymentsReportFilters {
   quarter?: number;
   month?: number;
   branchId?: string;
+  organizationName?: string;
 }
 
 export interface RecoveriesReportFilters {
@@ -430,6 +431,12 @@ export const getRepaymentsReport = async (filters: RepaymentsReportFilters = {})
   if (filters.branchId) {
     filteredSchedules = filteredSchedules.filter(s =>
       s.loans?.borrowers?.branch_id === filters.branchId
+    );
+  }
+
+  if (filters.organizationName) {
+    filteredSchedules = filteredSchedules.filter(s =>
+      s.loans?.borrowers?.department_company?.toLowerCase().includes(filters.organizationName!.toLowerCase())
     );
   }
 
