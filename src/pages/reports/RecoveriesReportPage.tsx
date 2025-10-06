@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, AlertTriangle, Mail, FileText } from "lucide-react";
+import { ArrowLeft, Download, AlertTriangle, Mail, FileText, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getRecoveriesReport } from "@/lib/api/reports";
@@ -11,24 +11,63 @@ import { format } from "date-fns";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { YearFilter, PayPeriodFilter, ClientTypeFilter, OrganizationFilter, PayrollTypeFilter } from "@/components/reports/ReportFilters";
+import { useBranches } from "@/hooks/useBranches";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const RecoveriesReportPage = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"missed" | "partial" | "notices">("missed");
+  
+  // Comprehensive filter states
+  const [filters, setFilters] = useState({
+    year: "",
+    payPeriod: "",
+    clientType: "",
+    organizationName: "",
+    payrollType: "",
+    branchId: "",
+  });
+
+  const { data: branches } = useBranches();
 
   const { data: missedData, isLoading: missedLoading } = useQuery({
-    queryKey: ["recoveries-report", "missed"],
-    queryFn: () => getRecoveriesReport({ reportType: "missed" }),
+    queryKey: ["recoveries-report", "missed", filters],
+    queryFn: () => getRecoveriesReport({ 
+      reportType: "missed", 
+      year: filters.year ? parseInt(filters.year) : undefined,
+      payPeriod: filters.payPeriod || undefined,
+      clientType: filters.clientType || undefined,
+      organizationName: filters.organizationName || undefined,
+      payrollType: filters.payrollType || undefined,
+      branchId: filters.branchId || undefined,
+    }),
   });
 
   const { data: partialData, isLoading: partialLoading } = useQuery({
-    queryKey: ["recoveries-report", "partial"],
-    queryFn: () => getRecoveriesReport({ reportType: "partial" }),
+    queryKey: ["recoveries-report", "partial", filters],
+    queryFn: () => getRecoveriesReport({ 
+      reportType: "partial",
+      year: filters.year ? parseInt(filters.year) : undefined,
+      payPeriod: filters.payPeriod || undefined,
+      clientType: filters.clientType || undefined,
+      organizationName: filters.organizationName || undefined,
+      payrollType: filters.payrollType || undefined,
+      branchId: filters.branchId || undefined,
+    }),
   });
 
   const { data: noticesData, isLoading: noticesLoading } = useQuery({
-    queryKey: ["recoveries-report", "notices"],
-    queryFn: () => getRecoveriesReport({ reportType: "notices" }),
+    queryKey: ["recoveries-report", "notices", filters],
+    queryFn: () => getRecoveriesReport({ 
+      reportType: "notices",
+      year: filters.year ? parseInt(filters.year) : undefined,
+      payPeriod: filters.payPeriod || undefined,
+      clientType: filters.clientType || undefined,
+      organizationName: filters.organizationName || undefined,
+      payrollType: filters.payrollType || undefined,
+      branchId: filters.branchId || undefined,
+    }),
   });
 
   const exportMissedToPDF = () => {
@@ -165,6 +204,43 @@ const RecoveriesReportPage = () => {
       </div>
 
       <h1 className="text-2xl font-bold">Recoveries Report</h1>
+
+      {/* Comprehensive Filters Section */}
+      <Card className="p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Filter className="w-5 h-5" />
+          <h2 className="text-lg font-semibold">Filters (Apply to All Tabs)</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <YearFilter value={filters.year} onChange={(year) => setFilters({...filters, year})} />
+          <PayPeriodFilter value={filters.payPeriod} onChange={(payPeriod) => setFilters({...filters, payPeriod})} />
+          <ClientTypeFilter value={filters.clientType} onChange={(clientType) => setFilters({...filters, clientType})} />
+          <OrganizationFilter value={filters.organizationName} onChange={(organizationName) => setFilters({...filters, organizationName})} placeholder="Filter by organization" />
+          <PayrollTypeFilter value={filters.payrollType} onChange={(payrollType) => setFilters({...filters, payrollType})} />
+          
+          <div>
+            <label className="text-sm font-medium mb-2 block">Branch</label>
+            <Select value={filters.branchId} onValueChange={(branchId) => setFilters({...filters, branchId})}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Branches" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Branches</SelectItem>
+                {(branches || []).map((branch: any) => (
+                  <SelectItem key={branch.id} value={branch.id}>
+                    {branch.branch_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        {Object.values(filters).some(v => v) && (
+          <Button variant="ghost" size="sm" onClick={() => setFilters({ year: "", payPeriod: "", clientType: "", organizationName: "", payrollType: "", branchId: "" })} className="mt-4">
+            Clear All Filters
+          </Button>
+        )}
+      </Card>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

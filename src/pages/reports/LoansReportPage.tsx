@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, TrendingUp, DollarSign, AlertCircle, CheckCircle } from "lucide-react";
+import { ArrowLeft, Download, TrendingUp, DollarSign, AlertCircle, CheckCircle, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getLoansReport } from "@/lib/api/reports";
@@ -13,6 +13,8 @@ import { format } from "date-fns";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { OrganizationFilter } from "@/components/reports/ReportFilters";
+import { useBranches } from "@/hooks/useBranches";
 
 const LoansReportPage = () => {
   const navigate = useNavigate();
@@ -23,7 +25,11 @@ const LoansReportPage = () => {
     includeArrears: false,
     startDate: "",
     endDate: "",
+    organizationName: "",
+    branchId: "",
   });
+
+  const { data: branches } = useBranches();
 
   const { data, isLoading } = useQuery({
     queryKey: ["loans-report", filters],
@@ -35,6 +41,8 @@ const LoansReportPage = () => {
         includeArrears: filters.includeArrears,
         startDate: filters.startDate || undefined,
         endDate: filters.endDate || undefined,
+        organizationName: filters.organizationName || undefined,
+        branchId: filters.branchId || undefined,
       }),
   });
 
@@ -161,7 +169,11 @@ const LoansReportPage = () => {
       </div>
 
       {/* Filters */}
-      <Card className="p-4">
+      <Card className="p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Filter className="w-5 h-5" />
+          <h2 className="text-lg font-semibold">Filters</h2>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="text-sm font-medium mb-2 block">Status</label>
@@ -207,6 +219,29 @@ const LoansReportPage = () => {
             </Select>
           </div>
 
+          <OrganizationFilter 
+            value={filters.organizationName} 
+            onChange={(val) => setFilters({ ...filters, organizationName: val })} 
+            placeholder="Filter by company/department" 
+          />
+
+          <div>
+            <label className="text-sm font-medium mb-2 block">Branch</label>
+            <Select value={filters.branchId} onValueChange={(val) => setFilters({ ...filters, branchId: val })}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Branches" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Branches</SelectItem>
+                {(branches || []).map((branch: any) => (
+                  <SelectItem key={branch.id} value={branch.id}>
+                    {branch.branch_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div>
             <label className="text-sm font-medium mb-2 block">Start Date</label>
             <Input
@@ -235,6 +270,20 @@ const LoansReportPage = () => {
             </label>
           </div>
         </div>
+        {Object.values(filters).some(v => v && v !== "all") && (
+          <Button variant="ghost" size="sm" onClick={() => setFilters({
+            status: "all",
+            payrollType: "all",
+            clientType: "all",
+            includeArrears: false,
+            startDate: "",
+            endDate: "",
+            organizationName: "",
+            branchId: "",
+          })} className="mt-4">
+            Clear All Filters
+          </Button>
+        )}
       </Card>
 
       {/* Data Table */}
@@ -262,7 +311,7 @@ const LoansReportPage = () => {
             ) : (data?.loans || []).length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="text-center">
-                  No loans found
+                  No loans found for selected filters
                 </TableCell>
               </TableRow>
             ) : (

@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, Users, Building, ChevronDown, ChevronRight } from "lucide-react";
+import { ArrowLeft, Download, Users, Building, ChevronDown, ChevronRight, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getBorrowersReport } from "@/lib/api/reports";
@@ -9,15 +9,31 @@ import { format } from "date-fns";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { CheckboxFilter, OrganizationFilter } from "@/components/reports/ReportFilters";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { useBranches } from "@/hooks/useBranches";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const BorrowersReport = () => {
   const navigate = useNavigate();
   const [expandedOrgs, setExpandedOrgs] = useState<Record<string, boolean>>({});
+  
+  // Filter states
+  const [branchId, setBranchId] = useState<string>("");
+  const [hasActiveLoans, setHasActiveLoans] = useState<boolean>(false);
+  const [organizationName, setOrganizationName] = useState<string>("");
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["borrowers-report"],
-    queryFn: () => getBorrowersReport({}),
+  const { data: branches } = useBranches();
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["borrowers-report", branchId, hasActiveLoans, organizationName],
+    queryFn: () => getBorrowersReport({ branchId, hasActiveLoans, organizationName }),
   });
+
+  if (error) {
+    toast.error("Failed to load borrowers report");
+  }
 
   const toggleOrg = (org: string) => {
     setExpandedOrgs((prev) => ({
@@ -111,6 +127,49 @@ const BorrowersReport = () => {
 
       <h1 className="text-2xl font-bold">Borrowers Reports</h1>
 
+      {/* Filters Section */}
+      <Card className="p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Filter className="w-5 h-5" />
+          <h2 className="text-lg font-semibold">Filters</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="text-sm font-medium mb-2 block">Branch</label>
+            <Select value={branchId} onValueChange={setBranchId}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Branches" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Branches</SelectItem>
+                {(branches || []).map((branch: any) => (
+                  <SelectItem key={branch.id} value={branch.id}>
+                    {branch.branch_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <OrganizationFilter value={organizationName} onChange={setOrganizationName} placeholder="Search by department/company" />
+          <div className="flex items-center">
+            <CheckboxFilter
+              checked={hasActiveLoans}
+              onChange={setHasActiveLoans}
+              label="Show only borrowers with active loans"
+            />
+          </div>
+        </div>
+        {(branchId || hasActiveLoans || organizationName) && (
+          <Button variant="ghost" size="sm" onClick={() => {
+            setBranchId("");
+            setHasActiveLoans(false);
+            setOrganizationName("");
+          }} className="mt-4">
+            Clear Filters
+          </Button>
+        )}
+      </Card>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="p-6">
@@ -175,17 +234,28 @@ const BorrowersReport = () => {
                   <div className="p-4 border-t space-y-2">
                     {borrowers.map((borrower: any) => (
                       <div key={borrower.borrower_id} className="flex justify-between items-center p-3 bg-accent rounded">
-                        <div>
-                          <p className="font-medium">
-                            {borrower.given_name} {borrower.surname}
-                          </p>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="font-medium">
+                              {borrower.given_name} {borrower.surname}
+                            </p>
+                            {borrower.branch_name && (
+                              <Badge variant="outline">{borrower.branch_name}</Badge>
+                            )}
+                            {borrower.active_loans > 0 && (
+                              <Badge className="bg-green-100 text-green-800">Active Client</Badge>
+                            )}
+                          </div>
                           <p className="text-sm text-muted-foreground">
                             {borrower.borrower_id} • {borrower.email}
                           </p>
+                          {borrower.file_number && (
+                            <p className="text-xs text-muted-foreground">File: {borrower.file_number}</p>
+                          )}
                         </div>
                         <div className="text-right text-sm">
                           <p>Total Loans: {borrower.total_loans || 0}</p>
-                          <p className="text-green-600">Active: {borrower.active_loans || 0}</p>
+                          <p className="text-green-600 font-semibold">Active: {borrower.active_loans || 0}</p>
                         </div>
                       </div>
                     ))}
