@@ -250,14 +250,14 @@ const RepaymentsReportPage = () => {
             </TableHeader>
             <TableBody>
               {data.summary.by_payroll_type.map((item: any) => {
-                const variance = (item.expected_collections || 0) - (item.total_collected || 0);
-                const rate = item.expected_collections > 0 ? ((item.total_collected / item.expected_collections) * 100).toFixed(2) : "0.00";
+                const variance = (item.expected || 0) - (item.collected || 0);
+                const rate = item.expected > 0 ? ((item.collected / item.expected) * 100).toFixed(2) : "0.00";
                 return (
                   <TableRow key={item.payroll_type}>
                     <TableCell className="font-medium capitalize">{item.payroll_type?.replace("_", " ") || "N/A"}</TableCell>
-                    <TableCell className="text-right">K {item.expected_collections?.toLocaleString() || 0}</TableCell>
-                    <TableCell className="text-right">K {item.total_collected?.toLocaleString() || 0}</TableCell>
-                    <TableCell className={`text-right font-semibold ${getVarianceColor(variance, item.expected_collections)}`}>
+                    <TableCell className="text-right">K {item.expected?.toLocaleString() || 0}</TableCell>
+                    <TableCell className="text-right">K {item.collected?.toLocaleString() || 0}</TableCell>
+                    <TableCell className={`text-right font-semibold ${getVarianceColor(variance, item.expected)}`}>
                       K {variance.toLocaleString()}
                     </TableCell>
                     <TableCell className="text-right">

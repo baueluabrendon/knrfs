@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, AlertTriangle, Mail, FileText, Filter } from "lucide-react";
+import { ArrowLeft, Download, AlertTriangle, Mail, FileText, Filter, XCircle, AlertCircle, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getRecoveriesReport } from "@/lib/api/reports";
@@ -205,6 +205,61 @@ const RecoveriesReportPage = () => {
 
       <h1 className="text-2xl font-bold">Recoveries Report</h1>
 
+      {/* Enhanced Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Total Missed Payments</p>
+              <p className="text-2xl font-bold text-red-600">
+                {missedData?.summary.total || 0}
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                K {missedData?.summary.total_outstanding?.toLocaleString() || 0}
+              </p>
+            </div>
+            <XCircle className="w-10 h-10 text-red-500" />
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Total Partial Payments</p>
+              <p className="text-2xl font-bold text-yellow-600">
+                {partialData?.summary.total || 0}
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                K {partialData?.summary.total_outstanding?.toLocaleString() || 0}
+              </p>
+            </div>
+            <AlertCircle className="w-10 h-10 text-yellow-500" />
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Recovery Notices Sent</p>
+              <p className="text-2xl font-bold">{noticesData?.summary.total || 0}</p>
+            </div>
+            <FileText className="w-10 h-10 text-primary" />
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Total Under Recovery</p>
+              <p className="text-2xl font-bold text-orange-600">
+                K {((missedData?.summary.total_outstanding || 0) + (partialData?.summary.total_outstanding || 0)).toLocaleString()}
+              </p>
+            </div>
+            <TrendingUp className="w-10 h-10 text-orange-500" />
+          </div>
+        </Card>
+      </div>
+
       {/* Comprehensive Filters Section */}
       <Card className="p-6">
         <div className="flex items-center gap-2 mb-4">
@@ -241,49 +296,6 @@ const RecoveriesReportPage = () => {
           </Button>
         )}
       </Card>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Missed Payments</p>
-              <p className="text-3xl font-bold text-red-600">{totalMissed}</p>
-            </div>
-            <AlertTriangle className="w-10 h-10 text-red-500" />
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Partial Payments</p>
-              <p className="text-3xl font-bold text-yellow-600">{totalPartial}</p>
-            </div>
-            <AlertTriangle className="w-10 h-10 text-yellow-500" />
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Default Fees</p>
-              <p className="text-2xl font-bold">K {totalDefaultFees?.toLocaleString() || 0}</p>
-            </div>
-            <FileText className="w-10 h-10 text-orange-500" />
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Notices Sent</p>
-              <p className="text-3xl font-bold">{noticesData?.summary.total || 0}</p>
-            </div>
-            <Mail className="w-10 h-10 text-blue-500" />
-          </div>
-        </Card>
-      </div>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as any)}>

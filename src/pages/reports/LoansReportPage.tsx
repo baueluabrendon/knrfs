@@ -308,9 +308,9 @@ const LoansReportPage = () => {
                   Loading...
                 </TableCell>
               </TableRow>
-            ) : (data?.loans || []).length === 0 ? (
+            ) : !data?.loans || data.loans.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center">
+                <TableCell colSpan={8} className="text-center text-muted-foreground">
                   No loans found for selected filters
                 </TableCell>
               </TableRow>

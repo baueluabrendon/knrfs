@@ -213,9 +213,11 @@ const BorrowersReport = () => {
 
         {isLoading ? (
           <p>Loading...</p>
+        ) : !data?.grouped || Object.keys(data.grouped).length === 0 ? (
+          <p className="text-center text-muted-foreground">No borrowers found for selected filters</p>
         ) : (
           <div className="space-y-4">
-            {Object.entries(data?.grouped || {}).map(([org, borrowers]: [string, any]) => (
+            {Object.entries(data.grouped).map(([org, borrowers]: [string, any]) => (
               <div key={org} className="border rounded-lg">
                 <Button
                   variant="ghost"
