@@ -29,7 +29,6 @@ export const RepaymentSchedule = ({ loan }: RepaymentScheduleProps) => {
         .from("repayment_ledger_view")
         .select("*")
         .eq("loan_id", loan.id)
-        .or("description.neq.Repayment Received,status.neq.pending")
         .order("entry_date", { ascending: true });
 
       if (data?.length) {
