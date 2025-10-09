@@ -134,6 +134,8 @@ export const dashboardApi = {
         return acc;
       }, {} as Record<string, number>);
 
+      console.log('Dashboard API - Active borrowers by client type:', clientTypeCounts);
+
       // Map database client_type values to display values
       const mapClientType = (dbType: string): string => {
         const mapping: Record<string, string> = {
@@ -141,8 +143,14 @@ export const dashboardApi = {
           'statutory': 'Statutory Body',
           'company': 'Private Company'
         };
+        console.log('Dashboard API - Mapping client type:', dbType, '->', mapping[dbType] || dbType);
         return mapping[dbType] || dbType;
       };
+
+      console.log('Dashboard API - Active loans data:', activeLoans.map(l => ({
+        loan_status: l.loan_status,
+        client_type: (l.borrowers as any)?.client_type
+      })));
 
       // Calculate active loans by client type
       const activeLoansByClientType = activeLoans.reduce((acc, loan) => {
@@ -152,6 +160,8 @@ export const dashboardApi = {
         return acc;
       }, {} as Record<string, number>);
 
+      console.log('Dashboard API - Active loans by client type:', activeLoansByClientType);
+
       // Calculate settled loans by client type
       const settledLoansByClientType = settledLoans.reduce((acc, loan) => {
         const dbClientType = (loan.borrowers as any)?.client_type || 'Unknown';
@@ -159,6 +169,8 @@ export const dashboardApi = {
         acc[clientType] = (acc[clientType] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
+
+      console.log('Dashboard API - Settled loans by client type:', settledLoansByClientType);
 
       // Calculate internal refinanced by client type
       const internalRefinanced = loansData?.filter(l => l.refinanced === 'Internal') || [];
@@ -169,6 +181,8 @@ export const dashboardApi = {
         return acc;
       }, {} as Record<string, number>);
 
+      console.log('Dashboard API - Internal refinanced by client type:', internalByClientType);
+
       // Calculate external refinanced by client type
       const externalRefinanced = loansData?.filter(l => l.refinanced === 'External') || [];
       const externalByClientType = externalRefinanced.reduce((acc, loan) => {
@@ -177,6 +191,8 @@ export const dashboardApi = {
         acc[clientType] = (acc[clientType] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
+
+      console.log('Dashboard API - External refinanced by client type:', externalByClientType);
 
       // Get at-risk and pending applications from analytics
       const atRiskCount = analyticsData?.reduce((sum, item) => 
@@ -193,7 +209,7 @@ export const dashboardApi = {
         ? (realTimeMetrics.total_repayments_amount / realTimeMetrics.total_principal_amount) * 100
         : 0;
 
-      return {
+      const result = {
         ...realTimeMetrics,
         active_borrowers_count: activeBorrowerIds.size,
         at_risk_loans_count: atRiskCount,
@@ -222,6 +238,9 @@ export const dashboardApi = {
         external_statutory_body: externalByClientType['Statutory Body'] || 0,
         external_private_company: externalByClientType['Private Company'] || 0,
       };
+
+      console.log('Dashboard API - Final metrics:', result);
+      return result;
     } catch (error) {
       console.error('Error fetching dashboard metrics:', error);
       throw error;
