@@ -39,6 +39,18 @@ interface DashboardMetricsProps {
     total_private_company: number;
     refinanced_internal: number;
     refinanced_external: number;
+    active_public_servants_loans: number;
+    active_statutory_body_loans: number;
+    active_private_company_loans: number;
+    settled_public_servants_loans: number;
+    settled_statutory_body_loans: number;
+    settled_private_company_loans: number;
+    internal_public_servants: number;
+    internal_statutory_body: number;
+    internal_private_company: number;
+    external_public_servants: number;
+    external_statutory_body: number;
+    external_private_company: number;
   };
 }
 
@@ -79,23 +91,15 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
   const totalStatutoryBody = metrics.total_statutory_body;
   const totalCompanyClients = metrics.total_private_company;
   
-  // Active loans by client type (proportional distribution based on actual client counts)
-  const totalClientCount = totalPublicServants + totalStatutoryBody + totalCompanyClients;
-  const activePublicServantsLoans = totalClientCount > 0 
-    ? Math.round((totalPublicServants / totalClientCount) * totalOutstandingOpenLoans)
-    : 0;
-  const activeStatutoryBodyLoans = totalClientCount > 0
-    ? Math.round((totalStatutoryBody / totalClientCount) * totalOutstandingOpenLoans)
-    : 0;
-  const activeCompanyLoans = totalOutstandingOpenLoans - activePublicServantsLoans - activeStatutoryBodyLoans;
+  // Active loans by client type - actual counts from API
+  const activePublicServantsLoans = metrics.active_public_servants_loans;
+  const activeStatutoryBodyLoans = metrics.active_statutory_body_loans;
+  const activeCompanyLoans = metrics.active_private_company_loans;
   
-  const settledPublicServantsLoans = totalClientCount > 0
-    ? Math.round((totalPublicServants / totalClientCount) * fullyPaidBorrowers)
-    : 0;
-  const settledStatutoryBodyLoans = totalClientCount > 0
-    ? Math.round((totalStatutoryBody / totalClientCount) * fullyPaidBorrowers)
-    : 0;
-  const settledCompanyLoans = fullyPaidBorrowers - settledPublicServantsLoans - settledStatutoryBodyLoans;
+  // Settled loans by client type - actual counts from API
+  const settledPublicServantsLoans = metrics.settled_public_servants_loans;
+  const settledStatutoryBodyLoans = metrics.settled_statutory_body_loans;
+  const settledCompanyLoans = metrics.settled_private_company_loans;
 
   // Main KPI Cards
   const mainKPIs = [
@@ -263,9 +267,9 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
     {
       title: "Internal Refinanced",
       stats: [
-        { label: "Public Servants", value: Math.round((totalPublicServants / (totalClientCount || 1)) * refinancedInternal).toString() },
-        { label: "Statutory Body", value: Math.round((totalStatutoryBody / (totalClientCount || 1)) * refinancedInternal).toString() },
-        { label: "Company", value: Math.round((totalCompanyClients / (totalClientCount || 1)) * refinancedInternal).toString() }
+        { label: "Public Servants", value: metrics.internal_public_servants.toString() },
+        { label: "Statutory Body", value: metrics.internal_statutory_body.toString() },
+        { label: "Company", value: metrics.internal_private_company.toString() }
       ],
       icon: RefreshCw,
       color: "text-blue-600",
@@ -276,9 +280,9 @@ const DashboardMetrics = ({ metrics }: DashboardMetricsProps) => {
     {
       title: "External Refinanced",
       stats: [
-        { label: "Public Servants", value: Math.round((totalPublicServants / (totalClientCount || 1)) * refinancedExternal).toString() },
-        { label: "Statutory Body", value: Math.round((totalStatutoryBody / (totalClientCount || 1)) * refinancedExternal).toString() },
-        { label: "Company", value: Math.round((totalCompanyClients / (totalClientCount || 1)) * refinancedExternal).toString() }
+        { label: "Public Servants", value: metrics.external_public_servants.toString() },
+        { label: "Statutory Body", value: metrics.external_statutory_body.toString() },
+        { label: "Company", value: metrics.external_private_company.toString() }
       ],
       icon: Building2,
       color: "text-purple-600",

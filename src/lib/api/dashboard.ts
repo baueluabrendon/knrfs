@@ -23,6 +23,22 @@ export interface DashboardMetrics {
   total_private_company: number;
   refinanced_internal: number;
   refinanced_external: number;
+  // Active loans by client type
+  active_public_servants_loans: number;
+  active_statutory_body_loans: number;
+  active_private_company_loans: number;
+  // Settled loans by client type
+  settled_public_servants_loans: number;
+  settled_statutory_body_loans: number;
+  settled_private_company_loans: number;
+  // Internal refinanced by client type
+  internal_public_servants: number;
+  internal_statutory_body: number;
+  internal_private_company: number;
+  // External refinanced by client type
+  external_public_servants: number;
+  external_statutory_body: number;
+  external_private_company: number;
 }
 
 export const dashboardApi = {
@@ -117,6 +133,36 @@ export const dashboardApi = {
         return acc;
       }, {} as Record<string, number>);
 
+      // Calculate active loans by client type
+      const activeLoansByClientType = activeLoans.reduce((acc, loan) => {
+        const clientType = (loan.borrowers as any)?.client_type || 'Unknown';
+        acc[clientType] = (acc[clientType] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      // Calculate settled loans by client type
+      const settledLoansByClientType = settledLoans.reduce((acc, loan) => {
+        const clientType = (loan.borrowers as any)?.client_type || 'Unknown';
+        acc[clientType] = (acc[clientType] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      // Calculate internal refinanced by client type
+      const internalRefinanced = loansData?.filter(l => l.refinanced === 'Internal') || [];
+      const internalByClientType = internalRefinanced.reduce((acc, loan) => {
+        const clientType = (loan.borrowers as any)?.client_type || 'Unknown';
+        acc[clientType] = (acc[clientType] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      // Calculate external refinanced by client type
+      const externalRefinanced = loansData?.filter(l => l.refinanced === 'External') || [];
+      const externalByClientType = externalRefinanced.reduce((acc, loan) => {
+        const clientType = (loan.borrowers as any)?.client_type || 'Unknown';
+        acc[clientType] = (acc[clientType] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
       // Get at-risk and pending applications from analytics
       const atRiskCount = analyticsData?.reduce((sum, item) => 
         sum + (Number(item.at_risk_loans_count) || 0), 0) || 0;
@@ -144,6 +190,22 @@ export const dashboardApi = {
         total_public_servants: clientTypeCounts['Public Service'] || 0,
         total_statutory_body: clientTypeCounts['Statutory Body'] || 0,
         total_private_company: clientTypeCounts['Private Company'] || 0,
+        // Active loans by client type
+        active_public_servants_loans: activeLoansByClientType['Public Service'] || 0,
+        active_statutory_body_loans: activeLoansByClientType['Statutory Body'] || 0,
+        active_private_company_loans: activeLoansByClientType['Private Company'] || 0,
+        // Settled loans by client type
+        settled_public_servants_loans: settledLoansByClientType['Public Service'] || 0,
+        settled_statutory_body_loans: settledLoansByClientType['Statutory Body'] || 0,
+        settled_private_company_loans: settledLoansByClientType['Private Company'] || 0,
+        // Internal refinanced by client type
+        internal_public_servants: internalByClientType['Public Service'] || 0,
+        internal_statutory_body: internalByClientType['Statutory Body'] || 0,
+        internal_private_company: internalByClientType['Private Company'] || 0,
+        // External refinanced by client type
+        external_public_servants: externalByClientType['Public Service'] || 0,
+        external_statutory_body: externalByClientType['Statutory Body'] || 0,
+        external_private_company: externalByClientType['Private Company'] || 0,
       };
     } catch (error) {
       console.error('Error fetching dashboard metrics:', error);
