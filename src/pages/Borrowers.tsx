@@ -82,23 +82,7 @@ const Borrowers = () => {
   const [showAddBorrower, setShowAddBorrower] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
-  const loanHistory: Loan[] = [
-    {
-      id: "L001",
-      amount: 10000,
-      startDate: "2024-01-01",
-      endDate: null,
-      status: 'active'
-    },
-    {
-      id: "L002",
-      amount: 5000,
-      startDate: "2023-06-01",
-      endDate: "2023-12-31",
-      status: 'repaid'
-    }
-  ];
+  const [loanHistory, setLoanHistory] = useState<Loan[]>([]);
 
   const fetchBorrowers = async () => {
     try {
@@ -288,9 +272,38 @@ const Borrowers = () => {
     }
   };
 
-  const handleBorrowerClick = (borrower: Borrower) => {
+  const fetchLoanHistory = async (borrowerId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('loans')
+        .select('loan_id, principal, disbursement_date, settled_date, loan_status')
+        .eq('borrower_id', borrowerId)
+        .order('disbursement_date', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching loan history:', error);
+        toast.error('Failed to fetch loan history');
+        return [];
+      }
+
+      return data.map(loan => ({
+        id: loan.loan_id,
+        amount: loan.principal,
+        startDate: loan.disbursement_date,
+        endDate: loan.settled_date,
+        status: loan.loan_status === 'settled' ? 'repaid' as const : 'active' as const
+      }));
+    } catch (error) {
+      console.error('Error fetching loan history:', error);
+      return [];
+    }
+  };
+
+  const handleBorrowerClick = async (borrower: Borrower) => {
     setSelectedBorrower(borrower);
     setShowBorrowerDetails(true);
+    const history = await fetchLoanHistory(borrower.id);
+    setLoanHistory(history);
   };
 
   const handlePrint = () => {
