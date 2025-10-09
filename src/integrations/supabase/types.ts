@@ -683,6 +683,45 @@ export type Database = {
           },
         ]
       }
+      events: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          last_error: string | null
+          payload: Json | null
+          processed: boolean | null
+          processed_at: string | null
+          ref_id: string | null
+          ref_table: string
+          retry_count: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          last_error?: string | null
+          payload?: Json | null
+          processed?: boolean | null
+          processed_at?: string | null
+          ref_id?: string | null
+          ref_table: string
+          retry_count?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          last_error?: string | null
+          payload?: Json | null
+          processed?: boolean | null
+          processed_at?: string | null
+          ref_id?: string | null
+          ref_table?: string
+          retry_count?: number | null
+        }
+        Relationships: []
+      }
       financial_reports: {
         Row: {
           generated_at: string | null
@@ -1695,6 +1734,19 @@ export type Database = {
       }
     }
     Functions: {
+      check_loan_progress_and_notify: {
+        Args: { p_threshold?: number }
+        Returns: undefined
+      }
+      enqueue_event: {
+        Args: {
+          p_event_type: string
+          p_payload: Json
+          p_ref_id: string
+          p_ref_table: string
+        }
+        Returns: string
+      }
       generate_account_id: {
         Args: { p_account_type: Database["public"]["Enums"]["accounts_enum"] }
         Returns: string
@@ -1772,6 +1824,10 @@ export type Database = {
           p_subject: string
         }
         Returns: string
+      }
+      send_repayment_reminders: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
     }
     Enums: {
