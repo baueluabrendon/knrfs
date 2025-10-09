@@ -128,21 +128,34 @@ export const dashboardApi = {
       ) || [];
 
       const clientTypeCounts = activeBorrowersData.reduce((acc, borrower) => {
-        const type = borrower.client_type || 'Unknown';
+        const dbType = borrower.client_type || 'Unknown';
+        const type = mapClientType(dbType);
         acc[type] = (acc[type] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
 
+      // Map database client_type values to display values
+      const mapClientType = (dbType: string): string => {
+        const mapping: Record<string, string> = {
+          'public': 'Public Service',
+          'statutory': 'Statutory Body',
+          'company': 'Private Company'
+        };
+        return mapping[dbType] || dbType;
+      };
+
       // Calculate active loans by client type
       const activeLoansByClientType = activeLoans.reduce((acc, loan) => {
-        const clientType = (loan.borrowers as any)?.client_type || 'Unknown';
+        const dbClientType = (loan.borrowers as any)?.client_type || 'Unknown';
+        const clientType = mapClientType(dbClientType);
         acc[clientType] = (acc[clientType] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
 
       // Calculate settled loans by client type
       const settledLoansByClientType = settledLoans.reduce((acc, loan) => {
-        const clientType = (loan.borrowers as any)?.client_type || 'Unknown';
+        const dbClientType = (loan.borrowers as any)?.client_type || 'Unknown';
+        const clientType = mapClientType(dbClientType);
         acc[clientType] = (acc[clientType] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
@@ -150,7 +163,8 @@ export const dashboardApi = {
       // Calculate internal refinanced by client type
       const internalRefinanced = loansData?.filter(l => l.refinanced === 'Internal') || [];
       const internalByClientType = internalRefinanced.reduce((acc, loan) => {
-        const clientType = (loan.borrowers as any)?.client_type || 'Unknown';
+        const dbClientType = (loan.borrowers as any)?.client_type || 'Unknown';
+        const clientType = mapClientType(dbClientType);
         acc[clientType] = (acc[clientType] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
@@ -158,7 +172,8 @@ export const dashboardApi = {
       // Calculate external refinanced by client type
       const externalRefinanced = loansData?.filter(l => l.refinanced === 'External') || [];
       const externalByClientType = externalRefinanced.reduce((acc, loan) => {
-        const clientType = (loan.borrowers as any)?.client_type || 'Unknown';
+        const dbClientType = (loan.borrowers as any)?.client_type || 'Unknown';
+        const clientType = mapClientType(dbClientType);
         acc[clientType] = (acc[clientType] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
