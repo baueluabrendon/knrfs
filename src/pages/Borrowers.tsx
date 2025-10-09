@@ -246,6 +246,7 @@ const Borrowers = () => {
         suburb: formData.suburb || null,
         street_name: formData.street_name || null,
         department_company: formData.department_company || null,
+        client_type: formData.client_type || null,
         position: formData.position || null,
         date_employed: formData.date_employed || null,
         work_phone_number: formData.work_phone_number || null,

@@ -31,6 +31,7 @@ const borrowerFormSchema = z.object({
   suburb: z.string().optional(),
   street_name: z.string().optional(),
   department_company: z.string().optional(),
+  client_type: z.string().optional(),
   position: z.string().optional(),
   date_employed: z.string().optional(),
   work_phone_number: z.string().optional(),
@@ -88,6 +89,7 @@ const BorrowerForm = ({ onSubmit, onCancel }: BorrowerFormProps) => {
       province: "",
       postal_address: "",
       department_company: "",
+      client_type: "",
       position: "",
       date_employed: "",
       work_phone_number: "",
@@ -293,6 +295,29 @@ const BorrowerForm = ({ onSubmit, onCancel }: BorrowerFormProps) => {
                   <FormLabel>Department/Company</FormLabel>
                   <FormControl>
                     <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="client_type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Client Type</FormLabel>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select client type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="public">Public Service</SelectItem>
+                        <SelectItem value="statutory">Statutory Body</SelectItem>
+                        <SelectItem value="private">Private Company</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
