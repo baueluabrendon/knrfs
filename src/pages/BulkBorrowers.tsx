@@ -34,6 +34,7 @@ interface CSVBorrower {
   suburb: string;
   street_name: string;
   department_company: string;
+  client_type: string;
   position: string;
   date_employed: string;
   work_phone_number: string;
@@ -124,6 +125,7 @@ const BulkBorrowers = () => {
             province: row.province || "",
             nationality: row.nationality || "",
             department_company: row.department_company || "",
+            client_type: row.client_type || "",
             file_number: row.file_number || "",
             position: row.position || "",
             postal_address: row.postal_address || "",
@@ -198,6 +200,7 @@ const BulkBorrowers = () => {
           suburb: borrower.suburb || null,
           street_name: borrower.street_name || null,
           department_company: borrower.department_company || null,
+          client_type: borrower.client_type || null,
           position: borrower.position || null,
           date_employed: borrower.date_employed || null,
           work_phone_number: borrower.work_phone_number || null,
@@ -261,7 +264,7 @@ const BulkBorrowers = () => {
   };
 
   const downloadTemplateCSV = () => {
-    const headers = "surname,given_name,date_of_birth,gender,mobile_number,email,branch_name,village,district,province,nationality,department_company,file_number,position,postal_address,work_phone_number,fax,date_employed,paymaster,lot,section,suburb,street_name,marital_status,spouse_last_name,spouse_first_name,spouse_employer_name,spouse_contact_details,bank,bank_branch,bsb_code,account_name,account_number,account_type";
+    const headers = "surname,given_name,date_of_birth,gender,mobile_number,email,branch_name,village,district,province,nationality,department_company,client_type,file_number,position,postal_address,work_phone_number,fax,date_employed,paymaster,lot,section,suburb,street_name,marital_status,spouse_last_name,spouse_first_name,spouse_employer_name,spouse_contact_details,bank,bank_branch,bsb_code,account_name,account_number,account_type";
     const csvContent = `${headers}\n`;
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -286,7 +289,7 @@ const BulkBorrowers = () => {
         <div className="space-y-4">
           <div className="flex flex-col space-y-2">
             <p className="text-muted-foreground mb-2">
-              Upload a CSV file with the following columns: Surname, Given Name, Date of Birth, Gender, Mobile Number, Email, Branch Name, Village, District, Province, Nationality, Department/Company, File Number, Position, Postal Address, Work Phone Number, Fax, Date Employed, Paymaster, Lot, Section, Suburb, Street Name, Marital Status, Spouse Last Name, Spouse First Name, Spouse Employer Name, Spouse Contact Details, Bank, Bank Branch, BSB Code, Account Name, Account Number, Account Type
+              Upload a CSV file with the following columns: Surname, Given Name, Date of Birth, Gender, Mobile Number, Email, Branch Name, Village, District, Province, Nationality, Department/Company, Client Type, File Number, Position, Postal Address, Work Phone Number, Fax, Date Employed, Paymaster, Lot, Section, Suburb, Street Name, Marital Status, Spouse Last Name, Spouse First Name, Spouse Employer Name, Spouse Contact Details, Bank, Bank Branch, BSB Code, Account Name, Account Number, Account Type
             </p>
             <div className="flex items-center space-x-4">
               <div className="relative">
@@ -342,6 +345,7 @@ const BulkBorrowers = () => {
                       <TableHead>Province</TableHead>
                       <TableHead>Nationality</TableHead>
                       <TableHead>Department/Company</TableHead>
+                      <TableHead>Client Type</TableHead>
                       <TableHead>File Number</TableHead>
                       <TableHead>Position</TableHead>
                       <TableHead>Postal Address</TableHead>
@@ -382,6 +386,7 @@ const BulkBorrowers = () => {
                         <TableCell>{borrower.province}</TableCell>
                         <TableCell>{borrower.nationality}</TableCell>
                         <TableCell>{borrower.department_company}</TableCell>
+                        <TableCell>{borrower.client_type}</TableCell>
                         <TableCell>{borrower.file_number}</TableCell>
                         <TableCell>{borrower.position}</TableCell>
                         <TableCell>{borrower.postal_address}</TableCell>
