@@ -122,6 +122,17 @@ export const dashboardApi = {
 
       const { data: allBorrowers } = await borrowersQuery;
       
+      // Map database client_type values to display values
+      const mapClientType = (dbType: string): string => {
+        const mapping: Record<string, string> = {
+          'public': 'Public Service',
+          'statutory': 'Statutory Body',
+          'company': 'Private Company'
+        };
+        console.log('Dashboard API - Mapping client type:', dbType, '->', mapping[dbType] || dbType);
+        return mapping[dbType] || dbType;
+      };
+      
       // Filter to only count active borrowers
       const activeBorrowersData = allBorrowers?.filter(b => 
         activeBorrowerIds.has(b.borrower_id)
@@ -135,17 +146,6 @@ export const dashboardApi = {
       }, {} as Record<string, number>);
 
       console.log('Dashboard API - Active borrowers by client type:', clientTypeCounts);
-
-      // Map database client_type values to display values
-      const mapClientType = (dbType: string): string => {
-        const mapping: Record<string, string> = {
-          'public': 'Public Service',
-          'statutory': 'Statutory Body',
-          'company': 'Private Company'
-        };
-        console.log('Dashboard API - Mapping client type:', dbType, '->', mapping[dbType] || dbType);
-        return mapping[dbType] || dbType;
-      };
 
       console.log('Dashboard API - Active loans data:', activeLoans.map(l => ({
         loan_status: l.loan_status,
