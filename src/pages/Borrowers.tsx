@@ -165,7 +165,7 @@ const Borrowers = () => {
         spouseFirstName: b.spouse_first_name,
         spouseEmployerName: b.spouse_employer_name,
         spouseContactDetails: b.spouse_contact_details,
-        employerBranch: b.branches?.branch_name,
+        employerBranch: (b as any).employer_branch,
         bank: b.bank,
         bankBranch: b.bank_branch,
         bsbCode: b.bsb_code,
