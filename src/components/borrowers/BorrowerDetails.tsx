@@ -49,13 +49,14 @@ interface Borrower {
   spouseFirstName?: string;
   spouseEmployerName?: string;
   spouseContactDetails?: string;
-  companyBranch?: string;
+  employerBranch?: string;
   bank?: string;
   bankBranch?: string;
   bsbCode?: string;
   accountName?: string;
   accountNumber?: string;
   accountType?: string;
+  clientType?: string;
 }
 
 interface BorrowerDetailsProps {
@@ -204,8 +205,12 @@ const BorrowerDetails = ({
               <div className="mt-1">{borrower.paymaster || "Not provided"}</div>
             </div>
             <div>
-              <Label>Company Branch</Label>
-              <div className="mt-1">{borrower.companyBranch || "Not provided"}</div>
+              <Label>Employer Branch</Label>
+              <div className="mt-1">{borrower.employerBranch || "Not provided"}</div>
+            </div>
+            <div>
+              <Label>Client Type</Label>
+              <div className="mt-1">{borrower.clientType || "Not provided"}</div>
             </div>
           </div>
 

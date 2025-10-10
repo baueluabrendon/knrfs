@@ -63,6 +63,7 @@ interface Borrower {
   accountName?: string | null;
   accountNumber?: string | null;
   accountType?: string | null;
+  clientType?: string | null;
 }
 
 interface Loan {
@@ -170,7 +171,8 @@ const Borrowers = () => {
         bsbCode: b.bsb_code,
         accountName: b.account_name,
         accountNumber: b.account_number,
-        accountType: b.account_type
+        accountType: b.account_type,
+        clientType: b.client_type
       }));
 
       setBorrowers(mappedBorrowers);
